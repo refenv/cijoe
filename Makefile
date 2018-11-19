@@ -24,6 +24,11 @@ bump:
 	@sed -i -e s/"^VERSION_PATCH = .*"/"VERSION_PATCH = ${NEXT_VERSION_PATCH}"/g modules/cij/__init__.py
 	@sed -i -e s/"version=\".*\""/"version=\"${NEXT_VERSION}\""/g setup.py
 
+.PHONY: clean
+clean:
+	rm -r build
+	rm -r dist
+
 .PHONY: release-build
 release-build:
 	python setup.py sdist
