@@ -33,6 +33,6 @@ release-build:
 release-upload:
 	twine upload dist/*
 
-.PHONY: release-build release-upload
-release:
-	echo "# Do something"
+.PHONY: release
+release: release-build release-upload
+	@echo "# DONE"
