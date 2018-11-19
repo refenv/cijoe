@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Outputs the best guess at CIJ_ROOT
+#
+
+CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")"; pwd)")
+
+if [[ -f "$CIJ_ROOT/modules/cijoe.sh" ]]; then
+	CIJ_TYPE="reposrun"
+elif [[ -f "$CIJ_ROOT/share/cijoe/modules/cijoe.sh" ]]; then
+	CIJ_TYPE="sysinstall"
+	CIJ_ROOT=$CIJ_ROOT/share/cijoe
+fi
+
+if [[ ! -d "$CIJ_ROOT" || "$CIJ_TYPE" == "unknown" ]]; then
+	exit
+fi
+
+echo $CIJ_ROOT
