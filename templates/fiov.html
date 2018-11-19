@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>fio - log visualizer</title>
+
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+	crossorigin="anonymous">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"
+	crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.8.3/jquery.csv.js"></script>
+	
+<script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<style>
+button {
+	min-width: 100px
+}
+</style>
+</head>
+
+<body>
+
+<div id="matrix" class="container-fluid">
+
+	<hr>
+
+	<div class="row" id="data_source">
+		<div class="col-md-12">
+		<form class="form">
+			<div class="input-group">
+				<span class="input-group-addon" id="btnGroupAddon">Data source</span>
+				<input class="form-control form-control-inline"
+					type="text"
+					placeholder="Type data source url here, e.g. http://dojo/results/fio/twinja01/helen/10052017"
+					aria-describedby="btnGroupAddon">
+			</div>
+		</form>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row" id="task_name">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>TASK</button>
+				<button type="button" class="btn btn-primary">RUN</button>
+				<button type="button" class="btn btn-primary">CND</button>
+				<button type="button" class="btn btn-primary">CND2</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="row" id="readwrite">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>RW</button>
+				<label class="checkbox-inline"><input type="checkbox" value="write" checked="checked">write</label>
+				<label class="checkbox-inline"><input type="checkbox" value="randwrite" checked="checked">randwrite</label>
+				<label class="checkbox-inline"><input type="checkbox" value="rw" checked="checked">rw</label>
+				<label class="checkbox-inline"><input type="checkbox" value="read" checked="checked">read</label>
+				<label class="checkbox-inline"><input type="checkbox" value="randread" checked="checked">randread</label>
+				<label class="checkbox-inline"><input type="checkbox" value="randrw" checked="checked">randrw</label>
+			</div>
+		</div>
+	</div>
+
+	<div class="row justify-content-between" id="log_type">
+		<div class="col-md-10">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>Log Type</button>
+				<button type="button" class="btn btn-primary">bw</button>
+				<button type="button" class="btn btn-primary">iops</button>
+				<button type="button" class="btn btn-primary">lat</button>
+				<button type="button" class="btn btn-primary">clat</button>
+				<button type="button" class="btn btn-primary">slat</button>
+			</div>
+		</div>
+		<div class="col-md-2">
+			<form class="form" id="ranges">
+			<div class="input-group">
+				<span class="input-group-addon" id="btnGroupAddon">Y</span>
+				<input class="form-control form-control-inline" type="text"  placeholder="Input group example" aria-describedby="btnGroupAddon" id="y_max">
+			</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="row" id="io_depth">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>IO Depth</button>
+				<button type="button" class="btn btn-primary">1</button>
+				<button type="button" class="btn btn-primary">2</button>
+				<button type="button" class="btn btn-primary">4</button>
+				<button type="button" class="btn btn-primary">8</button>
+				<button type="button" class="btn btn-primary">16</button>
+				<button type="button" class="btn btn-primary">32</button>
+				<button type="button" class="btn btn-primary">64</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="row" id="block_size">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>Block Size</button>
+				<button type="button" class="btn btn-primary">4</button>
+				<button type="button" class="btn btn-primary">8</button>
+				<button type="button" class="btn btn-primary">16</button>
+				<button type="button" class="btn btn-primary">32</button>
+				<button type="button" class="btn btn-primary">64</button>
+				<button type="button" class="btn btn-primary">128</button>
+				<button type="button" class="btn btn-primary">256</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="row" id="job_nr">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>Job Nr.</button>
+				<button type="button" class="btn btn-primary">1</button>
+				<button type="button" class="btn btn-primary">2</button>
+				<button type="button" class="btn btn-primary">3</button>
+				<button type="button" class="btn btn-primary">4</button>
+			</div>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row" id="render">
+		<div class="col-md-12">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-info" disabled>Render</button>
+				<button type="button" class="btn btn-primary">plots</button>
+				<button type="button" class="btn btn-primary">raw_logs</button>
+				<button type="button" class="btn btn-primary">fio</button>
+			</div>
+		</div>
+	</div>
+
+	<hr>
+
+	<div class="row" id="plots">PLOTS GOES HERE</div>
+
+</div> <!-- /container -->
+
+	<script>
+
+	function qs(key) {
+		key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&");
+		var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
+		return match && decodeURIComponent(match[1].replace(/\+/g, " "));
+	}
+
+	var data_source = qs("ds") ? qs("ds") : "./";
+
+	$("#data_source input").val(data_source);
+
+	var ranges = {
+		"bw": {"range": [0, 4600]},
+		"iops": {"range": [0, 35000]},
+		"lat": {"range": [0, 5000]},
+		"clat": {"range": [0, 5000]},
+		"slat": {"range": [0, 5000]},
+		"fio": {"range": [0, 5000]},
+	};
+
+	var yaxis_labels = {
+		"bw": "I/O Bandwidth in MB/s",
+		"iops": "IOPS",
+		"lat": "I/O Latency in us",
+		"clat": "I/O Latency in us",
+		"slat": "I/O Latency in us"
+	};
+
+	var dsets = {
+		"CND": {
+			"readwrites": ["write"],
+			"log_types": ["bw", "iops", "lat", "clat", "slat"],
+			"io_depths":[64],
+			"block_sizes": [256],
+			"job_nrs": [1],
+			"renders": ["plots", "raw_logs", "fio"]
+		},
+		"CND2": {
+			"readwrites": ["write"],
+			"log_types": ["bw", "iops", "lat", "clat", "slat"],
+			"io_depths":[64],
+			"block_sizes": [256],
+			"job_nrs": [1],
+			"renders": ["plots", "raw_logs", "fio"]
+		},
+		"RUN": {
+			"readwrites": ["write", "randwrite", "rw", "read", "randread", "randrw"],
+			"log_types": ["bw", "iops", "lat", "clat", "slat"],
+			"io_depths": [1, 2, 4, 8, 16, 32, 64],
+			"block_sizes": [4, 8, 16, 32, 64, 128, 256],
+			"job_nrs": [1],
+			"renders": ["plots", "raw_logs", "fio"]
+		},
+	};
+
+	// Extract this from the datasets
+	var task_names = ["RUN", "CND"];
+	var default_task = task_names[0];
+
+	var selection;
+
+	function selection_init(datasets, task) {
+		selection = {
+			"task_name": task,
+			"readwrite": datasets[task]["readwrites"],
+			"log_type": datasets[task]["log_types"][0],
+			"io_depth": datasets[task]["io_depths"][0],
+			"block_size": datasets[task]["block_sizes"][0],
+			"job_nr": datasets[task]["job_nrs"][0],
+			"render": datasets[task]["renders"][0]
+		};
+
+		$("#task_name :button").each(function() {
+			$(this).toggleClass("active", $(this).text() == selection["task_name"]);
+		});
+
+		// Set state of readwrite checkboxes
+		$('#readwrite :checkbox').each(function() {
+			var dset = dsets[selection["task_name"]];
+		  
+			var disabled = true;
+			for (var i = 0; i < dset["readwrites"].length; ++i) {
+				if (dset["readwrites"][i] == $(this).val()) {
+					disabled = false;
+					break;
+				}
+			}
+
+			$(this).prop("disabled", disabled);
+			$(this).prop("checked", !disabled);
+		});
+
+		// Set state of areas
+		var areas = ["log_type", "io_depth", "block_size", "job_nr", "render"];
+		areas.forEach(function(area) {
+
+			$("#"+area+" :button").each(function() {
+				var dset = dsets[selection["task_name"]];
+
+				var value = $(this).text();
+				var active = (value == selection[area]);
+				var disabled = true;
+
+				for (var i = 0; i < dset[area+"s"].length; ++i) {
+					if (value == dset[area+"s"][i]) {
+						disabled = false;
+						break;
+					}
+				}
+
+				$(this).prop("disabled", disabled);
+				$(this).toggleClass("active", active);
+			});
+
+		});
+
+	}
+
+	function parse_fio_csv(raw, rate_div) {
+		var aos = $.csv.toArrays(raw);
+
+		var traces = {
+			"write": {
+				"time": [],
+				"rate": [],
+				"min": Number.MAX_SAFE_INTEGER,
+				"max": 0,
+				"avg": 0,
+				"sum": 0
+			},
+			"read": {
+				"time": [],
+				"rate": [],
+				"min": Number.MAX_SAFE_INTEGER,
+				"max": 0,
+				"avg": 0,
+				"sum": 0
+			}
+		}
+
+		// FIO FORMAT: time, rate/latency, direction, block size
+		// DIRECTION: {0: read, 1: write}
+		for(var i = 0; i < aos.length; ++i) {
+			var ftime = (+aos[i][0]) / 1000; // Convert to seconds
+			var frate = rate_div ? (+aos[i][1]) / rate_div : (+aos[i][1]);
+			var fdir = (+aos[i][2]) ? "write" : "read";
+
+			traces[fdir]["time"].push(ftime);
+			traces[fdir]["rate"].push(frate);
+
+			if (frate < traces[fdir]["min"]) {
+				traces[fdir]["min"] = frate;
+			}
+			if (frate > traces[fdir]["max"]) {
+				traces[fdir]["max"] = frate;
+			}
+
+			traces[fdir]["sum"] += frate;
+		}
+
+		if (traces["write"]["rate"].length) {
+			traces["write"]["avg"] = traces["write"]["sum"] / traces["write"]["rate"].length;
+		}
+		if (traces["read"]["rate"].length) {
+			traces["read"]["avg"] = traces["read"]["sum"] / traces["read"]["rate"].length;
+		}
+
+		return traces;
+	}
+
+	function render_plot(task_name, readwrite, io_depth, bs, log_type, jobnr) {
+
+		var ds_url = data_source +"/"+ task_name +"_"+ readwrite +"_iod"+ io_depth+"_bs"+ bs +"k_"+ log_type +"."+ jobnr +".log";
+
+		$.ajax({
+			type: "GET",
+			url: ds_url,
+			dataType: "text",
+			error: function handleError() {
+				var graphDiv = $("#" + readwrite);
+				graphDiv.text("Failed retrieving data");
+				$("#"+readwrite).append(graphDiv);
+			},
+			success: function processData(raw) {
+
+				var traces = log_type == "bw" ? parse_fio_csv(raw, 1000) : parse_fio_csv(raw);
+
+				var has_read = traces["read"]["rate"] > 0;
+				var has_write = traces["write"]["rate"] > 0;
+
+				var plotDiv = document.getElementById("plot");
+				var plot_traces = [
+					{
+						x: traces["write"]["time"],
+						y: traces["write"]["rate"],
+						name: "write "+ traces["write"]["min"].toFixed(2) +" < "+
+								traces["write"]["avg"].toFixed(2) +" < "+
+								traces["write"]["max"].toFixed(2),
+						name: "write"
+					},
+					{
+						x: traces["read"]["time"],
+						y: traces["read"]["rate"],
+						name: "read "+  traces["read"]["min"].toFixed(2) +" < "+
+								traces["read"]["avg"].toFixed(2) +" < "+
+								traces["read"]["max"].toFixed(2),
+						name: "read"
+					}
+				];
+
+				var plot_title = "<br>"+readwrite+": { io_depth: "+ io_depth +",block_size: "+ bs +"k }";
+
+				var xrange = [0, traces["write"]["max"]]
+
+				var layout = {
+					font: {
+						family: 'Courier New, monospace',
+						size: 8
+					},
+					margin: {l: 40, r: 25, b: 0, t: 25, pad: 0},
+					yaxis: { title: yaxis_labels[log_type], range: [0, +$("#y_max").val()]},
+					xaxis: { title: "Seconds" },
+					title: plot_title,
+					legend: {orientation: "h"},
+					showlegend: true
+				};
+
+				Plotly.newPlot(readwrite, plot_traces, layout, {autosizable: true});
+		}});
+	}
+
+	function render_raw_logs(task_name, readwrite, io_depth, bs, log_type, jobnr) {
+
+		var ds_url = data_source +"/"+ task_name +"_"+ readwrite +"_iod"+ io_depth+"_bs"+ bs +"k_"+ log_type +"."+ jobnr +".log";
+
+		$.ajax({
+			type: "GET",
+			url: ds_url,
+			dataType: "text",
+			success: function processData(raw) {
+
+				var fioOut = $('<pre />');
+				fioOut.text(raw);
+
+				var graphDiv = $("#" + readwrite);
+				graphDiv.append(readwrite);
+				graphDiv.append(fioOut);
+				$("#plots").append(graphDiv);
+		}});
+	}
+
+	function render_fio(task_name, readwrite, io_depth, bs, log_type, jobnr) {
+
+		var ds_url = data_source +"/"+ task_name +"_"+ readwrite +"_iod"+ io_depth+"_bs"+ bs +"k_fio.log";
+
+		$.ajax({
+			type: "GET",
+			url: ds_url,
+			dataType: "text",
+			success: function processData(raw) {
+
+				var fioOut = $('<pre />');
+				fioOut.text(raw);
+
+				var graphDiv = $("#" + readwrite);
+				graphDiv.append(readwrite);
+				graphDiv.append(fioOut);
+				$("#plots").append(graphDiv);
+		}});
+	}
+
+	function plots_reload() {
+
+		$("#plots").empty();
+
+		if (selection["render"] == "plots") {
+			selection["readwrite"].forEach(function(readwrite) {
+				var graphDiv = $('<div />', {
+					"class": "col-md-2",
+					"id": readwrite,
+                    "style": "width: 375px; height: 300px;"
+				});
+				$("#plots").append(graphDiv);
+
+				render_plot(
+					selection["task_name"],
+					readwrite,
+					selection["io_depth"],
+					selection["block_size"],
+					selection["log_type"],
+					selection["job_nr"]
+				);
+			});
+		} else if (selection["render"] == "raw_logs") {
+			selection["readwrite"].forEach(function(readwrite) {
+				var graphDiv = $('<div />', {
+					"class": "col-md-2",
+					"id": readwrite,
+				});
+				$("#plots").append(graphDiv);
+
+				render_raw_logs(
+					selection["task_name"],
+					readwrite,
+					selection["io_depth"],
+					selection["block_size"],
+					selection["log_type"],
+					selection["job_nr"]
+				);
+			});
+		} else {
+			selection["readwrite"].forEach(function(readwrite) {
+				var graphDiv = $('<div />', {
+					"class": "col-md-12",
+					"id": readwrite,
+				});
+				$("#plots").append(graphDiv);
+
+				render_fio(
+					selection["task_name"],
+					readwrite,
+					selection["io_depth"],
+					selection["block_size"],
+					selection["log_type"],
+					selection["job_nr"]
+				);
+			});
+		}
+	}
+
+	$(document).ready(function () {
+
+		selection_init(dsets, "RUN");
+
+		$("#data_source form").submit(function(event) {
+			event.preventDefault();
+
+			data_source = $("#data_source input").val();
+
+			plots_reload();
+		});
+
+		$('#task_name button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+
+			selection_init(dsets, $(this).text());
+
+			plots_reload();
+		});
+
+		$('#readwrite :checkbox').change(function() {
+
+			var checked = [];
+
+			$('#readwrite :checkbox:checked').each(function() {
+				checked.push($(this).val());
+			});
+
+			selection["readwrite"] = checked;
+
+			plots_reload();
+		});
+
+		$('#log_type button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+
+			selection["log_type"] = $(this).text();
+
+			$("#y_max").val(ranges[selection["log_type"]]["range"][1]);
+			plots_reload();
+		});
+
+		$('#io_depth button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+
+			selection["io_depth"] = +$(this).text();
+
+			plots_reload();
+		});
+
+		$('#block_size button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+			
+			selection["block_size"] = +$(this).text();
+
+			plots_reload();
+		});
+
+		$('#job_nr button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+			
+			selection["job_nr"] = +$(this).text();
+
+			plots_reload();
+		});
+
+		$('#render button').click(function() {
+			$(this).addClass('active').siblings().removeClass('active');
+			
+			selection["render"] = $(this).text();
+
+			plots_reload();
+		});
+
+		$("#ranges").submit(function(event) {
+			event.preventDefault();
+
+			ranges[selection["log_type"]]["range"][1] = +$("#y_max").val();
+
+			plots_reload();
+		});
+
+		$("#y_max").val(ranges["bw"]["range"][1]);
+
+		data_source = $("#data_source input").val();
+		plots_reload();
+	});
+
+	</script>
+<hr>
+	<p>
+	When using <b>data source</b> with local files, start Chrome with: <code>google-chrome --allow-file-access-from-files</code>
+	And provide a <b>data source</b> absolute path: <code>file:///tmp/dataset</code> or a relative path: <code>./10052017</code>
+	</p>
+</body>
+</html>

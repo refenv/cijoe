@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<!-- Highlight JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-dark.min.css">
+<title>Report: Testcases</title>
+
+<style>
+.jumbotron-fluid {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.jumbotron:last-of-type {
+  margin-bottom: 0;
+}
+
+.jumbotron:last-of-type p {
+  margin-bottom: 0;
+}
+
+.jumbotron .btn-group {
+  top: 1.5rem;
+}
+
+.btn-primary {
+  border-color: #0062cc;
+}
+
+.ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+
+.list-testcases .list-group-item {
+  padding: 0.1rem;
+}
+
+.runlog pre {
+  background-color: white;
+  background-opacity: 0.9;
+}
+
+</style>
+</head>
+<body>
+
+<!--
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Report</h1>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card mb-3">
+    <div class="card-header">
+
+      <ul class="nav nav-tabs card-header-tabs">
+        <li class="nav-item">
+          <a class="nav-link active show" href="#SUMMARY" data-toggle="tab">
+            <b>Summary</b>
+          </a>
+        </li>
+      </ul>
+
+    </div>
+
+    <div class="tab-content">
+
+      <div class="tab-pane active" id="SUMMARY">
+        <div class="card-body">
+          <p class="card-text">
+          Provide useful statistics and aggregate information here
+          </p>
+        </div>
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+-->
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Testcases</h1>
+    </div>
+</div>
+
+<div class="container" id="testcases">
+
+<div class="card mb-3">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      {% set count = 0 %}
+      {% for group_name in dset.group_names %}
+      {% set css = "" if count else "active show" %}
+      {% set count = count + 1 %}
+      <li class="nav-item">
+        <a class="nav-link {{ css }}" href="#GROUPS_{{ group_name }}" data-toggle="tab">
+          <b>{{ group_name }}</b>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="tab-content">
+  {% set count = 0 %}
+  {% for group_name in dset.group_names %}
+  {% set css = "" if count else "active show" %}
+  {% set count = count + 1 %}
+
+    <div class="tab-pane {{ css }}" id="GROUPS_{{ group_name }}">
+      <ul class="list-group list-testcases">
+        <!-- TCASE-BGN -->
+        {% for tcase in dset[group_name] %}
+        {% set ident = group_name + "_" + tcase.name %}
+        <li class="list-group-item list-group-item-secondary">
+          <button class="btn btn-secondary" type="button" disabled="disabled">
+            <span style="font-family: monospace;">{{ tcase.name }}</span>
+          </button>
+          <div class="btn-group float-right" role="group">
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#DESCR_{{ ident }}"
+                                                                    aria-controls="DESCR_{{ ident }}"
+                                                                    aria-expanded="false" >DESCR</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#SRC_{{ ident }}"
+                                                                    aria-controls="SRC_{{ ident }}"
+                                                                    aria-expanded="false" >SRC</button>
+          </div>
+
+          <div class="collapse" id="DESCR_{{ ident }}" data-parent="#testcases">
+            <h5 class="m-2">{{ tcase.descr if tcase.descr else "UNDOCUMENTED" }}</h5>
+            <pre><code class="nohighlight">{{ tcase.descr_long if tcase.descr_long else "UNDOCUMENTED" }}</code></pre>
+          </div>
+
+          <div class="collapse" id="SRC_{{ ident }}" data-parent="#testcases">
+            <p class="m-2">Source code for the testcase definition</p>
+            <pre><code class="bash">{{ tcase.src_content }}</code></pre>
+          </div>
+
+        </li>
+        {% endfor %}
+        <!-- TCASE-END -->
+      </ul>
+    </div>
+    <!-- TESTCASES-END -->
+
+  {% endfor %}
+  </div>
+
+  <div class="card-footer text-muted">&nbsp;</div>
+</div>
+<hr>
+
+</div>
+<!--
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">EOL</h1>
+    <p class="lead">In the presence of failure, recall, this too shall pass</p>
+  </div>
+</div>
+-->
+<!-- jQuery first, then Popper.js, then Bootstrap JS, then highlight.js -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
+        integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"
+        integrity="sha256-fTZir3QtRzPrhH5KyHm/0hsQqTDswmqYFhXOPN05ulw="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/python.min.js"
+        integrity="sha256-MRn7pN9LOBMrkp+8F2t5xb/92V1irzXp/dl5tUTwEgE="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/markdown.min.js"
+        integrity="sha256-QisUfMmh1ba2V0Kn8uxkMS1ShgsY1LyhrVNmit2llf4="
+        crossorigin="anonymous"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+modules/cijoe.egg-info
+build
+dist
 .cache
 __pycache__
 *.img

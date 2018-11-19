@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+DEVICES=$(sudo ls /dev/ | grep nvme.n.)
+
+for DEV in $DEVICES; do
+	DEV_PATH="/dev/$DEV"
+	echo "dev: $DEV_PATH"
+	sudo chmod 777 $DEV_PATH
+	sudo nvm_dev info $DEV_PATH -b
+done

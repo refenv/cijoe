@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+"""
+    config_add_opts - Merge Linux kernel .config options
+"""
+import argparse
+
+def main(args):
+    """Main entry-point of config_add_opts"""
+
+    with open(args.cfg_fn, 'r') as cfg_fd:
+        config = cfg_fd.read().split("\n")
+
+    with open(args.opt_fn, 'r') as opt_df:
+        for line in opt_df:
+            option, value = line.strip().split("=")
+
+            conf_addition = "%s=%s" % (option, value)
+            added = False
+            for line_nr, line in enumerate(config):
+                if "# %s is not set" % option in line or "%s=" % option in line:
+                    config[line_nr] = conf_addition
+                    added = True
+                    break
+
+            if not added:
+                config.append(conf_addition)
+
+    with open(args.cfg_fn, 'w') as cfg_fd:
+        cfg_fd.write("\n".join(config))
+
+if __name__ == "__main__":
+    PRSR = argparse.ArgumentParser(description='Replace options in .config')
+    PRSR.add_argument('cfg_fn', type=str, help='Path to .config file')
+    PRSR.add_argument('opt_fn', type=str, help='Path to option-file')
+
+    ARGS = PRSR.parse_args()
+
+    main(ARGS)

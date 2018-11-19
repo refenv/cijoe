@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+"""
+    CIJOE Test Runner
+"""
+import argparse
+import uuid
+import sys
+import os
+import cij.runner
+import cij.util
+import cij
+
+if __name__ == "__main__":
+    CIJ_PREFIX = "CIJ"
+    CIJ_PATHS = [
+        "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
+        "HOOKS", "TEST_RES_ROOT"
+    ]
+    CIJ_VARS = CIJ_PATHS
+    CIJ = {v: os.environ.get("_".join([CIJ_PREFIX, v])) for v in CIJ_VARS}
+
+    for ENV in (E for E in CIJ.keys() if E[:len(CIJ_PREFIX)] in CIJ_PATHS):
+        CIJ[ENV] = cij.util.expand_path(CIJ[ENV])
+        if not os.path.exists(CIJ[ENV]):
+            cij.err("CIJ_%s: %r, does not exist" % (ENV, CIJ[ENV]))
+
+    TEST_RES_ROOT = CIJ["TEST_RES_ROOT"] if CIJ["TEST_RES_ROOT"] else "/tmp"
+
+    DEFAULT_OUTPUT = os.sep.join([
+        TEST_RES_ROOT,
+        "trun-%s" % str(uuid.uuid4())[:8]
+    ])
+
+    # Parse the Command-Line
+    PRSR = argparse.ArgumentParser(
+        description="cij_runner - CIJOE Test Runner",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    PRSR.add_argument(
+        "--testplan",
+        help="Path to the testplan to run",
+        required=True
+    )
+    PRSR.add_argument(
+        "--env",
+        help="Path to the environment definition",
+        required=True
+    )
+    PRSR.add_argument(
+        "--output",
+        help="Path to directory in which to store runner output",
+        default=DEFAULT_OUTPUT
+    )
+    PRSR.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
+
+    ARGS = PRSR.parse_args()
+
+    # Setup path to testplan
+    ARGS.testplan_fpath = cij.util.expand_path(ARGS.testplan)
+    if not os.path.exists(ARGS.testplan_fpath):
+        cij.err("testplan_fpath: %r, does not exist" % ARGS.testplan_fpath)
+        sys.exit(1)
+    ARGS.testplan_fname = os.path.basename(ARGS.testplan_fpath)
+    ARGS.testplan_name = ".".join(ARGS.testplan_fname.split(".")[:-1])
+
+    # Setup path to env script
+    ARGS.env_fpath = cij.util.expand_path(ARGS.env)
+    if not os.path.exists(ARGS.env_fpath):
+        cij.err("env_fpath: %r, does not exist" % ARGS.env_fpath)
+        sys.exit(1)
+    ARGS.env_fname = os.path.basename(ARGS.env_fpath)
+    ARGS.env_name = ".".join(ARGS.env_fname.split(".")[:-1])
+
+    ARGS.output = cij.util.expand_path(ARGS.output)
+    if not os.path.exists(ARGS.output):
+        try:
+            os.makedirs(ARGS.output)
+        except OSError as exc:
+            cij.err("rnr: FAILED: makedirs output: %r, exc: %r" % (
+                ARGS.output, exc
+            ))
+            sys.exit(1)
+
+    cij.warn("rnr: { output: %r }" % ARGS.output)
+    RCODE = cij.runner.main(ARGS, CIJ)
+    if RCODE:
+        cij.err("rnr: RCODE: %r" % RCODE)
+
+    cij.warn("rnr: { output: %r }" % ARGS.output)
+    sys.exit(RCODE)

@@ -1,0 +1,285 @@
+#!/usr/bin/env python
+"""
+    CIJOE Test Linter
+
+    Runs through CIJOE testsuites and testcases looking for common mistakes
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+import yaml
+import cij
+
+EXTS = {
+    "TPLAN": [".plan"],
+    "TSUITE": [".suite"],
+    "TCASE": [".py", ".sh"],
+}
+
+def _index(search_path, ext=None):
+    """@returns a set of testcases in the given search_path"""
+
+    if ext is None:
+        ext = "TCASE"
+
+    tcases = set([])
+    for _, _, files in os.walk(search_path):
+        for tc_fname in files:
+            if os.path.splitext(tc_fname)[-1] in EXTS[ext]:
+                tcases.add(tc_fname)
+
+    return tcases
+
+def tsuite_testcases_exists(ident, args):
+    """
+    @returns list of violation messages for this check
+    """
+
+    violations = []
+    tcases = _index(args.testcases_root, "TCASE")
+    tsuites = _index(args.testsuites_root, "TSUITE")
+
+    for ts_fname in tsuites:
+        ts_fpath = os.sep.join([args.testsuites_root, ts_fname])
+        ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
+        ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
+
+        for tc_fname in ts_lines:
+            if tc_fname in tcases:
+                continue
+
+            violations.append(MESSAGES[ident] % (tc_fname, ts_fpath))
+
+    return violations
+
+def testcase_unused(ident, args):
+    """
+    @returns list of violation messages for this check
+    """
+
+    tcases_in_use = set([])
+
+    violations = []
+    tsuites = _index(args.testsuites_root, "TSUITE")
+    tcases = _index(args.testcases_root, "TCASE")
+
+    for ts_fname in tsuites:
+        ts_fpath = os.sep.join([args.testsuites_root, ts_fname])
+        ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
+        ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
+
+        for tc_fname in ts_lines:
+            tcases_in_use.add(tc_fname)
+
+    for tc_fname in sorted(list(tcases - tcases_in_use)):
+        violations.append(MESSAGES[ident] % tc_fname)
+
+    return violations
+
+def tplans_format(ident, args):
+    """
+    @returns list of violation messages for this check
+    """
+
+    violations = []
+    tplans = _index(args.testplans_root, "TPLAN")
+
+    for tp_fname in tplans:
+        tp_fpath = os.sep.join([args.testplans_root, tp_fname])
+
+        try:
+            with open(tp_fpath) as tp_fd:
+                content = yaml.load(tp_fd)
+
+        except IOError as exc:
+            violations.append(MESSAGES[ident] % tp_fname)
+        except Exception as exc:
+            violations.append(MESSAGES[ident] % tp_fname)
+
+    return violations
+
+def tplans_content(ident, args):
+    """
+    @returns list of violations messages for this check
+    """
+
+    struct = {
+        "root": [
+            ("descr", True),
+            ("descr_long", False),
+            ("hooks", False),
+            ("evars", False),
+            ("testsuites", True)
+        ],
+        "suites": [
+            ("name", True),
+            ("hooks", False),
+            ("hooks_pr_tcase", False),
+            ("evars", False),
+            ("evars_pr_tcase", False)
+        ]
+    }
+
+    violations = []
+
+
+    tplans = _index(args.testplans_root, "TPLAN")
+
+    for tp_fname in tplans:
+        tp_fpath = os.sep.join([args.testplans_root, tp_fname])
+
+        suites = []
+        hooks = []
+
+        tplan = None
+        try:
+            with open(tp_fpath) as tp_fd:
+                tplan = yaml.load(tp_fd)
+
+        except IOError as exc:
+            continue
+        except Exception as exc:
+            continue
+
+        for k in list(set(tplan.keys()) - set([k for k, _ in struct["root"]])):
+            violations.append(MESSAGES[ident] % (
+                tp_fname,
+                "invalid key: %r" % k
+            ))
+
+        for k in (k for k, req in struct["root"] if req):
+            if k not in tplan.keys():
+                violations.append(MESSAGES[ident] % (
+                    tp_fname,
+                    "missing required key: %r" % k
+                ))
+
+        hooks += tplan["hooks"] if "hooks" in tplan else []
+        suites += []
+
+        if "testsuites" not in tplan:
+            violations.append(MESSAGES[ident] % (
+                tp_fname,
+                "missing key 'testsuites'"
+            ))
+            continue
+
+        for suite in tplan["testsuites"]:
+            for k in list(set(suite.keys()) - set([k for k, _ in struct["suites"]])):
+                violations.append(MESSAGES[ident] % (
+                    tp_fname,
+                    "invalid key: %r" % k
+                ))
+
+            for k in (k for k, req in struct["suites"] if req):
+                if k not in suite.keys():
+                    violations.append(MESSAGES[ident] % (
+                        tp_fname,
+                        "missing required key: %r" % k
+                    ))
+
+            if "name" in suite:
+                suites.append(suite["name"])
+
+            if "hooks" in suite:
+                hooks += suite["hooks"]
+
+            if "hooks_pr_tcase" in suite:
+                hooks += suite["hooks_pr_tcase"]
+
+        # Check for existence of suites
+        suites = list(set(suites))
+        for suite_name in suites:
+            suite_fpath = os.sep.join([
+                args.testsuites_root,
+                "%s.suite" % suite_name
+            ])
+
+            if not os.path.exists(suite_fpath):
+                violations.append(MESSAGES[ident] % (
+                    tp_fname,
+                    "testsuite: %r, does not exist" % suite_fpath
+                ))
+
+        # Check for existence of hooks
+        hooks = list(set(hooks))
+        for hook_name in hooks:
+
+            exists = []
+            for tmpl in ["%s.sh", "%s_enter.sh", "%s_exit.sh"]:
+                hook_fpath = os.sep.join([
+                    args.hooks_root,
+                    tmpl % hook_name
+                ])
+                exists.append(os.path.exists(hook_fpath))
+
+            if not sum(exists):
+                violations.append(MESSAGES[ident] % (
+                    tp_fname,
+                    "hook: %r, does not exist" % hook_name
+                ))
+
+    return violations
+
+
+MESSAGES = {
+    "E0100": "Use of non-existent testcase(%s) in testsuite(%s)",
+    "E0200": "Invalid testplan(%s) file or format",
+    "E0210": "Invalid testplan(%s) content: %r",
+    "W0100": "Unused testcase(%s)",
+
+}
+
+CHECKERS = {
+    "E0100": tsuite_testcases_exists,
+    "E0200": tplans_format,
+    "E0210": tplans_content,
+    "W0100": testcase_unused
+}
+
+IDENTS = sorted(CHECKERS.keys())
+
+def main(args):
+    """."""
+
+    report = []
+    for ident in IDENTS:
+        res = CHECKERS[ident](ident, args)
+        report += zip([ident] * len(res), res)
+
+    errors = 0
+    warnings = 0
+    for ident, violation in report:
+        msg = "%s: %s" % (ident, violation)
+
+        if ident.startswith("E"):
+            errors += 1
+            cij.err(msg)
+        elif ident.startswith("W"):
+            warnings += 1
+            cij.warn(msg)
+        else:
+            cij.emph(msg)
+
+    return errors
+
+if __name__ == "__main__":
+
+    CIJ_ROOT = os.environ.get("CIJ_ROOT")
+    if not (CIJ_ROOT and os.path.exists(CIJ_ROOT)):
+        print("Please set ENV. VAR. CIJ_ROOT, correctly")
+        sys.exit(1)
+
+    PRSR = argparse.ArgumentParser(
+        description="cij_tlint - CIJOE Test Linter",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    ARGS = PRSR.parse_args()
+
+    ARGS.testplans_root = os.sep.join([CIJ_ROOT, "testplans"])
+    ARGS.testsuites_root = os.sep.join([CIJ_ROOT, "testsuites"])
+    ARGS.testcases_root = os.sep.join([CIJ_ROOT, "testcases"])
+    ARGS.hooks_root = os.sep.join([CIJ_ROOT, "hooks"])
+
+    sys.exit(main(ARGS))

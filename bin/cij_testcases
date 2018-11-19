@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+"""
+ cij_testcases - Lists CIJOE testcases
+
+ CIJ_TESTCASES - This is what it is all about, these are the tests that are listed
+
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+import cij.testcases
+import cij.test
+import cij
+
+if __name__ == "__main__":
+
+    EVARS = cij.env_to_dict(
+        "CIJ",
+        ["TESTCASES", "TESTSUITES", "TESTPLANS", "TEMPLATES"]
+    )
+
+    PRSR = argparse.ArgumentParser(
+        description='cij_testcases - Print testcasesFetches file from reservoir'
+    )
+
+    PRSR.add_argument(
+        '--template',
+        help="Path to template",
+        default=os.sep.join([EVARS["TEMPLATES"], "testcases.html"])
+    )
+    PRSR.add_argument(
+        '--output',
+        help="Path to store testcase report",
+        default=os.getcwd()
+    )
+
+    ARGS = PRSR.parse_args()
+
+    # Expand and construct template paths
+    ARGS.tmpl_fpath = ARGS.template
+    ARGS.tmpl_fname = os.path.basename(ARGS.tmpl_fpath)
+    ARGS.tmpl_name = os.path.splitext(ARGS.tmpl_fname)[0]
+
+    RCODE = cij.testcases.main(ARGS, EVARS)
+    if RCODE:
+        cij.err("RCODE: %r, error while creating report" % RCODE)
+
+    sys.exit(RCODE)

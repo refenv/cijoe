@@ -1,0 +1,19 @@
+descr: Example testplan to demonstrate how write and use testplans
+descr_long: |
+  Testplans should all contain a short and long description. Keep the short
+  descriptions brief and concise. Reserve details for the long description.
+  Feel free to use as much as possible, listing stuff etc.
+
+  * Something
+  * Very useful
+  * Listed here
+
+  Now something else.
+hooks: [ sysinf ]
+evars: { FOO: 1 }
+testsuites:
+  - name: TSUITE_example_01
+    hooks: [ dmesg ]
+    evars: { FOO: 2 }
+    hooks_pr_tcase: []
+    evars_pr_tcase: { FOO: 3 }

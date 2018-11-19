@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+"""
+ CIJOE test reporter
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+import cij.reporter
+import cij.runner
+import cij.util
+import cij
+
+CIJ_VARS = ["ROOT", "ENVS", "TESTCASES", "TESTSUITES", "MODULES", "TEMPLATES"]
+CIJ = {v: os.environ.get("CIJ_%s" % v) for v in CIJ_VARS}
+
+if __name__ == "__main__":
+    for ENV in CIJ.keys():              # Expand and check CIJOE paths
+        CIJ[ENV] = cij.util.expand_path(CIJ[ENV])
+        if not os.path.exists(CIJ[ENV]):
+            cij.err("CIJ_%s: %r, does not exist" % (ENV, CIJ[ENV]))
+
+    # Parse the Command-Line
+    PRSR = argparse.ArgumentParser(
+        description='cij_reporter - CIJOE Test Runner',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    PRSR.add_argument(
+        '--output',
+        help="Path to test output",
+        default=os.getcwd()
+    )
+    PRSR.add_argument(
+        '--template',
+        help="Path to report template",
+        default=os.sep.join([CIJ["TEMPLATES"], "report.html"])
+    )
+    PRSR.add_argument(
+        '--force',
+        help="Overwrite possibly existing report",
+        action='store_true'
+    )
+    PRSR.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
+    ARGS = PRSR.parse_args()
+
+    if ARGS.verbose:
+        cij.emph("args: %r" % ARGS)
+
+    ARGS.output = cij.util.expand_path(ARGS.output)
+    if not os.path.exists(ARGS.output):
+        cij.err("output: %r, does not exist" % ARGS.output)
+        sys.exit(1)
+
+    ARGS.trun_fpath = cij.runner.yml_fpath(ARGS.output)
+    if not os.path.exists(ARGS.trun_fpath):
+        cij.err("trun_fpath: %r" % ARGS.trun_fpath)
+        sys.exit(1)
+
+    ARGS.template = cij.util.expand_path(ARGS.template)
+    if not os.path.exists(ARGS.template):
+        cij.err("template: %r, does not exist" % ARGS.template)
+        sys.exit(1)
+
+    # Expand and construct template paths
+    ARGS.tmpl_fpath = ARGS.template
+    ARGS.tmpl_fname = os.path.basename(ARGS.tmpl_fpath)
+    ARGS.tmpl_name = os.path.splitext(ARGS.tmpl_fname)[0]
+
+    RCODE = cij.reporter.main(ARGS, CIJ)
+    if RCODE:
+        cij.err("RCODE: %r, error while creating report" % RCODE)
+
+    sys.exit(RCODE)

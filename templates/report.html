@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<!-- Highlight JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-dark.min.css">
+<title>Report</title>
+
+<style>
+.jumbotron-fluid {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.jumbotron:last-of-type {
+  margin-bottom: 0;
+}
+
+.jumbotron:last-of-type p {
+  margin-bottom: 0;
+}
+
+.jumbotron .btn-group {
+  top: 1.5rem;
+}
+
+.btn-primary {
+  border-color: #0062cc;
+}
+
+.ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+
+.list-testcases .list-group-item {
+  padding: 0.1rem;
+}
+
+.runlog pre {
+  background-color: white;
+  background-opacity: 0.9;
+}
+
+</style>
+</head>
+<body>
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Report</h1>
+  </div>
+</div>
+
+<div class="container">
+  {% set tcases_count = trun.progress.UNKN + trun.progress.PASS + trun.progress.FAIL %}
+  {% set tcases_completed = trun.progress.PASS + trun.progress.FAIL %}
+
+  {% set trun_bg_color = "secondary" %}
+  {% set trun_bg_color = "success" if trun.status == "PASS" else trun_bg_color %}
+  {% set trun_bg_color = "danger" if trun.status == "FAIL" else trun_bg_color %}
+  {% set trun_color = "white" %}
+  {% set trun_color = "black" if trun.status == "PASS" else trun_color %}
+  {% set trun_color = "black" if trun.status == "FAIL" else trun_color %}
+
+  <div class="card mb-3">
+    <div class="card-header">
+
+      <ul class="nav nav-tabs card-header-tabs">
+        <li class="nav-item">
+          <a class="nav-link active show" href="#SUMMARY" data-toggle="tab">Summary</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#RUNNER" data-toggle="tab">Runner</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#AUX" data-toggle="tab">Aux</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#LOG" data-toggle="tab">Log</a>
+        </li>
+
+        <li class="nav-item ml-auto">
+          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">
+          TESTRUN <b>{{ trun.status }}</b>
+          </a>
+        </li>
+      </ul>
+
+    </div>
+
+    <div class="tab-content">
+
+      <div class="tab-pane active" id="SUMMARY">
+        <div class="card-body">
+          <p class="card-text">
+          A total of <b>{{ tcases_count }}</b> testcases across <b>{{ trun.testsuites | length }}</b> testsuite(s).
+          </p>
+          <p class="card-text">
+          Test execution is {{ ((tcases_completed / tcases_count) * 100)|int }}% complete
+          {% if trun.stamp and trun.stamp.begin %}
+          , started {{ trun.stamp.begin | stamp_to_datetime | strftime("%b. %d %Y") }}
+          {% endif %}
+          {% if trun.stamp and trun.stamp.end %}
+          , ended {{ trun.stamp.end  | stamp_to_datetime | strftime("%b. %d %Y") }}
+          , spanning a wall-clock period of {{ "{0:0.2f}".format(((trun.stamp.end - trun.stamp.begin) / 60.0)/60.0) }} hours
+          {% endif %}
+          </p>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Testcase Status</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-success">
+              <td>PASS</td>
+              <td>{{ trun.progress.PASS }}</td>
+            </tr>
+            <tr class="table-danger">
+              <td>FAIL</td>
+              <td>{{ trun.progress.FAIL }}</td>
+            </tr>
+            <tr class="table-secondary">
+              <td>UNKN</td>
+              <td>{{ trun.progress.UNKN }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+      <div class="tab-pane" id="RUNNER">
+
+        <div class="card-body">
+          <h5 class="card-title">
+          Input given to the runner in the form <b>command-line arguments</b> and <b>environment variables</b>
+          </h5>
+        </div>
+
+        <div class="card-footer">
+          Input given to the runner in form of <b>command-line arguments</b>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in trun.args.items() if key != "testsuites" %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="card-footer">
+            Input given to the runner in form of <b>environment variables</b>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in trun.evars.items() %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+      <!-- TRUN: AUX-SNIPPET -->
+      <div class="tab-pane" id="AUX">
+        <div class="card-body">
+          <p class="card-text">
+          A total of <b>{{ trun.aux_list | length }}</b> auxilary files, produced by
+          testplan hooks, are listed below
+          </p>
+        </div>
+
+        <ul class="list-group list-files">
+        {% for aux in trun.aux_list %}
+        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+        {% endfor %}
+        </ul>
+
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+      <div class="tab-pane runlog" id="LOG">
+        <div class="card-body">
+          <p class="card-text">
+          Output produced by executing testplan hooks is provided below
+          </p>
+        </div>
+
+        <pre><code class="runlog nohighlight">{{ trun.log_content | ansi_to_html | safe }}</code></pre>
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Results</h1>
+  </div>
+</div>
+
+<div class="container" id="results">
+{% for tsuite in trun.testsuites %}
+
+{% set tsuite_bg_color = "secondary" %}
+{% set tsuite_bg_color = "success" if tsuite.status == "PASS" else tsuite_bg_color %}
+{% set tsuite_bg_color = "danger" if tsuite.status == "FAIL" else tsuite_bg_color %}
+{% set tsuite_color = "white" %}
+{% set tsuite_color = "black" if tsuite.status == "PASS" else tsuite_color %}
+{% set tsuite_color = "black" if tsuite.status == "FAIL" else tsuite_color %}
+
+<div class="card mb-3" id="{{ tsuite.name }}">
+  <div class="card-header">
+
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.name }}" data-toggle="tab">Testcases</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#AUX_{{ tsuite.name }}" data-toggle="tab">Aux</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#LOG_{{ tsuite.name }}" data-toggle="tab">Log</a>
+      </li>
+
+      <li class="nav-item ml-auto">
+        <a class="nav-link bg-{{ tsuite_bg_color }} text-{{ tsuite_color }}">TESTSUITE <b>{{ tsuite.name }}</b></a>
+      </li>
+    </ul>
+
+  </div>
+
+  <div class="tab-content">
+
+    <!-- TESTCASES-BGN -->
+    <div class="tab-pane active" id="TESTCASES_{{ tsuite.name }}">
+      <div class="card-body">
+        <p class="card-text">
+        The <b>{{ tsuite.name }}</b> testsuite contains {{ tsuite.testcases | length }} testcases.
+        </p>
+        <p class="card-text">
+        The testcases are listed below along with testcase status
+        <span class="badge badge-secondary">UNKN</span>/<span class="badge badge-success">PASS</span>/<span class="badge badge-danger">FAIL</span>, descr, source
+             definition, auxilary files, and run log.
+        </p>
+      </div>
+
+      <ul class="list-group list-testcases">
+        <!-- TCASE-BGN -->
+        {% for tcase in tsuite.testcases %}
+        {% set ident = tsuite.id + "_" + tcase.id %}
+        {% set tcase_color = "secondary" %}
+        {% set tcase_color = "success" if tcase.status == "PASS" else tcase_color %}
+        {% set tcase_color = "danger" if tcase.status == "FAIL" else tcase_color %}
+        <li class="list-group-item list-group-item-{{ tcase_color }}">
+          <button class="btn btn-{{ tcase_color }}" type="button" disabled="disabled">
+            <span style="font-family: monospace;">{{ tcase.status }}: {{ tcase.name }}</span>
+          </button>
+          <div class="btn-group float-right" role="group">
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#DESCR_{{ ident }}"
+                                                                    aria-controls="DESCR_{{ ident }}"
+                                                                    aria-expanded="false" >DESCR</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#SRC_{{ ident }}"
+                                                                    aria-controls="SRC_{{ ident }}"
+                                                                    aria-expanded="false" >SRC</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#AUX_{{ ident }}"
+                                                                    aria-controls="AUX_{{ ident }}"
+                                                                    aria-expanded="false">AUX</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                                    data-target="#LOG_{{ ident }}"
+                                                                    aria-controls="LOG_{{ ident }}"
+                                                                    aria-expanded="false" >LOG</button>
+          </div>
+
+          <div class="collapse" id="DESCR_{{ ident }}" data-parent="#results">
+            <h5 class="m-2">{{ tcase.descr_short if tcase.descr_short else "UNDOCUMENTED" }}</h5>
+            <pre><code class="nohighlight">{{ tcase.descr_long if tcase.descr_long else "UNDOCUMENTED" }}</code></pre>
+          </div>
+
+          <div class="collapse" id="SRC_{{ ident }}" data-parent="#results">
+            <p class="m-2">Source code for the testcase definition</p>
+            <pre><code class="bash">{{ tcase.src_content }}</code></pre>
+          </div>
+
+          <!-- TCASE: AUX-SNIPPET -->
+          <div class="collapse" id="AUX_{{ ident }}" data-parent="#results">
+            <p class="m-2">A total of <b>{{ tcase.aux_list | length }}</b> auxilary files produced by
+            testcase hooks are listed below</p>
+
+            <ul class="list-group">
+            {% for aux in tcase.aux_list %}
+            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+            {% endfor %}
+            </ul>
+
+          </div>
+
+          <div class="collapse runlog" id="LOG_{{ ident }}" data-parent="#results">
+            <p class="m-2">Log of output from testcase and hooks executed before and/or after the
+            testcase</p>
+            <pre><code class="nohighlight">{{ tcase.log_content | ansi_to_html | safe }}</code></pre>
+          </div>
+
+        </li>
+        {% endfor %}
+        <!-- TCASE-END -->
+      </ul>
+    </div>
+    <!-- TESTCASES-END -->
+
+    <!-- TSUITE: AUX-SNIPPET -->
+    <div class="collapse" id="AUX_{{ tsuite.name }}" data-parent="#{{ tsuite.name }}">
+      <div class="card-body">
+        <p class="card-text">
+          A total of <b>{{ tsuite.aux_list | length }}</b> auxilary files produced by testsuite
+          hooks are listed below
+        </p>
+      </div>
+
+      <ul class="list-group">
+      {% for aux in tsuite.aux_list %}
+      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+      {% endfor %}
+      </ul>
+
+    </div>
+
+    <div class="collapse runlog" id="LOG_{{ tsuite.name }}" data-parent="#{{ tsuite.name }}">
+      <div class="card-body">
+        <p class="card-text">
+        Output produced by executing testsuite hooks is provided below
+        </p>
+      </div>
+
+      <pre><code class="nohighlight">{{ tsuite.log_content | ansi_to_html | safe }}</code></pre>
+    </div>
+
+  </div>
+
+  <div class="card-footer text-muted">&nbsp;</div>
+</div>
+<hr>
+
+{% endfor %}
+</div>
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">EOL</h1>
+    <p class="lead">In the presence of failure, recall, this too shall pass</p>
+  </div>
+</div>
+<!-- jQuery first, then Popper.js, then Bootstrap JS, then highlight.js -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"
+        integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"
+        integrity="sha256-fTZir3QtRzPrhH5KyHm/0hsQqTDswmqYFhXOPN05ulw="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/python.min.js"
+        integrity="sha256-MRn7pN9LOBMrkp+8F2t5xb/92V1irzXp/dl5tUTwEgE="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/markdown.min.js"
+        integrity="sha256-QisUfMmh1ba2V0Kn8uxkMS1ShgsY1LyhrVNmit2llf4="
+        crossorigin="anonymous"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

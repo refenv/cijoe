@@ -1,0 +1,33 @@
+#!/bin/bash
+
+CIJ_TYPE=unknown
+CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")"; pwd)")
+
+if [[ -f "$CIJ_ROOT/modules/cijoe.sh" ]]; then
+	CIJ_TYPE="reposrun"
+elif [[ -f "$CIJ_ROOT/share/cijoe/modules/cijoe.sh" ]]; then
+	CIJ_TYPE="sysinstall"
+	CIJ_ROOT=$CIJ_ROOT/share/cijoe
+fi
+
+if [[ ! -d "$CIJ_ROOT" || "$CIJ_TYPE" == "unknown" ]]; then
+	print "# FAILED: Cannot locate/determine CIJOE installation"
+	exit
+fi
+
+export CIJ_TYPE
+export CIJ_ROOT
+
+# Silence pushd/popd
+function pushd { command pushd "$@" > /dev/null; }
+function popd { command popd "$@" > /dev/null; }
+
+HERE=$PWD
+
+# Source in CIJOE
+pushd $CIJ_ROOT
+source modules/cijoe.sh
+bash --rcfile <(echo '. ~/.bashrc; source modules/cijoe.sh; cd '$HERE'; cij::emph "Welcome to CIJOE"')
+popd
+
+cij::emph "So long, and thanks for all the fish"

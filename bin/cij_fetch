@@ -1,0 +1,159 @@
+#!/usr/bin/env python
+# pylint: disable=W0703
+"""
+    cij_fetch - Sync from remote reservoir to local copy
+
+    Uses .md5 to skip downloads when local copy matches remote.
+"""
+from subprocess import Popen, PIPE
+import argparse
+import urlparse
+import urllib2
+import sys
+import os
+
+CHUNK_SIZE = 16 * 1024
+
+def md5_create(path):
+    """
+    Create md5sum of <path> and store it in <path>.md5
+    Returns returncode from Popen != 0 => error
+    """
+
+    cmd = ['md5sum', path]
+
+    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    out, _ = process.communicate()
+
+    if process.returncode == 0:
+        dst = "%s.md5" % path
+        with open(dst, 'w') as md5_fd:
+            md5_fd.write(out)
+
+    return process.returncode
+
+def meta_local(path):
+    """Equivalent of meta_reservoir but on local filesystem"""
+
+    length = None
+    try:
+        length = os.path.getsize(path)
+    except Exception as exc:
+        _, _, exc_tb = sys.exc_info()
+        print "Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc)
+
+    md5 = None
+    try:
+        with open("%s.md5" % path) as md5_fd:
+            md5, _, _ = md5_fd.read().split(" ")
+    except Exception as exc:
+        _, _, exc_tb = sys.exc_info()
+        print "Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc)
+
+    if length:
+        return {"length": length, "md5": md5}
+
+    return None
+
+def meta_reservoir(url):
+    """Returns {"length": ..., "md5": ...} on url in reservoir"""
+
+    length = None
+    try:
+        length = int(
+            urllib2.urlopen(url).info().getheaders("Content-Length")[0]
+        )
+    except Exception as exc:
+        _, _, exc_tb = sys.exc_info()
+        print "Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc)
+
+    md5 = None
+    try:
+        md5, _, _ = reservoir_to_mem("%s.md5" % url).split(" ")
+    except Exception as exc:
+        _, _, exc_tb = sys.exc_info()
+        print "Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc)
+
+    if length:
+        return {"length": length, "md5": md5}
+
+    return None
+
+def meta_is_equiv(one, other):
+    """Return True two different metas has the same size and md5sum."""
+
+    return (one is not None and other is not None) and \
+            (one["length"] == other["length"]) and \
+            (one["md5"] == other["md5"])
+
+def reservoir_to_mem(url):
+    """Returns reservoir resource from url."""
+
+    resource = urllib2.urlopen(url)
+    content = resource.read()
+
+    return content
+
+def reservoir_to_file(url, path):
+    """Downloads the url to path"""
+
+    url_meta = meta_reservoir(url)
+    local_meta = meta_local(path)
+
+    if meta_is_equiv(local_meta, url_meta): # Skip if it meta is equivalent
+        return True
+
+    local_dir = os.path.dirname(path)       # Ensure parent dir exists
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
+
+    try:
+        response = urllib2.urlopen(url)         # Download the file
+        with open(path, 'wb') as res_fd:
+            while True:
+                chunk = response.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+                res_fd.write(chunk)
+
+        md5_create(path)                        # Create md5sum
+        local_meta = meta_local(path)           # Refresh
+
+    except Exception as exc:
+        _, _, exc_tb = sys.exc_info()
+        print "Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc)
+
+    return meta_is_equiv(local_meta, url_meta)
+
+def main(args):
+    """
+    Main entry-point of cij_fetch.
+
+    Set exit-code to 0 on success and 1 on failure
+    """
+
+    url = args.url                          # Grab url information
+    url_parts = urlparse.urlparse(args.url)
+    url_path = url_parts.path
+
+    local_path = os.path.normpath(os.sep.join([args.root, url_path]))
+
+    if reservoir_to_file(url, local_path):
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+if __name__ == "__main__":
+
+    PARSER = argparse.ArgumentParser(
+        description='cij_fetch - Fetches file from reservoir'
+    )
+    PARSER.add_argument(
+        'root', help="Path to root of local reservoir"
+    )
+    PARSER.add_argument(
+        'url', help="Url to reservoir resource"
+    )
+    ARGS = PARSER.parse_args()
+
+    main(ARGS)

@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+"""
+    plot
+"""
+from multiprocessing import Pool
+import argparse
+import pprint
+import glob
+import csv
+import os
+import matplotlib.pyplot as plt
+import itertools
+
+YAXIS_LABELS = {
+    "bw": "Bandwith",
+    "lat": "Something",
+    "slat": "Something",
+    "clat": "Something",
+    "iops": "Something",
+}
+
+def expandpath(path):
+    """Returns the absolute <path> with vars expanded"""
+
+    return os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
+
+def find_logs(lpath):
+    """Find logs on in lpath and split them into components"""
+
+    def find(lpath):
+
+        for path in glob.glob(os.sep.join([lpath, "*.log"])):
+            fname = os.path.basename(path)
+
+            try:
+                name, job, _  = fname.split(".")
+                realm, ptn, iod, bs, log = name.split("_")
+                iod = int(iod[3:])
+                bs = int(bs[2:-1])
+            except:
+                continue
+
+            components = (realm, path, fname, name, ptn, iod, bs, log, job)
+            yield components
+
+    logs = sorted(find(lpath))
+    nlogs = len(logs)
+
+    return (nlogs, logs)
+
+def plot(args, components):
+    """
+    Load data and plot the given log components
+    """
+
+    realm, path, fname, name, ptn, iod, bs, log, job = components
+
+    data = list(csv.reader(open(path, 'rb')))
+
+    x, y, _, _ = map(list, zip(*data))
+    x = [int(v) for v in x]
+    y = [int(v) for v in y]
+
+    y_min = min(y)
+    y_max = max(y)
+    y_avg = sum(y) / len(y)
+
+    x_max = max(x)
+
+    plt.clf()
+    plt.ylim((0, y_max))
+    plt.xlim((0, x_max))
+    plt.plot(x, y)
+    plt.title("%s: %s iod: %02d bs: %03d log: %s, (%d,%d,%d)" % (
+        realm, ptn, iod, bs, log, y_min, y_max, y_avg
+    ))
+    plt.ylabel(YAXIS_LABELS[log])
+    plt.xlabel("Time")
+    plt.savefig(os.sep.join([args.opath, "%s.png" % fname]))
+
+def main(args):
+
+    nlogs, logs = find_logs(args.lpath)
+
+    """
+    pool = Pool()
+    for i, _ in enumerate(pool.imap_unordered(plot, logs), 1):
+        print("Processed %d/%d" % (i, nlogs))
+    """
+
+    print("Found nlogs(%d)" % nlogs)
+    for i, components in enumerate(logs, 1):
+        plot(args, components)
+        print("Processed %d/%d" % (i, nlogs))
+    print("Done")
+
+if __name__ == "__main__":
+    PARSER = argparse.ArgumentParser(
+        description='Generate plots'
+    )
+    PARSER.add_argument(
+        '--lpath', help="Path to dir containing fio logs",
+        required=True
+    )
+    PARSER.add_argument(
+        '--opath', help="Store generated plots here",
+        default="."+os.sep
+    )
+    ARGS = PARSER.parse_args()
+    ARGS.lpath = expandpath(ARGS.lpath)
+    ARGS.opath = expandpath(ARGS.opath)
+
+    main(ARGS)
