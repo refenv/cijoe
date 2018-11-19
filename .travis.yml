@@ -1,0 +1,41 @@
+language: python
+
+stages:
+  - check
+  - build
+  - test
+  - name: deploy
+    if: branch = master
+
+addons:
+  apt:
+    packages:
+    - graphviz
+    - python-pip
+    - shellcheck
+    - pylint
+
+branches:
+  except:
+    - gh-pages
+
+jobs:
+  include:
+    - stage: "check"
+      name: "SHELL Source Checking"
+      script: shellcheck modules/*
+    - stage: "check"
+      name: "Python Source Checking (bin)"
+      script: pylint bin/*
+    - stage: "check"
+      name: "Python Source Checking (module)"
+      script: pylint modules/cij
+    - stage: "build"
+      name: "Build Check"
+      script: make install
+    - stage: "test"
+      name: "Do stuff"
+      script: echo "Hello there"
+    - stage: "deploy"
+      name: "Build Python Package"
+      script: echo "Build it..."
