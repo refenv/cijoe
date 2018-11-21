@@ -33,7 +33,7 @@ Run a testplan:
 ```bash
 cij_runner \
     --env $CIJ_ENVS/localhost.sh \
-    --testplan $CIJ_TESTPLANS/TPLAN_example_01.plan \
+    --testplan $CIJ_TESTPLANS/EXTP_01_refenv.plan \
     --output /tmp/testrun
 ```
 
