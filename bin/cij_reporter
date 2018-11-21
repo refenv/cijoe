@@ -26,7 +26,7 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     PRSR.add_argument(
-        '--output',
+        'output',
         help="Path to test output",
         default=os.getcwd()
     )
