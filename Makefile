@@ -12,11 +12,11 @@ install:
 
 .PHONY: uninstall
 uninstall:
-	pip uninstall ${PROJECT_NAME} || true
+	pip uninstall ${PROJECT_NAME} --yes || true
 
 .PHONY: dev
 dev: uninstall install
-	echo "# Yup"
+	@echo -n "# dev: "; date
 
 .PHONY: bump
 bump:
@@ -40,4 +40,4 @@ release-upload:
 
 .PHONY: release
 release: release-build release-upload
-	@echo "# DONE"
+	@echo -n "# rel: "; date
