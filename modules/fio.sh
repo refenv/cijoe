@@ -50,8 +50,7 @@
 # FIO_ARGS              - Complete set of arguments for fio command
 #
 
-function fio::env
-{
+fio::env() {
   # DEFAULT variables
   FIO_BIN=${FIO_BIN:-/usr/local/bin/fio}
   FIO_SSH=${FIO_SSH:-1}
@@ -71,10 +70,8 @@ function fio::env
   return 0
 }
 
-function fio::run
-{
-  fio::env
-  if [[ $? -ne 0 ]]; then
+fio::run() {
+  if ! fio::env; then
     cij::err "fio::env failed"
     return 1
   fi
@@ -180,12 +177,11 @@ function fio::run
     return $?
   fi
 
-  $FIO_BIN $FIO_ARGS
+  eval "$FIO_BIN $FIO_ARGS"
   return $?
 }
 
-function fio::run_jobfile
-{
+fio::run_jobfile() {
   FIO_JOBFILE=$1
   if [[ -z "$FIO_JOBFILE" ]]; then
     cij::err "fio::run_jobfile: No jobfile provided"
@@ -197,27 +193,26 @@ function fio::run_jobfile
     return 1
   fi
 
-  fio::env
-  if [[ $? -ne 0 ]]; then
+  if ! fio::env; then
     cij::err "fio::env failed"
     return 1
   fi
 
-  SHOWCMD=$($FIO_BIN --showcmd $FIO_JOBFILE)    # Grab arguments from file
+  SHOWCMD=$($FIO_BIN --showcmd "$FIO_JOBFILE")    # Grab arguments from file
   SHOWCMD=${SHOWCMD#*fio}                       # Remove "fio" from cmd-string
 
   FIO_ADRGS_EXTRA_BU="$FIO_ARGS_EXTRA"
 
   FIO_ARGS_EXTRA="$FIO_ARGS_EXTRA $SHOWCMD"
 
-  FIO_JOBFILE_NAME=$(basename $FIO_JOBFILE)
+  FIO_JOBFILE_NAME=$(basename "$FIO_JOBFILE")
   cij::emph "FIO_JOBFILE_NAME: '$FIO_JOBFILE_NAME'"
 
   fio::run
-  RES="$?"
+  RCODE="$?"
 
   FIO_ARGS_EXTRA="$FIO_ADRGS_EXTRA_BU"
 
-  return $RES
+  return $RCODE
 }
 

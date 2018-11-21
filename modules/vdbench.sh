@@ -1,154 +1,141 @@
 #!/usr/bin/env bash
+#
+# Please add some documentation here
+#
 
-function vdbench::env
-{
-  if [[ $VDBENCH_ENV -eq 1 ]]; then
+vdbench::env() {
+  if [[ "$VDBENCH_ENV" == "1" ]]; then
     return 0
   fi
 
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+  if ! ssh::env; then
     cij::err "vdbench::env: invalid SSH ENV."
     return 1
   fi
 
-  # Mandatory ENV. VAR> definitions
+  # shellcheck disable=2153
   if [[ -z "$VDBENCH_BIN" ]]; then
-    cij::err "vdrbench::env: VDBENCH_BIN is not defined"
+    cij::err "vdbench::env: VDBENCH_BIN is not defined"
     return 1
   fi
+
   VDBENCH_ENV=1
 
   return 0
 }
 
-function vdbench::run {
-  vdbench::env
-  if [[ $? -ne 0 ]]; then
-    cij::err "vbench::run - Invalid SSH ENV."
+vdbench::run() {
+  if ! vdbench::env; then
+    cij::err "vdbench::run - Invalid SSH ENV."
+    return 1
+  fi
+
+  VDBENCH_LUN=$1
+  if [[ -z "$VDBENCH_LUN" ]]; then
+    cij::err "vdbench::run: Usage: vdbench::run \"/dev/nvme0n1\""
     return 1
   fi
 
   ARGS="-"
-  if [ -n "$DATA_VALIDATE" ]; then
+  if [[ -n "$VDBENCH_LUN" ]]; then
+    ARGS="$ARGS lun=$VDBENCH_LUN"
+  fi
+  if [[ -n "$VDBENCH_DATA_VALIDATE" ]]; then
     ARGS="-v $ARGS"
   fi
-  if [ -n "$DATA_ERRORS" ]; then
-    ARGS="$ARGS data_errors=$DATA_ERRORS"
+  if [[ -n "$VDBENCH_DATA_ERRORS" ]]; then
+    ARGS="$ARGS data_errors=$VDBENCH_DATA_ERRORS"
+  fi
+  if [[ -n "$VDBENCH_COMPRATIO" ]]; then
+    ARGS="$ARGS compratio=$VDBENCH_COMPRATIO"
   fi
 
-  if [ -n "$COMPRATIO" ]; then
-    ARGS="$ARGS compratio=$COMPRATIO"
+  # shellcheck disable=2153
+  if [[ -n "$VDBENCH_HD" ]]; then
+    ARGS="$ARGS hd=$VDBENCH_HD"
   fi
-
-  if [ -n "$HD" ]; then
-    ARGS="$ARGS hd=$HD"
+  if [[ -n "$VDBENCH_JVMS" ]]; then
+    ARGS="$ARGS jvms=$VDBENCH_JVMS"
   fi
-
-  if [ -n "$JVMS" ]; then
-    ARGS="$ARGS jvms=$JVMS"
+  if [[ -n "$VDBENCH_VALIDATE" ]]; then
+    ARGS="$ARGS validate=$VDBENCH_VALIDATE"
   fi
-
-  if [ -n "$VALIDATE" ]; then
-    ARGS="$ARGS validate=$VALIDATE"
+  # shellcheck disable=2153
+  if [[ -n "$VDBENCH_SD" ]]; then
+    ARGS="$ARGS sd=$VDBENCH_SD"
   fi
-
-  if [ -n "$SD" ]; then
-    ARGS="$ARGS sd=$SD"
+  if [[ -n "$VDBENCH_THREADS" ]]; then
+    ARGS="$ARGS threads=$VDBENCH_THREADS"
   fi
-
-if [ -n "$LUN" ]; then
-    ARGS="$ARGS lun=$LUN"
+  if [[ -n "$VDBENCH_OPENFLAGS" ]]; then
+    ARGS="$ARGS openflags=$VDBENCH_OPENFLAGS"
   fi
-
- if [ -n "$THREADS" ]; then
-    ARGS="$ARGS threads=$THREADS"
+  if [[ -n "$VDBENCH_SIZE" ]]; then
+    ARGS="$ARGS size=$VDBENCH_SIZE"
   fi
-
-  if [ -n "$OPENFLAGS" ]; then
-    ARGS="$ARGS openflags=$OPENFLAGS"
+  # shellcheck disable=2153
+  if [[ -n "$VDBENCH_WD" ]]; then
+    ARGS="$ARGS wd=$VDBENCH_WD"
   fi
-
-  if [ -n "$SIZE" ]; then
-    ARGS="$ARGS size=$SIZE"
+  if [[ -n "$VDBENCH_SD" ]]; then
+    ARGS="$ARGS sd=$VDBENCH_SD"
   fi
-
-  if [ -n "$WD" ]; then
-    ARGS="$ARGS wd=$WD"
+  if [[ -n "$VDBENCH_XFERSIZE" ]]; then
+    ARGS="$ARGS xfersize=$VDBENCH_XFERSIZE"
   fi
-
-  if [ -n "$SD" ]; then
-    ARGS="$ARGS sd=$SD"
+  if [[ -n "$VDBENCH_RDPCT" ]]; then
+    ARGS="$ARGS rdpct=$VDBENCH_RDPCT"
   fi
-
-  if [ -n "$XFERSIZE" ]; then
-    ARGS="$ARGS xfersize=$XFERSIZE"
+  if [[ -n "$VDBENCH_SEEKPCT" ]]; then
+    ARGS="$ARGS seekpct=$VDBENCH_SEEKPCT"
   fi
-
-  if [ -n "$RDPCT" ]; then
-    ARGS="$ARGS rdpct=$RDPCT"
+  if [[ -n "$VDBENCH_XFERSIZE" ]]; then
+    ARGS="$ARGS xfersize=$VDBENCH_XFERSIZE"
   fi
-
-  if [ -n "$SEEKPCT" ]; then
-    ARGS="$ARGS seekpct=$SEEKPCT"
+  # shellcheck disable=2153
+  if [[ -n "$VDBENCH_RD" ]]; then
+    ARGS="$ARGS rd=$VDBENCH_RD"
   fi
-
-if [ -n "$XFERSIZE" ]; then
-    ARGS="$ARGS xfersize=$XFERSIZE"
+  if [[ -n "$VDBENCH_WD" ]]; then
+    ARGS="$ARGS wd=$VDBENCH_WD"
   fi
-
-  if [ -n "$RD" ]; then
-    ARGS="$ARGS rd=$RD"
+  if [[ -n "$VDBENCH_IORATE" ]]; then
+    ARGS="$ARGS iorate=$VDBENCH_IORATE"
   fi
-
-if [ -n "$WD" ]; then
-    ARGS="$ARGS wd=$WD"
+  if [[ -n "$VDBENCH_ELAPSED" ]]; then
+    ARGS="$ARGS elapsed=$VDBENCH_ELAPSED"
   fi
-
-  if [ -n "$IORATE" ]; then
-    ARGS="$ARGS iorate=$IORATE"
+  if [[ -n "$VDBENCH_INTERVAL" ]]; then
+    ARGS="$ARGS interval=$VDBENCH_INTERVAL"
   fi
-
- if [ -n "$ELAPSED" ]; then
-    ARGS="$ARGS elapsed=$ELAPSED"
+  if [[ -n "$VDBENCH_FORXFERSIZE" ]]; then
+    ARGS="$ARGS forxfersize=$VDBENCH_FORXFERSIZE"
   fi
-
-  if [ -n "$INTERVAL" ]; then
-    ARGS="$ARGS interval=$INTERVAL"
+  if [[ -n "$VDBENCH_FORSEEKPCT" ]]; then
+    ARGS="$ARGS forseekpct=$VDBENCH_FORSEEKPCT"
   fi
-
-  if [ -n "$FORXFERSIZE" ]; then
-    ARGS="$ARGS forxfersize=$FORXFERSIZE"
-  fi
-
-  if [ -n "$FORSEEKPCT" ]; then
-    ARGS="$ARGS forseekpct=$FORSEEKPCT"
-  fi
-
-  if [ -n "$FORRDPCT" ]; then
-    ARGS="$ARGS forrdpct=$FORRDPCT"
+  if [[ -n "$VDBENCH_FORRDPCT" ]]; then
+    ARGS="$ARGS forrdpct=$VDBENCH_FORRDPCT"
   fi
 
   VDBENCH_CMD="$VDBENCH_BIN $ARGS"
 
-  if [ -n "$VDBENCH_CMD_PREFIX" ]; then
+  if [[ -n "$VDBENCH_CMD_PREFIX" ]]; then
     VDBENCH_CMD="$VDBENCH_CMD_PREFIX $VDBENCH_CMD"
   fi
 
-  if [ -n "$VDBENCH_CMD_POSTFIX" ]; then
-    VDBENCH_CMD="$VDENCH_CMD $VDBENCH_CMD_POSTFIX"
+  if [[ -n "$VDBENCH_CMD_POSTFIX" ]]; then
+    VDBENCH_CMD="$VDBENCH_CMD $VDBENCH_CMD_POSTFIX"
   fi
 
-  ssh::cmd "ulimit -n 100000"
-  if [[ $? -ne 0 ]]; then
-    cij::err "vdbench::run setting ulimit failed"
+  if ! ssh::cmd "ulimit -n 100000"; then
+    cij::err "vdbench::run: setting ulimit failed"
     return 1
   fi
 
   cij::emph "Running: $VDBENCH_CMD"
-  ssh::cmd "$VDBENCH_CMD"
-  if [[ $? -ne 0 ]]; then
-    cij::err "vdbench::run vdbench returned with an error"
+  if ! ssh::cmd "$VDBENCH_CMD"; then
+    cij::err "vdbench::run: vdbench returned with an error"
     return 1
   fi
 }

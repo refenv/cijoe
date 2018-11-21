@@ -31,23 +31,21 @@
 #                         * SSH_CMD_TIME=0
 #                         * SSH_CMD_ECHO=0
 
-function ssh::env
-{
+ssh::env() {
   if [[ -n "$SSH_KEY" && ! -f "$SSH_KEY" ]]; then
     cij::err "ssh::env: Invalid SSH_KEY($SSH_KEY)"
     return 1
   fi
 
-  if [[ -z "$SSH_USER" ]]; then
-    cij::err "ssh::env: SSH_USER is not set"
-    return 1
-  fi
-
+  # shellcheck disable=2153
   if [[ -z "$SSH_HOST" ]]; then
     cij::err "ssh::env: SSH_HOST is not set"
     return 1
   fi
 
+  if [[ -z "$SSH_USER" ]]; then
+    SSH_USER=root
+  fi
   if [[ -z "$SSH_PORT" ]]; then
     SSH_PORT=22
   fi
@@ -69,15 +67,13 @@ function ssh::env
   return 0
 }
 
-function ssh::cmd
-{
+ssh::cmd() {
   if [[ -z "$1" ]]; then
     cij::err "ssh::cmd - No command given."
     return 1
   fi
 
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+  if ! ssh::env; then
     cij::err "ssh::cmd - Invalid ENV."
     return 1
   fi
@@ -103,45 +99,44 @@ function ssh::cmd
 
   SSH_CMD_ARGS="$SSH_CMD_ARGS $SSH_USER@$SSH_HOST"      # SSH USER and HOST
 
-  SSH_CMD="$SSH_BIN $SSH_EXTRA_ARGS $SSH_CMD_ARGS '$1'"                 # SSH command
+  SSH_CMD="$SSH_BIN $SSH_EXTRA_ARGS $SSH_CMD_ARGS '$1'" # SSH command
 
   if [[ $SSH_CMD_ECHO -eq 1 ]]; then                    # SSH print CMD
     cij::emph "ssh:cmd: $SSH_CMD"
   fi
 
-  eval $SSH_CMD                                         # Execute it
+  eval "$SSH_CMD"                                       # Execute it
 }
 
-function ssh::cmd_output
-{
+ssh::cmd_output() {
   SSH_CMD_QUIET=1 ssh::cmd "$1"
 }
 
-function ssh::cmd_t
-{
+ssh::cmd_t() {
   SSH_EXTRA_ARGS="-t" ssh::cmd "$1"
 }
 
-
-function ssh::shell
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+ssh::shell() {
+  if ! ssh::env; then
     cij::err "ssh::shell - Invalid ENV."
     return 1
   fi
 
+  SSH_SHELL_ARGS=""
+  SSH_SHELL_ARGS="$SSH_SHELL_ARGS -p $SSH_PORT"
+  SSH_SHELL_ARGS="$SSH_SHELL_ARGS $SSH_USER@$SSH_HOST"
+
   if [[ ! -z "$SSH_KEY" ]]; then
-    ssh -i $SSH_KEY -p $SSH_PORT $SSH_USER@$SSH_HOST
-  else
-    ssh -p $SSH_PORT $SSH_USER@$SSH_HOST
+    SSH_SHELL_ARGS="$SSH_SHELL_ARGS -i $SSH_KEY"
   fi
+
+  SSH_SHELL="ssh $SSH_SHELL_ARGS"
+
+  eval "$SSH_SHELL"
 }
 
-function ssh::shutdown
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+ssh::shutdown() {
+  if ! ssh::env; then
     cij::err "ssh::shutdown - Invalid ENV."
     return 1
   fi
@@ -149,10 +144,8 @@ function ssh::shutdown
   ssh::cmd 'shutdown now'
 }
 
-function ssh::check
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+ssh::check() {
+  if ! ssh::env; then
     cij::err "ssh::check - Invalid ENV."
     return 1
   fi
@@ -161,8 +154,7 @@ function ssh::check
   return $?
 }
 
-function ssh::push
-{
+ssh::push() {
   SRC=$1
   if [[ -z "$SRC" ]]; then
     cij::err "ssh::copy: local path SRC: '$SRC'"
@@ -175,8 +167,7 @@ function ssh::push
     return 1
   fi
 
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+  if ! ssh::env; then
     cij::err "ssh::copy: invalid environment"
     return 1
   fi
@@ -189,11 +180,12 @@ function ssh::push
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
-  scp $SCP_CMD_ARGS $SRC ${SSH_USER}@${SSH_HOST}:$DST
+  SCP_CMD="scp $SCP_CMD_ARGS $SRC ${SSH_USER}@${SSH_HOST}:$DST"
+
+  eval "$SCP_CMD"
 }
 
-function ssh::pull
-{
+ssh::pull() {
   SRC=$1
   if [[ -z "$SRC" ]]; then
     cij::err "ssh::copy: remote path SRC: '$SRC'"
@@ -206,13 +198,12 @@ function ssh::pull
     return 1
   fi
 
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+  if ! ssh::env; then
     cij::err "ssh::copy: invalid environment"
     return 1
   fi
 
-  SCP_CMD_ARGS=""
+  SCP_CMD_ARGS="-r"
   if [[ ! -z "$SSH_PORT" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
   fi
@@ -220,13 +211,13 @@ function ssh::pull
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
-  scp $SCP_CMD_ARGS ${SSH_USER}@${SSH_HOST}:$SRC $DST
+  SCP_CMD="scp $SCP_CMD_ARGS ${SSH_USER}@${SSH_HOST}:$SRC $DST"
+
+  eval "$SCP_CMD"
 }
 
-function ssh::reboot
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+ssh::reboot() {
+  if ! ssh::env; then
     cij::err "ssh::reboot - Invalid ENV."
     return 1
   fi
@@ -240,8 +231,8 @@ function ssh::reboot
   SSH_CMD_TIMEOUT=3
   SSH_REBOOT_START_TIME=$(/bin/date +%s)
   SSH_REBOOT_CONNECT_TIMEOUT=$1
-  SSH_REBOOT_LAST_BOOT_TIME=$(ssh::cmd '/usr/bin/uptime -s')
-  if [[ $? -ne 0 ]]; then
+
+  if ! SSH_REBOOT_LAST_BOOT_TIME=$(ssh::cmd '/usr/bin/uptime -s'); then
     cij::err "ssh::reboot cannot get the target boot time."
     SSH_CMD_TIMEOUT=$SSH_CMD_TIMEOUT_BACKUP
     return 1
@@ -255,29 +246,27 @@ function ssh::reboot
     sleep 1
 
     SSH_REBOOT_CURRENT_TIME=$(/bin/date +%s)
-    SSH_REBOOT_TIME_ELAPSED=$(($SSH_REBOOT_CURRENT_TIME - $SSH_REBOOT_START_TIME))
+    SSH_REBOOT_TIME_ELAPSED=$(( SSH_REBOOT_CURRENT_TIME - SSH_REBOOT_START_TIME))
     if [[ $SSH_REBOOT_TIME_ELAPSED -gt $SSH_REBOOT_CONNECT_TIMEOUT ]]; then
-      SSH_REBOOT_RETURN=1
+      SSH_REBOOT_RCODE=1
       cij::err "ssh::reboot - Timeout: $SSH_REBOOT_TIME_ELAPSED seconds."
       break
     fi
 
-    ssh::cmd 'exit' 2&> /dev/null
-    if [[ $? == 0 ]]; then
-      SSH_REBOOT_CURRENT_BOOT_TIME=$(ssh::cmd '/usr/bin/uptime -s')
-      if [[ $? -ne 0 ]]; then
+    if ! ssh::cmd 'exit' 2&> /dev/null; then
+      if ! SSH_REBOOT_CURRENT_BOOT_TIME=$(ssh::cmd_output '/usr/bin/uptime -s'); then
         continue    # Cannot get the boot time, continue waiting
       fi
       if [[ "$SSH_REBOOT_LAST_BOOT_TIME" == "$SSH_REBOOT_CURRENT_BOOT_TIME" ]]; then
         continue    # Not reboot completely, continue waiting
       fi
 
-      SSH_REBOOT_RETURN=0
+      SSH_REBOOT_RCODE=0
       cij::emph "ssh::reboot: Time elapsed: $SSH_REBOOT_TIME_ELAPSED seconds."
       break
     fi
   done
 
   SSH_CMD_TIMEOUT=$SSH_CMD_TIMEOUT_BACKUP
-  return $SSH_REBOOT_RETURN
+  return $SSH_REBOOT_RCODE
 }

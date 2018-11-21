@@ -92,27 +92,46 @@ if [[ -z "$CIJ_TESTPLANS" ]]; then
 fi
 export CIJ_TESTPLANS
 
-source $CIJ_MODULES/bin.sh
-source $CIJ_MODULES/cij.sh
-source $CIJ_MODULES/qemu.sh
-source $CIJ_MODULES/test.sh
-source $CIJ_MODULES/ssh.sh
-source $CIJ_MODULES/lock.sh
-source $CIJ_MODULES/ipmi.sh
-source $CIJ_MODULES/grub.sh
-source $CIJ_MODULES/nvme.sh
-source $CIJ_MODULES/block.sh
-source $CIJ_MODULES/fio.sh
-source $CIJ_MODULES/pci.sh
-source $CIJ_MODULES/board.sh
-source $CIJ_MODULES/lnvm.sh
-source $CIJ_MODULES/rbench.sh
-source $CIJ_MODULES/fs.sh
-source $CIJ_MODULES/xfstests.sh
-source $CIJ_MODULES/vdbench.sh
-source $CIJ_MODULES/blktests.sh
-source $CIJ_MODULES/pblk.sh
-source $CIJ_MODULES/tftp.sh
+# shellcheck source=modules/bin.sh
+source "$CIJ_MODULES/bin.sh"
+# shellcheck source=modules/cij.sh
+source "$CIJ_MODULES/cij.sh"
+# shellcheck source=modules/qemu.sh
+source "$CIJ_MODULES/qemu.sh"
+# shellcheck source=modules/test.sh
+source "$CIJ_MODULES/test.sh"
+# shellcheck source=modules/ssh.sh
+source "$CIJ_MODULES/ssh.sh"
+# shellcheck source=modules/lock.sh
+source "$CIJ_MODULES/lock.sh"
+# shellcheck source=modules/ipmi.sh
+source "$CIJ_MODULES/ipmi.sh"
+# shellcheck source=modules/nvme.sh
+source "$CIJ_MODULES/nvme.sh"
+# shellcheck source=modules/block.sh
+source "$CIJ_MODULES/block.sh"
+# shellcheck source=modules/fio.sh
+source "$CIJ_MODULES/fio.sh"
+# shellcheck source=modules/pci.sh
+source "$CIJ_MODULES/pci.sh"
+# shellcheck source=modules/board.sh
+source "$CIJ_MODULES/board.sh"
+# shellcheck source=modules/lnvm.sh
+source "$CIJ_MODULES/lnvm.sh"
+# shellcheck source=modules/rbench.sh
+source "$CIJ_MODULES/rbench.sh"
+# shellcheck source=modules/fs.sh
+source "$CIJ_MODULES/fs.sh"
+# shellcheck source=modules/xfstests.sh
+source "$CIJ_MODULES/xfstests.sh"
+# shellcheck source=modules/vdbench.sh
+source "$CIJ_MODULES/vdbench.sh"
+# shellcheck source=modules/blktests.sh
+source "$CIJ_MODULES/blktests.sh"
+# shellcheck source=modules/pblk.sh
+source "$CIJ_MODULES/pblk.sh"
+# shellcheck source=modules/tftp.sh
+source "$CIJ_MODULES/tftp.sh"
 
 if [[ "$CIJ_TYPE" == "reposrun" ]]; then
   PATH=$PATH:$CIJ_ROOT/bin

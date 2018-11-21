@@ -4,48 +4,47 @@
 #
 # Functions:
 #
-# ipmi::env - Sets default vars for ipmi wrapping
+# ipmi::env - Sets default vars for IPMI wrapping
 # ipmi::cmd <CMD> - Execute ipmitool command <CMD>
 # ipmi::on    - Power on system
 # ipmi::off - Power off system
 # ipmi::reset - Power reset system
 #
-# Variables:
+# Variables REQUIRED by module:
+#
+# IPMI_HOST - hostname of IPMI
+#
+# Optional Variables:
 #
 # IPMI_USER - login on server
 # IPMI_PASS - password to server
-# IPMI_HOST - server host
 # IPMI_PORT - server port
 #
 
-function ipmi::env
-{
-  if [ -z "$IPMI_USER" ]; then
+ipmi::env() {
+  # shellcheck disable=2153
+  if [[ -z "$IPMI_HOST" ]]; then
+    cij::err "ipmi::env: IPMI_HOST is unset"
+    return 1
+  fi
+
+  if [[ -z "$IPMI_USER" ]]; then
     IPMI_USER="admin"
-    echo "ipmi::env: IPMI_USER was unset, assigned '$IPMI_USER'"
   fi
-
-  if [ -z "$IPMI_PASS" ]; then
+  if [[ -z "$IPMI_PASS" ]]; then
     IPMI_PASS="admin"
-    echo "ipmi::env: IPMI_PASS was unset, assigned '$IPMI_PASS'"
   fi
-
-  if [ -z "$IPMI_HOST" ]; then
-    IPMI_HOST="localhost"
-    echo "ipmi::env: IPMI_HOST was unset, assigned '$IPMI_HOST'"
-  fi
-
-  if [ -z "$IPMI_PORT" ]; then
+  if [[ -z "$IPMI_PORT" ]]; then
     IPMI_PORT="623"
-    echo "ipmi::env: IPMI_PORT was unset, assigned '$IPMI_PORT'"
   fi
 
   return 0
 }
 
-function ipmi::cmd
-{
-  ipmi::env
+ipmi::cmd() {
+  if ! ipmi::env; then
+    cij::err "ipmi::cmd: invalid env"
+  fi
 
   BIN="ipmitool"
   ARGS=""
@@ -60,38 +59,58 @@ function ipmi::cmd
 
   CMD="$BIN $ARGS $1"
 
-  echo $CMD
-  eval $CMD
+  cij::info "ipmi::cmd: $CMD"
+
+  eval "$CMD"
 }
 
-function ipmi::on
-{
-  ipmi::env
+ipmi::on() {
+  if ! ipmi::env; then
+    cij::err "ipmi::on: invalid env"
+    return 1
+  fi
+
   ipmi::cmd "power on"
+  return $?
 }
 
-function ipmi::off
-{
-  ipmi::env
+ipmi::off() {
+  if ! ipmi::env; then
+    cij::err "ipmi::off: invalid env"
+    return 1
+  fi
+
   ipmi::cmd "power off"
+  return $?
 }
 
-function ipmi::reset
-{
-  ipmi::env
+ipmi::reset() {
+  if ! ipmi::env; then
+    cij::err "ipmi::reset: invalid env"
+    return 1
+  fi
+
   ipmi::cmd "power reset"
+  return $?
 }
 
+ipmi::powercycle() {
+  if ! ipmi::env; then
+    cij::err "ipmi::console: invalid env"
+    return 1
+  fi
 
-function ipmi::powercycle
-{
-  ipmi::env
   ipmi::cmd "chassis power cycle"
+  return $?
 }
 
-function ipmi::console
-{
-  ipmi::env
+ipmi::console() {
+  if ! ipmi::env; then
+    cij::err "ipmi::console: invalid env"
+    return 1
+  fi
+
   ipmi::cmd "-I lanplus sol activate"
+  return $?
 }
 

@@ -23,41 +23,36 @@
 # LNVM_DEV_PATH - Name of the LNVM instance e.g. /dev/nvme0n1b000e127
 #
 
-function lnvm::env
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+lnvm::env() {
+  if ! ssh::env; then
     cij::err "lnvm::env: invalid SSH environment"
     return 1
   fi
-
-  nvme::env
-  if [[ $? -ne 0 ]]; then
+  if ! nvme::env; then
     cij::err "lnvm::env: invalid NVMe environment"
     return 1
   fi
 
-  # REQUIRED variables
   if [[ -z "$LNVM_BGN" ]]; then
     cij::err "lnvm::env: LNVM_BGN is not defined"
     return 1
   fi
-  if ! cij::isint $LNVM_BGN; then
+  if ! cij::isint "$LNVM_BGN"; then
     cij::err "lnvm::env: LNVM_BGN: ${LNVM_BGN} is not an integer"
     return 1
   fi
-  LNVM_BGN_STR=$(printf "%03d" $LNVM_BGN)
+  LNVM_BGN_STR=$(printf "%03d" "$LNVM_BGN")
 
-
+  # shellcheck disable=2153
   if [[ -z "$LNVM_END" ]]; then
     cij::err "lnvm::env: LNVM_END is not defined"
     return 1
   fi
-  if ! cij::isint $LNVM_END; then
+  if ! cij::isint "$LNVM_END"; then
     cij::err "lnvm::env: LNVM_END: ${LNVM_END} is not an integer"
     return 1
   fi
-  LNVM_END_STR=$(printf "%03d" $LNVM_END)
+  LNVM_END_STR=$(printf "%03d" "$LNVM_END")
 
   # DEFAULT variables
   if [[ -z "$LNVM_DEV_TYPE" ]]; then
@@ -65,25 +60,30 @@ function lnvm::env
     cij::warn "lnvm::env: LNVM_DEV_TYPE is not set, assigned '$LNVM_DEV_TYPE'"
   fi
 
-  # EXPORTED
-  LNVM_DEV_NAME="${NVME_DEV_NAME}b${LNVM_BGN_STR}e${LNVM_END_STR}"
-  LNVM_DEV_PATH="/dev/${LNVM_DEV_NAME}"
+  # shellcheck disable=2153
+  export LNVM_DEV_NAME="${NVME_DEV_NAME}b${LNVM_BGN_STR}e${LNVM_END_STR}"
+  export LNVM_DEV_PATH="/dev/${LNVM_DEV_NAME}"
 
   return 0
 }
 
-function lnvm::create
-{
-  lnvm::env
-  if [[ $? -ne 0 ]]; then
+lnvm::create() {
+  if ! lnvm::env; then
     cij::err "lnvm::create: invalid environment"
     return 1
   fi
 
   cij::emph "lnvm::create: LNVM_DEV_NAME: '$LNVM_DEV_NAME'"
 
-  ssh::cmd "nvme lnvm create -d $NVME_DEV_NAME -n $LNVM_DEV_NAME -t $LNVM_DEV_TYPE -b $LNVM_BGN -e $LNVM_END -f"
-  if [[ $? -ne 0 ]]; then
+  LNVM_CMD="nvme lnvme create"
+  LNVM_CMD="$LNVM_CMD -d $NVME_DEV_NAME"
+  LNVM_CMD="$LNVM_CMD -n $LNVM_DEV_NAME"
+  LNVM_CMD="$LNVM_CMD -t $LNVM_DEV_TYPE"
+  LNVM_CMD="$LNVM_CMD -b $LNVM_BGN"
+  LNVM_CMD="$LNVM_CMD -e $LNVM_END"
+  LNVM_CMD="$LNVM_CMD -f"
+
+  if ! ssh::cmd "$LNVM_CMD"; then
     cij::err "lnvm::create: FAILED"
     return 1
   fi
@@ -91,18 +91,22 @@ function lnvm::create
   return 0
 }
 
-function lnvm::recover
-{
-  lnvm::env
-  if [[ $? -ne 0 ]]; then
+lnvm::recover() {
+  if ! lnvm::env; then
     cij::err "lnvm::recover: invalid environment"
     return 1
   fi
 
   cij::emph "lnvm::recover: LNVM_DEV_NAME: '$LNVM_DEV_NAME'"
 
-  ssh::cmd "nvme lnvm create -d $NVME_DEV_NAME -n $LNVM_DEV_NAME -t $LNVM_DEV_TYPE -b $LNVM_BGN -e $LNVM_END"
-  if [[ $? -ne 0 ]]; then
+  LNVM_CMD="nvme lnvme create"
+  LNVM_CMD="$LNVM_CMD -d $NVME_DEV_NAME"
+  LNVM_CMD="$LNVM_CMD -n $LNVM_DEV_NAME"
+  LNVM_CMD="$LNVM_CMD -t $LNVM_DEV_TYPE"
+  LNVM_CMD="$LNVM_CMD -b $LNVM_BGN"
+  LNVM_CMD="$LNVM_CMD -e $LNVM_END"
+
+  if ! ssh::cmd "$LNVM_CMD"; then
     cij::err "lnvm::recover: FAILED"
     return 1
   fi
@@ -110,18 +114,18 @@ function lnvm::recover
   return 0
 }
 
-function lnvm::remove
-{
-  lnvm::env
-  if [[ $? -ne 0 ]]; then
+lnvm::remove() {
+  if ! lnvm::env; then
     cij::err "lnvm::remove: invalid environment"
     return 1
   fi
 
   cij::emph "lnvm::remove: LNVM_DEV_NAME: '$LNVM_DEV_NAME'"
 
-  ssh::cmd "nvme lnvm remove -n $LNVM_DEV_NAME"
-  if [[ $? -ne 0 ]]; then
+  LNVM_CMD="nvme lnvm remove"
+  LNVM_CMD="$LNVM_CMD -n $LNVM_DEV_NAME"
+
+  if ! ssh::cmd "$LNVM_CMD"; then
     cij::err "lnvm::remove: FAILED"
     return 1
   fi
@@ -129,16 +133,13 @@ function lnvm::remove
   return 0
 }
 
-function lnvm::exists
-{
-  lnvm::env
-  if [[ $? -ne 0 ]]; then
+lnvm::exists() {
+  if ! lnvm::env; then
     cij::err "lnvm::create: invalid environment"
     return 1
   fi
 
-  ssh::cmd "[[ -b $LNVM_DEV_PATH ]]"
-  if [[ $? != 0 ]]; then
+  if ! ssh::cmd "[[ -b \"$LNVM_DEV_PATH\" ]]"; then
     cij::err "lnvme::exists: LNVM_DEV_PATH: '$LNVM_DEV_PATH', does not exist"
     return 1
   fi

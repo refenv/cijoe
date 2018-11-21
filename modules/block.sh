@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# block.sh - Script providing convenience functions for NVMe
+# block.sh - Convenience functions for block devices
 #
 # Functions:
 #
@@ -16,10 +16,8 @@
 # BLOCK_DEV_PATH        - Path to the device, e.g. "/dev/sda"
 #
 
-function block::env
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+block::env() {
+  if ! ssh::env; then
     cij::err "block::env - Invalid SSH ENV."
     return 1
   fi
@@ -34,16 +32,13 @@ function block::env
   return 0
 }
 
-function block::exists
-{
-  block::env
-  if [[ $? -ne 0 ]]; then
+block::exists() {
+  if ! block::env; then
     cij::err "block::env - Invalid NVMe ENV."
     return 1
   fi
 
-  ssh::cmd "[[ -b $BLOCK_DEV_PATH ]]"
-  if [[ $? != 0 ]]; then
+  if ! ssh::cmd "[[ -b $BLOCK_DEV_PATH ]]"; then
     cij::err "block::env: BLOCK_DEV_PATH: '$BLOCK_DEV_PATH', does not exist"
     return 1
   fi

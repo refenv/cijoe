@@ -12,10 +12,8 @@
 # BOARD_IDENT           - BOARD identifier
 #
 
-function board::env
-{
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+board::env() {
+  if ! ssh::env; then
     cij::err "board::env: Invalid SSH ENV."
     return 1
   fi

@@ -17,8 +17,12 @@
 
 test::usage() {
   cij::emph "Test contract -- Usage"
+
   echo ""
-  echo "This will contain useful information on how to write and run a test" echo ""
+  echo "This should contain useful information on how to write and run a test"
+  echo "but it does not, so read the docs instead"
+  echo ""
+
   cij::info "CIJ_TEST_REQS: $CIJ_TEST_REQS"
 }
 
@@ -37,38 +41,32 @@ test::require() {
 }
 
 test::enter() {
-  ssh::env
-  if [[ $? != 0 ]]; then
+  if ! ssh::env; then
     test::usage
     test::fail "invalid SSH environment"
   fi
 
   for REQ in $CIJ_TEST_REQS; do
     if [[ "$REQ" == "nvme" ]]; then
-      nvme::env
-      if [[ $? != 0 ]]; then
+      if ! nvme::env; then
         test::usage
         test::fail "Invalid NVMe environment"
       fi
-      nvme::exists
-      if [[ $? != 0 ]]; then
+      if ! nvme::exists; then
         test::usage
         test::fail "Invalid NVMe environment"
       fi
     elif [[ "$REQ" == "block" ]]; then
-      block::env
-      if [[ $? != 0 ]]; then
+      if ! block::env; then
         test::usage
         test::fail "Invalid BLOCK environment"
       fi
-      block::exists
-      if [[ $? != 0 ]]; then
+      if ! block::exists; then
         test::usage
         test::fail "Invalid BLOCK environment"
       fi
     elif [[ "$REQ" == "fio" ]]; then
-      fio::env
-      if [[ $? != 0 ]]; then
+      if ! fio::env; then
         test::usage
         test::fail "Invalid FIO environment"
       fi
@@ -84,8 +82,7 @@ test::enter() {
 
   export CIJ_TEST_AUX_ROOT="$CIJ_TEST_RES_ROOT/_aux"
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
-    mkdir "$CIJ_TEST_AUX_ROOT"
-    if [[ $? != 0 ]]; then
+    if ! mkdir "$CIJ_TEST_AUX_ROOT"; then
       test::fail "could not create CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     fi
   fi

@@ -106,8 +106,8 @@ class Job(object):
 
         if key in self.__parm.keys():
             return self.__parm[key]
-        else:
-            return None
+
+        return None
 
     def start(self):
         """Run FIO job in thread"""
@@ -127,8 +127,8 @@ class Job(object):
 
         if self.__thread:
             return self.__thread.result()
-        else:
-            return None
+
+        return None
 
     def run(self, shell=True, cmdline=False, echo=True):
         """Run FIO job"""

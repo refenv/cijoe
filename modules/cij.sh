@@ -20,10 +20,10 @@ PR_ERR_CC='\033[0;31m'
 PR_NC='\033[0m'
 
 if [[ -z "$CIJ_ECHO_TIME_STAMP" ]]; then
-  CIJ_ECHO_TIME_STAMP=1
+  export CIJ_ECHO_TIME_STAMP=1
 fi
 
-function cij::info {
+cij::info() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_EMPH_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -31,7 +31,7 @@ function cij::info {
   fi
 }
 
-function cij::good {
+cij::good() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_GOOD_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -39,7 +39,7 @@ function cij::good {
   fi
 }
 
-function cij::warn {
+cij::warn() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_WARN_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -47,7 +47,7 @@ function cij::warn {
   fi
 }
 
-function cij::err {
+cij::err() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_ERR_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -55,7 +55,7 @@ function cij::err {
   fi
 }
 
-function cij::emph {
+cij::emph() {
   if [[ -z "$2" ]]; then
     cij::info "$1"
   elif [[ $2 -eq 0 ]]; then
@@ -65,38 +65,39 @@ function cij::emph {
   fi
 }
 
-function cij::throttle {
-  REMAINING=$1
-  if [ $REMAINING -gt 0 ]; then
+cij::throttle() {
+  local REMAINING="$1"
+
+  if [[ "$REMAINING" -gt 0 ]]; then
     echo -n "Throttling($REMAINING)"
-    while [ $REMAINING -gt 0 ]; do
+    while [[ "$REMAINING" -gt 0 ]]; do
       echo -n "."
       sleep 1
-      REMAINING=`expr $REMAINING - 1`
+      REMAINING=$(( "$REMAINING" - 1))
     done
     echo "!"
   fi
 }
 
-function cij::watchf {
-  WATCHF_FILE=$1
+cij::watchf() {
+  local WATCHF_FILE="$1"
 
-  if [ -z "$WATCHF_FILE" -o ! -f "$WATCHF_FILE" ]; then
+  if [[ -z "$WATCHF_FILE" || ! -f "$WATCHF_FILE" ]]; then
     cij::err "cij::watchf: Invalid file."
     return 0
   fi
 
-  tail -f --follow=name --retry $WATCHF_FILE
+  tail -f --follow=name --retry "$WATCHF_FILE"
 }
 
-function cij::watchf_for {
-  WATCHF_FILE=$1
-  WATCHF_MSG=$2
-  WATCHF_TIMEOUT=$3
+cij::watchf_for() {
+  local WATCHF_FILE=$1
+  local WATCHF_MSG=$2
+  local WATCHF_TIMEOUT=$3
 
-  WATCHF_ELAPSED=0
+  local WATCHF_ELAPSED=0
 
-  if [ -z "$WATCHF_FILE" -o ! -f "$WATCHF_FILE" ]; then
+  if [[ -z "$WATCHF_FILE" || ! -f "$WATCHF_FILE" ]]; then
     cij::err "cij::watchf_for: Invalid file"
     return 0
   fi
@@ -111,38 +112,46 @@ function cij::watchf_for {
   fi
 
   sync
-  NLINES=`wc -l < $WATCHF_FILE` # Watch for "additions" to file
+  NLINES=$(wc -l < "$WATCHF_FILE") # Watch for "additions" to file
 
   echo -n "Watching($WATCHF_FILE) for($WATCHF_MSG) timeout($WATCHF_TIMEOUT)"
-  while [ "$WATCHF_ELAPSED" -lt "$WATCHF_TIMEOUT" ]; do
+  while [[ "$WATCHF_ELAPSED" -lt "$WATCHF_TIMEOUT" ]]; do
     echo -n "."
-    if tail -n+$NLINES $WATCHF_FILE | grep -q "$WATCHF_MSG" ; then
+    if tail -n+"$NLINES" "$WATCHF_FILE" | grep -q "$WATCHF_MSG" ; then
       echo ""
       return 1
     fi
     sleep 1
-    WATCHF_ELAPSED=`expr $WATCHF_ELAPSED + 1`
+    WATCHF_ELAPSED=$(( "$WATCHF_ELAPSED" + 1 ))
   done
 
   cij::err "cij::watchf_for: timeout($WATCHF_TIMEOUT) exceeded."
   return 0
 }
 
-function cij::repeat {
-  number=$1
+# Repeat the given command the given number of times, e.g.:
+#
+# cij::repeat 10 echo "Hello There"
+#
+cij::repeat() {
+  local number="$1"
   shift
-  for i in `seq $number`; do
-    $@
+
+  for _ in $(seq "$number"); do
+    "$@"
   done
 }
 
 # get fibonacci-range, between(and including) <start> and <stop>
-function get_fib_range {
-  start_val=$1
-  stop_val=$2
+#
+# cij::get_fib_range 1 20; printf '%s\n' "${range[@]}"
+#
+cij::get_fib_range() {
+  local start_val="$1"
+  local stop_val="$2"
   unset range
-  if [ "$start_val" ==  "$stop_val" ];
-  then
+
+  if [[ "$start_val" == "$stop_val" ]]; then
     range[0]=$start_val
   else
     a=1
@@ -151,7 +160,7 @@ function get_fib_range {
     let "n = $a + $start_val"
     range[0]=$start_val
     index=1
-    while [ "$n" -lt "$stop_val" ]; do
+    while [[ "$n" -lt "$stop_val" ]]; do
       range[$index]=$b
       a=$b
       b=$c
@@ -161,22 +170,28 @@ function get_fib_range {
     done
     range[$index]=$stop_val
   fi
+
+  export range
 }
 
-# get power-of-two-range, between(and including) <start> and <stop> 
-function get_exp_2_range {
-  start_val=$1
-  stop_val=$2
+#
+# get power-of-two-range, between(and including) <start> and <stop>
+#
+# cij::get_exp_2_range 1 20; printf '%s\n' "${range[@]}"
+#
+cij::get_exp_2_range() {
+  local start_val="$1"
+  local stop_val="$2"
   unset range
-  if [ "$start_val" ==  "$stop_val" ];
-  then
+
+  if [[ "$start_val" == "$stop_val" ]]; then
     range[0]=$start_val
   else
     a=1
     let "n = $a + $start_val"
     range[0]=$start_val
     index=1
-    while [ "$n" -lt "$stop_val" ]; do
+    while [[ "$n" -lt "$stop_val" ]]; do
       range[$index]=$n
       let "a = $a * 2"
       let "n = $a + $start_val"
@@ -184,16 +199,19 @@ function get_exp_2_range {
     done
     range[$index]=$stop_val
   fi
+
+  export range
 }
 
-function cij::isint {
-  VAR=$1
+# returncode 0 when input is an integer, 1 when it is not
+cij::isint() {
+  local VAR="$1"
 
   if [[ -z "$VAR" ]]; then
-    cij::err "no input givent"
+    cij::err "no input given"
     return 0
   fi
 
-  [[ $VAR =~ ^[0-9]+$ ]];
-  return $?
+  [[ "$VAR" =~ ^[0-9]+$ ]]
+  return $?;
 }

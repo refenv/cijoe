@@ -2,6 +2,8 @@
 #
 # xfstests::env         - Checks environment for FS variables
 # xfstests::run         - Run a specific set of tests
+# xfstests::prepare     - Mount fs etc.
+# xfstests::cleanup     - Unmount fs etc.
 #
 # Variables REQUIRED by module
 #
@@ -15,9 +17,8 @@
 # XSFSTESTS_FS_TYPE             - file system type to test, default is xfs
 #
 
-function xfstests::env {
-  ssh::env
-  if [[ $? -ne 0 ]]; then
+xfstests::env() {
+  if ! ssh::env; then
     cij::err "xfstests::env - Invalid SSH ENV."
     return 1
   fi
@@ -28,24 +29,21 @@ function xfstests::env {
     cij::err "xfstests::env BLOCK_DEV_PATH is not defined"
     return 1
   fi
-
-  if [[ -z "$MOUNT_POINT" ]]; then
-    cij::err "xfstests::env MOUNT_POINT is not defined"
+  if [[ -z "$FS_MOUNT_POINT" ]]; then
+    cij::err "xfstests::env FS_MOUNT_POINT is not defined"
     return 1
   fi
-
   if [[ -z "$XFSTESTS_HOME" ]]; then
     cij::err "xfstests::env XFSTESTS_HOME is not defined"
     return 1
   fi
 
   XFSTESTS_TARGET_DEV_PATH="$BLOCK_DEV_PATH"
-  XFSTESTS_TARGET_DIR="$MOUNT_POINT/xfs"
+  XFSTESTS_TARGET_DIR="$FS_MOUNT_POINT"
 
   if [[ -n "$XFSTESTS_SCRATCH_DEV_PATH" ]]; then
-    XFSTESTS_SCRATCH_DIR="$MOUNT_POINT/xfs_scratch"
+    XFSTESTS_SCRATCH_DIR="$FS_MOUNT_POINT/xfs_scratch"
   fi
-
   if [[ -z "$XFSTESTS_FS_TYPE" ]]; then
     XFSTESTS_FS_TYPE="xfs"
   fi
@@ -53,9 +51,8 @@ function xfstests::env {
   return 0
 }
 
-function xfstests::prepare {
-  xfstests::env
-  if [[ $? -ne 0 ]]; then
+xfstests::prepare() {
+  if ! xfstests::env; then
     cij::err "xsfstests::prepare - Invalid ENV."
     return 1
   fi
@@ -64,82 +61,77 @@ function xfstests::prepare {
   FS_DEV_PATH="$XFSTESTS_TARGET_DEV_PATH"
   FS_MOUNT_POINT="$XFSTESTS_TARGET_DIR"
 
-  fs::create
-  if [[ $? -ne 0 ]]; then
+  if ! fs::create; then
      cij::err "xfstests::prepare - Error creating file system"
      return 1
   fi
 
-  fs::mount
-  if [[ $? -ne 0 ]]; then
+  if ! fs::mount; then
      cij:err "xfstests::prepare - Error mounting file system"
      return 1
   fi
 
   if [[ -n "$XFSTESTS_SCRATCH_DIR" ]]; then
-    ssh::cmd "mkdir -p $XFSTESTS_SCRATCH_DIR"
-    if [[ $? -ne 0 ]]; then
+    if ! ssh::cmd "mkdir -p $XFSTESTS_SCRATCH_DIR"; then
        cij:err "xfstests::prepare - failed to create scratch directory"
        return 1
     fi
   fi
 
-  if [[ $? -ne 0 ]]; then
-    cij::err "fs::mount: FAILED to create mount point"
-    return 1
-  fi
-
+  return 0
 }
 
-function xfstests::cleanup {
-  xfstests::env
-  if [[ $? -ne 0 ]]; then
+xfstests::cleanup() {
+  if ! xfstests::env; then
     cij::err "xsfstests::run - Invalid ENV."
     return 1
   fi
 
+  # shellcheck disable=SC2034
   FS_TYPE="$XFSTESTS_FS_TYPE"
+  # shellcheck disable=SC2034
   FS_DEV_PATH="$XFSTESTS_TARGET_DEV_PATH"
+  # shellcheck disable=SC2034
   FS_MOUNT_POINT="$XFSTESTS_TARGET_DIR"
 
-  fs::umount
-  # We don't care if the unmount fails
+  if ! fs::umount; then
+    cij::err "xfstests::cleanup: fs::umount failed -- this is okay"
+  fi
 
   if [[ -n "$XFSTESTS_SCRATCH_DIR" ]]; then
-    ssh::cmd "rmdir $XFSTESTS_SCRATCH_DIR"
-    if [[ $? -ne 0 ]]; then
-       cij:err "xfstests::cleanup - failed to remove scratch directory"
+    if ! ssh::cmd "rmdir $XFSTESTS_SCRATCH_DIR"; then
+       cij:err "xfstests::cleanup: failed to remove scratch directory"
        return 1
     fi
   fi
 }
 
-function xfstests::run {
-  xfstests::env
-  if [[ $? -ne 0 ]]; then
+xfstests::run() {
+  if ! xfstests::env; then
     cij::err "xsfstests::run - Invalid ENV."
     return 1
   fi
 
-  if [[ -z $1 ]]; then
+  XFSTESTS_TEST=$1
+  if [[ -z "$XFSTESTS_TEST" ]]; then
     cij::err "xfstests::run - No tests specified"
     return 1
   fi
-  
-  TO_RUN=$1
-  XFSTESTS_CMD="TEST_DEV=$XFSTESTS_TARGET_DEV_PATH TEST_DIR=$XFSTESTS_TARGET_DIR ./check $TO_RUN "
 
-  if [ -n "$XFSTESTS_SCRATCH_DEV_PATH" ]; then
-    XFSTESTS_CMD="SCRATCH_DEV=$XFSTESTS_SCRATCH_DEV_PATH $XFSTESTS_CMD"
+  XFSTESTS_CMD=""
+  XFSTESTS_CMD="$XFSTESTS_CMD TEST_DEV=$XFSTESTS_TARGET_DEV_PATH"
+  XFSTESTS_CMD="$XFSTESTS_CMD TEST_DIR=$XFSTESTS_TARGET_DIR"
+
+  if [[ -n "$XFSTESTS_SCRATCH_DEV_PATH" ]]; then
+    XFSTESTS_CMD=" $XFSTESTS_CMD SCRATCH_DEV=$XFSTESTS_SCRATCH_DEV_PATH"
+  fi
+  if [[ -n "$XFSTESTS_SCRATCH_DIR" ]]; then
+    XFSTESTS_CMD="$XFSTESTS_CMD SCRATCH_MNT=$XFSTESTS_SCRATCH_DIR"
   fi
 
-  if [ -n "$XFSTESTS_SCRATCH_DIR" ]; then
-    XFSTESTS_CMD="SCRATCH_MNT=$XFSTESTS_SCRATCH_DIR $XFSTESTS_CMD"
-  fi
-  
-  cij::emph "Starting xfstests with specification: $TO_RUN TEST_DEV=$XFSTESTS_TARGET_DEV_PATH SCRATCH_DEV=$XFSTESTS_SCRATCH_DEV_PATH FSTYP=$XFSTESTS_FS_TYPE"
-  ssh::cmd "cd $XFSTESTS_HOME && $XFSTESTS_CMD"
-  if [[ $? -ne 0 ]]; then
+  XFSTESTS_CMD="$XFSTESTS_CMD ./check $XFSTESTS_TEST"
+
+  if ! ssh::cmd "cd $XFSTESTS_HOME && $XFSTESTS_CMD"; then
     cij::err "xfstests::run Test failed"
     return 1
   fi

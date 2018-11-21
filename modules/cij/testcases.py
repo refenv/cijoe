@@ -31,8 +31,9 @@ def index(search_path, ext=None):
     return sorted(list(tcases))
 
 
-def construct_dset(args, evars):
+def construct_dset(evars):
     """
+    Create a dataset = { "group_names": [ testcase, .. , testcase ] }
     """
 
     fnames = index(evars["TESTCASES"], "TESTCASES")
@@ -123,7 +124,7 @@ def main(args, evars):
 
     cij.emph("html_fpath: %r" % html_fpath)
 
-    dset = construct_dset(args, evars)
+    dset = construct_dset(evars)
 
     with open(html_fpath, 'w') as html_fd:
         html = dset_to_html(dset, args.tmpl_fpath)
