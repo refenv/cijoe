@@ -6,8 +6,12 @@
 # without error, it is just a demonstration on how commands should be invoked
 # and how test-status must be communicated
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+# shellcheck disable=SC2119
+#
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::enter
 
 # Everything above is mandatory, that is, you MUST:
@@ -23,9 +27,13 @@ test::enter
 #
 # Test status is indicated with 'test::fail' or 'test::pass'
 
-ssh::cmd "lspci"
-if [[ $? -ne 0 ]]; then
-  test::fail "lspci:: FAILED"
+cij::info "When outputting information from a testcase"
+cij::good "Then use these provided helper-functions"
+cij::warn "They make it easier to distinguish CIJOE output"
+cij::err "From the executed command output"
+
+if ! ssh::cmd "lspci"; then
+  test::fail "failed executing 'lspci'"
 fi
 
 test::pass

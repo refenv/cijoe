@@ -1,0 +1,10 @@
+descr: Example testplan for running on a remote reference environment
+descr_long: |
+  Be aware, the testcases that this testplan executes is destructive, that is,
+  it utilizes a block device which will be manipulated in a lot of ways.  Thus,
+  provide an environment with a block-device to use for this very purpose only
+  and not a block device containing your data or operating system.
+hooks: [ sysinf, dmesg ]
+testsuites:
+  - name: EXTS_01
+  - name: EXTS_02_refenv
