@@ -1,4 +1,4 @@
-## Changelog
+# Changelog
 
 The repository is tagged using semantic versioning, e.g. `v0.0.3`. The `master`
 branch consist of the latest state of CIJOE with possible hot-fixes since
@@ -9,6 +9,21 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
+
+## v0.0.6 (Upcoming)
+
+* Expand usage example
+* Style and logic fixes
+
+## v0.0.5
+
+## Test-Runner
+
+* Changed `cij_runner` arguments to positional
+
+## Example environment definitions
+
+* Expanded declarations of reference environment
 
 ## v0.0.4
 
