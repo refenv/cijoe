@@ -22,12 +22,23 @@ export YCSB_HOME=/opt/YCSB
 
 export BLOCK_STORAGE_HOME=/opt/block-storage
 
-# Hazardous region
+#
+# Sensitive Region
+#
+#export CIJ_TRGT=localhost
+#export SSH_HOST=$CIJ_TRGT
+#export SSH_USER=root
+#export IPMI_HOST=${CIJ_TRGT}-ipmi
+#export IPMI_USER=ADMIN
+#export IPMI_PASS=ADMIN
+
+#
+# Hazardous Region
 #
 # As most tests will write to devices, then it is important that you make sure
 # to define them correctly to around purging your operating system installation
-# or precious data. So, default values are not provided.
+# or your precious data.
 #
-#export SSH_USER=root
-#export SSH_HOST=ch-lab-01
-#export BLOCK_DEV_NAME=nvme0n1
+#export PCI_DEV_NAME=0000:00:02.0
+#export NVME_DEV_NAME=nvme0n1
+#export BLOCK_DEV_NAME=$NVME_DEV_NAME
