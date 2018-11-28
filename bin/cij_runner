@@ -37,14 +37,12 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     PRSR.add_argument(
-        "--testplan",
+        "testplan",
         help="Path to the testplan to run",
-        required=True
     )
     PRSR.add_argument(
-        "--env",
+        "env",
         help="Path to the environment definition",
-        required=True
     )
     PRSR.add_argument(
         "--output",
