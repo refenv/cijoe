@@ -18,7 +18,7 @@ test::enter
 #
 # * Provide a short and long description of the testcase
 # * Provide a CIJ_TEST_NAME
-# * Include CIJOE
+# * source in CIJOE
 # * Begin the test with "test::enter"
 #
 # The remainder is the implementation of the test itself. Notice that commands
@@ -27,10 +27,16 @@ test::enter
 #
 # Test status is indicated with 'test::fail' or 'test::pass'
 
-cij::info "When outputting information from a testcase"
-cij::good "Then use these provided helper-functions"
-cij::warn "They make it easier to distinguish CIJOE output"
-cij::err "From the executed command output"
+cij::info "Example of outputting an annotated 'information' message"
+cij::good "Example of outputting an annotated 'good' message"
+cij::warn "Example of outputting an annotated 'warning' message"
+cij::err "Example of outputting an annotated 'error' message"
+
+if [[ ! -z "$FOO" ]]; then
+  cij::emph "Looks like the variable FOO is set, have a look FOO: '$FOO'"
+fi
+
+cij::info "Let us test that we can execute 'lspci'"
 
 if ! ssh::cmd "lspci"; then
   test::fail "failed executing 'lspci'"
