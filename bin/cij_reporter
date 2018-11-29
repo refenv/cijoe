@@ -11,10 +11,8 @@ import cij.runner
 import cij.util
 import cij
 
-def parse_args():
+def parse_args(cij_conf):
     """Parse command-line arguments for cij_reporter"""
-
-    evars = cij.paths_from_env("CIJ", ["TEMPLATES"])
 
     # Parse the Command-Line
     prsr = argparse.ArgumentParser(
@@ -29,7 +27,7 @@ def parse_args():
     prsr.add_argument(
         '--template',
         help="Path to report template",
-        default=os.sep.join([evars["TEMPLATES"], "report.html"])
+        default=os.sep.join([cij_conf["TEMPLATES"], "report.html"])
     )
     prsr.add_argument(
         '--force',
@@ -66,13 +64,22 @@ def main():
     configuration for which to invoke the reporter
     """
 
-    args = parse_args()
-    if args is None:
+    cij_conf = cij.paths_from_env("CIJ", [
+        "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
+        "HOOKS", "TEMPLATES"
+    ])
+    if cij_conf is None:
+        cij.err("rprtr: failed parsing CIJOE config from environment variables")
         return 1
 
-    rcode = cij.reporter.main(args)
+    args = parse_args(cij_conf)
+    if args is None:
+        cij.err("rprtr: failed parsing command-line args")
+        return 1
+
+    rcode = cij.reporter.main(args, cij_conf)
     if rcode:
-        cij.err("rcode: %r, error while creating report" % rcode)
+        cij.err("rprtr: rcode: %r, error while creating report" % rcode)
 
     return rcode
 

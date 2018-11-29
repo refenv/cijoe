@@ -10,27 +10,28 @@ import ansi2html
 import cij.runner
 import cij
 
-
-def tcase_comment(tcase):
+def tcase_comment(args, cij_conf, tcase):
     """
+    Extracting the testcase description requires that the same versions are
+    used, it will otherwise be very misleading / confusing
+
     @returns the testcase-comment from the tcase["fpath"] as a list of strings
     """
 
-    comment = []
-
-    ext = os.path.splitext(tcase["fpath"])[-1]
     src = open(tcase["fpath"]).read()
 
     if len(src) < 3:
         cij.err("rprtr::tcase_comment: invalid src, tcase: %r" % tcase["name"])
         return None
 
+    ext = os.path.splitext(tcase["fpath"])[-1]
     if ext not in [".sh", ".py"]:
         cij.err("rprtr::tcase_comment: invalid ext: %r, tcase: %r" % (
             ext, tcase["name"]
         ))
         return None
 
+    comment = []
     for line in src.splitlines()[2:]:
         if ext == ".sh" and not line.startswith("#"):
             break
@@ -42,14 +43,14 @@ def tcase_comment(tcase):
     return comment
 
 
-def tcase_parse_descr(tcase):
+def tcase_parse_descr(args, cij_conf, tcase):
     """Parse descriptions from the the given tcase"""
 
     descr_short = "SHORT"
     descr_long = "LONG"
 
     try:
-        comment = tcase_comment(tcase)
+        comment = tcase_comment(args, cij_conf, tcase)
     except Exception as exc:
         comment = []
         cij.err("tcase_parse_descr: failed: %r, tcase: %r" % (exc, tcase))
@@ -69,7 +70,7 @@ def tcase_parse_descr(tcase):
     return descr_short, descr_long
 
 
-def runlog_to_html(trun, fpath):
+def runlog_to_html(args, cij_conf, trun, fpath):
     """
     Returns content of the given 'fpath' with HTML annotations, currently simply
     a conversion of ANSI color codes to HTML elements
@@ -83,7 +84,7 @@ def runlog_to_html(trun, fpath):
     return open(fpath, "r").read()
 
 
-def src_to_html(trun, fpath):
+def src_to_html(args, cij_conf, trun, fpath):
     """
     Returns content of the given 'fpath' with HTML annotations for syntax
     highlighting
@@ -97,7 +98,7 @@ def src_to_html(trun, fpath):
     return open(fpath, "r").read()
 
 
-def aux_listing(trun, aux_root):
+def aux_listing(args, cij_conf, trun, aux_root):
     """Listing"""
 
     listing = []
@@ -112,52 +113,72 @@ def aux_listing(trun, aux_root):
     return listing
 
 
-def process_tsuite(trun, tsuite):
+def process_tsuite(args, cij_conf, trun, tsuite):
     """Goes through the trun and processes "run.log" """
 
-    tsuite["log_content"] = runlog_to_html(trun, tsuite["log_fpath"])
-    tsuite["aux_list"] = aux_listing(trun, tsuite["aux_root"])
+    tsuite["log_content"] = runlog_to_html(
+        args, cij_conf, trun, tsuite["log_fpath"]
+    )
+    tsuite["aux_list"] = aux_listing(
+        args, cij_conf, trun, tsuite["aux_root"]
+    )
 
     return True
 
 
-def process_tcase(trun, tsuite, tcase):
+def process_tcase(args, cij_conf, trun, tsuite, tcase):
     """Goes through the trun and processes "run.log" """
 
-    def tcase_src_to_html(trun, runlog_fpath):
+    def tcase_src_to_html(args, cij_conf, trun, runlog_fpath):
         """Convert the runlog in the given bath to annotated HTML"""
 
         return ""
 
-    tcase["src_content"] = src_to_html(trun, tcase["fpath"])
-    tcase["log_content"] = runlog_to_html(trun, tcase["log_fpath"])
-    tcase["aux_list"] = aux_listing(trun, tcase["aux_root"])
-
-    tcase["descr_short"], tcase["descr_long"] = tcase_parse_descr(tcase)
+    tcase["src_content"] = src_to_html(
+        args, cij_conf, trun, tcase["fpath"]
+    )
+    tcase["log_content"] = runlog_to_html(
+        args, cij_conf, trun, tcase["log_fpath"]
+    )
+    tcase["aux_list"] = aux_listing(
+        args, cij_conf, trun, tcase["aux_root"]
+    )
+    tcase["descr_short"], tcase["descr_long"] = tcase_parse_descr(
+        args, cij_conf, tcase
+    )
 
     return True
 
 
-def process_trun(trun):
+def process_trun(args, cij_conf, trun):
     """Goes through the trun and processes "run.log" """
 
-    trun["log_content"] = runlog_to_html(trun, trun["log_fpath"])
-    trun["aux_list"] = aux_listing(trun, trun["aux_root"])
+    trun["log_content"] = runlog_to_html(
+        args,
+        cij_conf,
+        trun,
+        trun["log_fpath"]
+    )
+    trun["aux_list"] = aux_listing(args, cij_conf, trun, trun["aux_root"])
 
     return True
 
 
-def postprocess(trun):
+def postprocess(args, cij_conf, trun):
     """Perform postprocessing of the given test run"""
 
     plog = []
-    plog.append(("trun", process_trun(trun)))
+    plog.append(("trun", process_trun(args, cij_conf, trun)))
 
     for tsuite in trun["testsuites"]:
-        plog.append(("tsuite", process_tsuite(trun, tsuite)))
+        plog.append((
+            "tsuite", process_tsuite(args, cij_conf, trun, tsuite)
+        ))
 
         for tcase in tsuite["testcases"]:
-            plog.append(("tcase", process_tcase(trun, tsuite, tcase)))
+            plog.append((
+                "tcase", process_tcase(args, cij_conf, trun, tsuite, tcase)
+            ))
 
     for task, success in plog:
         if not success:
@@ -166,7 +187,7 @@ def postprocess(trun):
     return sum((success for task, success in plog))
 
 
-def trun_to_html(trun, tmpl_fpath):
+def trun_to_html(args, cij_conf, trun, tmpl_fpath):
     """
     @returns A HTML representation of the given 'trun' using the template at
     'tmpl_fpath'
@@ -234,12 +255,12 @@ def html_to_pdf(args, html_fpath):
         ))
 
 
-def main(args):
+def main(args, cij_conf):
     """.."""
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
 
-    postprocess(trun)   # Post process the test run
+    postprocess(args, cij_conf, trun)   # Post process the test run
 
     cij.emph("main: reports are uses tmpl_fpath: %r" % args.tmpl_fpath)
     cij.emph("main: reports are here args.output: %r" % args.output)
@@ -248,7 +269,7 @@ def main(args):
     cij.emph("html_fpath: %r" % html_fpath)
     try:                                    # Create and store HTML report
         with open(html_fpath, 'w') as html_file:
-            html_file.write(trun_to_html(trun, args.tmpl_fpath))
+            html_file.write(trun_to_html(args, cij_conf, trun, args.tmpl_fpath))
 
     except Exception as exc:
         import traceback
