@@ -52,7 +52,7 @@ def tcase_parse_descr(tcase):
         comment = tcase_comment(tcase)
     except Exception as exc:
         comment = []
-        cij.err("tcase_comment: failed: %r, tcase: %r" % (exc, tcase))
+        cij.err("tcase_parse_descr: failed: %r, tcase: %r" % (exc, tcase))
 
     comment = [l for l in comment if l.strip()]     # Remove empty lines
 
@@ -151,7 +151,6 @@ def postprocess(trun):
     """Perform postprocessing of the given test run"""
 
     plog = []
-
     plog.append(("trun", process_trun(trun)))
 
     for tsuite in trun["testsuites"]:
@@ -218,7 +217,7 @@ def html_to_pdf(args, html_fpath):
 
     # Convert HTML html to PDF
     pdf_fpath = os.sep.join([args.output, "%s.pdf" % args.tmpl_name])
-    cij.emph("pdf_fpath: %r" % pdf_fpath)
+    cij.emph("rprtr:html_to_pdf: pdf_fpath: %r" % pdf_fpath)
 
     out, err, rcode = ("", "have you installed 'wkhtmltopdf'?", 1)
     try:
@@ -227,21 +226,23 @@ def html_to_pdf(args, html_fpath):
         out, err = process.communicate()
         rcode = process.returncode
     except Exception as exc:
-        cij.warn("exc: %r" % exc)
+        cij.warn("rprtr:html_to_pdf: exc: %r" % exc)
 
     if rcode:
-        cij.warn("out: %r, err: %r, rcode: %r" % (out, err, rcode))
+        cij.warn("rprtr:html_to_pdf: out: %r, err: %r, rcode: %r" % (
+            out, err, rcode
+        ))
 
 
-def main(args, evar):
+def main(args):
     """.."""
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
 
     postprocess(trun)   # Post process the test run
 
-    cij.emph("reports are generated in args.output: %r" % args.output)
-    cij.emph("reports are generated using tmpl_fpath: %r" % args.tmpl_fpath)
+    cij.emph("main: reports are uses tmpl_fpath: %r" % args.tmpl_fpath)
+    cij.emph("main: reports are here args.output: %r" % args.output)
 
     html_fpath = os.sep.join([args.output, "%s.html" % args.tmpl_name])
     cij.emph("html_fpath: %r" % html_fpath)
@@ -250,7 +251,9 @@ def main(args, evar):
             html_file.write(trun_to_html(trun, args.tmpl_fpath))
 
     except Exception as exc:
-        cij.err("exc: %r" % exc)
+        import traceback
+        traceback.print_exc()
+        cij.err("rprtr:main: exc: %s" % exc)
         return 1
 
     # html_to_pdf(args, html_fpath)

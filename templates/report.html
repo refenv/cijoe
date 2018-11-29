@@ -139,9 +139,6 @@
           </h5>
         </div>
 
-        <div class="card-footer">
-          Input given to the runner in form of <b>command-line arguments</b>
-        </div>
         <table class="table">
           <thead>
             <tr>
@@ -150,27 +147,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for key, value in trun.args.items() if key != "testsuites" %}
-            <tr>
-              <td>{{ key }}</td>
-              <td>{{ value }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-
-        <div class="card-footer">
-            Input given to the runner in form of <b>environment variables</b>
-        </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for key, value in trun.evars.items() %}
+            {% for key, value in trun.conf|dictsort  %}
             <tr>
               <td>{{ key }}</td>
               <td>{{ value }}</td>
@@ -193,7 +170,7 @@
 
         <ul class="list-group list-files">
         {% for aux in trun.aux_list %}
-        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
         {% endfor %}
         </ul>
 
@@ -317,7 +294,7 @@
 
             <ul class="list-group">
             {% for aux in tcase.aux_list %}
-            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
             {% endfor %}
             </ul>
 
@@ -347,7 +324,7 @@
 
       <ul class="list-group">
       {% for aux in tsuite.aux_list %}
-      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.args.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
       {% endfor %}
       </ul>
 

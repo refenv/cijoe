@@ -68,6 +68,25 @@ def emph(txt, rval=None):
     else:               # any other value, considered 'bad'
         err(txt)
 
+def paths_from_env(prefix=None, names=None):
+    """Construct dict of paths from environment variables'"""
+
+    if prefix is None:
+        prefix = "CIJ"
+    if names is None:
+        names = [
+            "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
+            "HOOKS", "TEMPLATES"
+        ]
+
+    conf = {v: os.environ.get("_".join([prefix, v])) for v in names}
+
+    for env in (e for e in conf.keys() if e[:len(prefix)] in names):
+        conf[env] = cij.util.expand_path(conf[env])
+        if not os.path.exists(conf[env]):
+            cij.err("%s_%s: %r, does not exist" % (prefix, env, conf[env]))
+
+    return conf
 
 def env_to_dict(prefix, names):
     """
