@@ -353,10 +353,12 @@ def tcase_run(trun, tsuite, tcase):
         bgn = time.time()
         cmd = [
             'bash', '-c',
-            'source cijoe.sh && '
             'source %s && '
+            'source cijoe.sh && '
             'CIJ_TEST_RES_ROOT="%s" %s %s' % (
-                trun["conf"]["ENV_FPATH"], tcase["res_root"], launch,
+                trun["conf"]["ENV_FPATH"],
+                tcase["res_root"],
+                launch,
                 tcase["fpath"]
             )
         ]
