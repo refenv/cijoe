@@ -4,6 +4,7 @@
 """
 from subprocess import Popen, PIPE
 import datetime
+import glob
 import os
 import jinja2
 import ansi2html
@@ -70,18 +71,36 @@ def tcase_parse_descr(args, cij_conf, tcase):
     return descr_short, descr_long
 
 
-def runlog_to_html(args, cij_conf, trun, fpath):
+def runlogs_to_html(args, cij_conf, trun, run_root):
     """
     Returns content of the given 'fpath' with HTML annotations, currently simply
     a conversion of ANSI color codes to HTML elements
     """
 
-    if not os.path.exists(fpath):
-        return "LOG-DOES-NOT-EXIST"
+    if not os.path.isdir(run_root):
+        return "CANNOT_LOCATE_LOGFILES"
 
-    # TODO: Do ANSI color conversion ?
+    enter = []
+    exit = []
+    tcase = []
+    for fpath in glob.glob(os.sep.join([run_root, "run*.log"])):
+        if "exit" in fpath:
+            exit.append(fpath)
+            continue
 
-    return open(fpath, "r").read()
+        if "hook" in fpath:
+            enter.append(fpath)
+            continue
+
+        tcase.append(fpath)
+
+    content = ""
+    for fpath in enter + tcase + exit:
+        content += "# BEGIN: run-log from log_fpath: %s\n" % fpath
+        content += open(fpath, "r").read()
+        content += "# END: run-log from log_fpath: %s\n\n" % fpath
+
+    return content
 
 
 def src_to_html(args, cij_conf, trun, fpath):
@@ -114,10 +133,12 @@ def aux_listing(args, cij_conf, trun, aux_root):
 
 
 def process_tsuite(args, cij_conf, trun, tsuite):
-    """Goes through the trun and processes "run.log" """
+    """Goes through the tsuite and processes "run-*.log" """
 
-    tsuite["log_content"] = runlog_to_html(
-        args, cij_conf, trun, tsuite["log_fpath"]
+    # scoop of output from all run-logs
+
+    tsuite["log_content"] = runlogs_to_html(
+        args, cij_conf, trun, tsuite["res_root"]
     )
     tsuite["aux_list"] = aux_listing(
         args, cij_conf, trun, tsuite["aux_root"]
@@ -137,8 +158,8 @@ def process_tcase(args, cij_conf, trun, tsuite, tcase):
     tcase["src_content"] = src_to_html(
         args, cij_conf, trun, tcase["fpath"]
     )
-    tcase["log_content"] = runlog_to_html(
-        args, cij_conf, trun, tcase["log_fpath"]
+    tcase["log_content"] = runlogs_to_html(
+        args, cij_conf, trun, tcase["res_root"]
     )
     tcase["aux_list"] = aux_listing(
         args, cij_conf, trun, tcase["aux_root"]
@@ -153,11 +174,11 @@ def process_tcase(args, cij_conf, trun, tsuite, tcase):
 def process_trun(args, cij_conf, trun):
     """Goes through the trun and processes "run.log" """
 
-    trun["log_content"] = runlog_to_html(
+    trun["log_content"] = runlogs_to_html(
         args,
         cij_conf,
         trun,
-        trun["log_fpath"]
+        trun["conf"]["OUTPUT"]
     )
     trun["aux_list"] = aux_listing(args, cij_conf, trun, trun["aux_root"])
 
