@@ -39,6 +39,6 @@ export BLOCK_STORAGE_HOME=/opt/block-storage
 # to define them correctly to around purging your operating system installation
 # or your precious data.
 #
-#export PCI_DEV_NAME=0000:00:02.0
+#export PCI_DEV_NAME=0000:01:00.0
 #export NVME_DEV_NAME=nvme0n1
 #export BLOCK_DEV_NAME=$NVME_DEV_NAME
