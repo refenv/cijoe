@@ -170,7 +170,7 @@
 
         <ul class="list-group list-files">
         {% for aux in trun.aux_list %}
-        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
         {% endfor %}
         </ul>
 
@@ -208,18 +208,18 @@
 {% set tsuite_color = "black" if tsuite.status == "PASS" else tsuite_color %}
 {% set tsuite_color = "black" if tsuite.status == "FAIL" else tsuite_color %}
 
-<div class="card mb-3" id="{{ tsuite.name }}">
+<div class="card mb-3" id="{{ tsuite.ident }}">
   <div class="card-header">
 
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.name }}" data-toggle="tab">Testcases</a>
+        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.ident }}" data-toggle="tab">Testcases</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#AUX_{{ tsuite.name }}" data-toggle="tab">Aux</a>
+        <a class="nav-link" href="#AUX_{{ tsuite.ident }}" data-toggle="tab">Aux</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#LOG_{{ tsuite.name }}" data-toggle="tab">Log</a>
+        <a class="nav-link" href="#LOG_{{ tsuite.ident }}" data-toggle="tab">Log</a>
       </li>
 
       <li class="nav-item ml-auto">
@@ -232,7 +232,7 @@
   <div class="tab-content">
 
     <!-- TESTCASES-BGN -->
-    <div class="tab-pane active" id="TESTCASES_{{ tsuite.name }}">
+    <div class="tab-pane active" id="TESTCASES_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
         The <b>{{ tsuite.name }}</b> testsuite contains {{ tsuite.testcases | length }} testcases.
@@ -247,7 +247,7 @@
       <ul class="list-group list-testcases">
         <!-- TCASE-BGN -->
         {% for tcase in tsuite.testcases %}
-        {% set ident = tsuite.id + "_" + tcase.id %}
+        {% set ident = tcase.ident %}
         {% set tcase_color = "secondary" %}
         {% set tcase_color = "success" if tcase.status == "PASS" else tcase_color %}
         {% set tcase_color = "danger" if tcase.status == "FAIL" else tcase_color %}
@@ -294,7 +294,7 @@
 
             <ul class="list-group">
             {% for aux in tcase.aux_list %}
-            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
             {% endfor %}
             </ul>
 
@@ -314,7 +314,7 @@
     <!-- TESTCASES-END -->
 
     <!-- TSUITE: AUX-SNIPPET -->
-    <div class="collapse" id="AUX_{{ tsuite.name }}" data-parent="#{{ tsuite.name }}">
+    <div class="collapse" id="AUX_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
           A total of <b>{{ tsuite.aux_list | length }}</b> auxilary files produced by testsuite
@@ -324,13 +324,13 @@
 
       <ul class="list-group">
       {% for aux in tsuite.aux_list %}
-      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.conf.output|length:] }}/{{ aux }}">{{ aux }}</a></li>
+      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
       {% endfor %}
       </ul>
 
     </div>
 
-    <div class="collapse runlog" id="LOG_{{ tsuite.name }}" data-parent="#{{ tsuite.name }}">
+    <div class="collapse runlog" id="LOG_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
         Output produced by executing testsuite hooks is provided below
