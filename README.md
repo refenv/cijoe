@@ -22,31 +22,38 @@ cd cijoe
 make install
 ```
 
-Start the interactive **CIJOE** shell:
+## Usage
+
+Run CIJOE interactively and define the target environment:
 
 ```bash
+# Start cijoe
 cijoe
+
+# Use refence definitions as a template for defining your environment
+cat $CIJ_ENVS/refenv-u1604.sh > target_env.sh
+
+# Open up your favorite editor and modify accordingly
+vim target_env.sh
 ```
 
-Run a testplan:
+Start the test-runner and view the report:
 
 ```bash
+# Create directory to store results
+RESULTS=$(mktemp -d trun.XXXXXX -p /tmp)
+
+# Run the testplan example
 cij_runner \
-    --env $CIJ_ENVS/localhost.sh \
-    --testplan $CIJ_TESTPLANS/EXTP_01_refenv.plan \
-    --output /tmp/testrun
-```
+    $CIJ_TESTPLANS/example_01_usage.plan \
+    target_env.sh \
+    --output $RESULTS
 
-Create report of the test run:
+# Create test report
+cij_reporter $RESULTS
 
-```bash
-cij_reporter --output /tmp/testrun
-```
-
-View the results:
-
-```bash
-xdg-open /tmp/testrun/report.html
+# Inspect the test-report
+xdg-open $RESULTS/report.html
 ```
 
 ## Test Packages
