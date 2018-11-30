@@ -440,6 +440,7 @@ def trun_setup(conf):
         return None
 
     trun = {
+        "ver": cij.VERSION,
         "conf": copy.deepcopy(conf),
         "evars": {},
         "progress": {
