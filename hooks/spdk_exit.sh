@@ -4,21 +4,14 @@
 # And attempt to rebind again after
 #
 CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::require pci
 test::enter
 
-function hook::spdk_exit {
+hook::spdk_exit() {
 
-  pci::remove
-  if [[ $? -ne 0 ]]; then
-    cij:err "hook::spdk_exit: FAILED: PCI_DEV_NAME: '$PCI_DEV_NAME' remove"
-    return 1
-  fi
-
-  pci::rescan
-  if [[ $? -ne 0 ]]; then
-    cij:err "hook::spdk_exit: FAILED: rescanning PCI bus"
+  if ! ssh::cmd "$SPDK_HOME/scripts/setup.sh reset"; then
+    cij:err "hook::spdk_enter: FAILED: setting up SPDK devices"
     return 1
   fi
 
