@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-export CIJ_TEST_RES_ROOT="/opt/testing"
-export CIJ_TEST_TARGET="localhost"
-
-export SSH_HOST=$CIJ_TEST_TARGET
+#
+# This is minimal configuration for CTRL <-> TRGT setup
+#
+# SSH key-based auth will be used to access "localhost" as the user "root"
+#
+export CIJ_TRGT=localhost
+export SSH_HOST=$CIJ_TRGT
+export SSH_USER=root
