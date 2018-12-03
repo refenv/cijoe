@@ -3,6 +3,7 @@
 """
 from __future__ import print_function
 from subprocess import Popen, STDOUT
+import shutil
 import copy
 import time
 import os
@@ -22,14 +23,86 @@ HOOK_PATTERNS = {
     ]
 }
 
-SCRIPT = {
+HOOK = {
+    "evars": {},
+
     "fname": None,
     "fpath": None,
+    "fpath_orig": None,
+
     "res_root": None,
     "log_fpath": None,
     "rcode": None,
     "wallc": None,
 }
+
+TESTSUITE = {
+    "ident": None,
+    "name": None,
+    "hooks": {
+        "enter": [],
+        "exit": []
+    },
+    "evars": {},
+
+    "fpath": None,
+    "fname": None,
+    "res_root": None,
+    "aux_root": None,
+    "aux_list": [],
+
+    "status": "UNKN",
+    "wallc": None,
+
+    "testcases": [],
+    "hooks_pr_tcase": [],
+}
+
+TESTCASE = {
+    "ident": None,
+    "fpath": None,
+    "fname": None,
+    "name": None,
+    "res_root": None,
+    "aux_root": None,
+    "aux_list": [],
+    "log_fpath": None,
+
+    "hooks": None,
+    "evars": {},
+
+    "status": "UNKN",
+    "rcode": None,
+    "wallc": None,
+}
+
+TRUN = {
+    "ver": None,
+    "conf": None,
+    "evars": {},
+    "progress": {
+        "PASS": 0,
+        "FAIL": 0,
+        "UNKN": 0
+    },
+    "stamp": {
+        "begin": None,
+        "end": None
+    },
+    "hooks": {
+        "enter": [],
+        "exit": []
+    },
+    "res_root": None,
+    "aux_root": None,
+    "aux_list": [],
+
+    "testsuites": [],
+
+    "status": "UNKN",
+    "wallc": None,
+}
+
 
 def yml_fpath(output_path):
     """Returns the path to the trun-file"""
@@ -37,93 +110,117 @@ def yml_fpath(output_path):
     return os.sep.join([output_path, "trun.yml"])
 
 
-def script_run(trun, script_fpath, script_run_root, log_tag=None):
-    """Execute a hook or testcase"""
-
-    if log_tag is None:
-        log_tag = os.path.basename(script_fpath)
-
-    bgn = time.time()
-    script_log_fpath = os.sep.join([script_run_root, "run_%s.log" % log_tag])
+def script_run(trun, script):
+    """Execute a script or testcase"""
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:script:run { script_fpath: %r }" % script_fpath)
-        cij.emph("rnr:script:run { script_log_fpath: %r }" % script_log_fpath)
+        cij.emph("rnr:script:run { script: %s }" % script)
+        cij.emph("rnr:script:run:evars: %s" % script["evars"])
 
     launchers = {
         ".py": "python",
         ".sh": "source"
     }
 
-    ext = os.path.splitext(script_fpath)[-1]
+    ext = os.path.splitext(script["fpath"])[-1]
     if not ext in launchers.keys():
-        cij.err("rnr:script:run { invalid fname: %r }" % script_fpath)
+        cij.err("rnr:script:run { invalid script[\"fpath\"]: %r }" % script["fpath"])
         return 1
 
     launch = launchers[ext]
 
-    with open(script_log_fpath, 'a') as script_log_fd:
-        script_log_fd.write("# script_fpath: %r\n" % script_fpath)
-        script_log_fd.flush()
+    with open(script["log_fpath"], "a") as log_fd:
+        log_fd.write("# script_fpath: %r\n" % script["fpath"])
+        log_fd.flush()
 
+        bgn = time.time()
         cmd = [
             'bash', '-c',
             'source %s && '
-            'source cijoe.sh && '
-            'CIJ_TEST_RES_ROOT="%s" source %s ' % (
-                trun["conf"]["ENV_FPATH"], script_run_root, script_fpath
+            'CIJ_ROOT=$(cij_root) && '
+            'source $CIJ_ROOT/modules/cijoe.sh && '
+            'CIJ_TEST_RES_ROOT="%s" %s %s ' % (
+                trun["conf"]["ENV_FPATH"],
+                script["res_root"],
+                launch,
+                script["fpath"]
             )
         ]
         if trun["conf"]["VERBOSE"] > 1:
             cij.emph("rnr:script:run { cmd: %r }" % " ".join(cmd))
 
+        evars = os.environ.copy()
+        evars.update({k: str(script["evars"][k]) for k in script["evars"]})
+
         process = Popen(
             cmd,
-            stdout=script_log_fd,
+            stdout=log_fd,
             stderr=STDOUT,
-            cwd=trun["conf"]["MODULES"]
+            cwd=script["res_root"],
+            env=evars
         )
         process.wait()
 
-        #stdout, stderr = process.communicate()
-        rcode = process.returncode
-        wallc = time.time() - bgn
+        script["rcode"] = process.returncode
+        script["wallc"] = time.time() - bgn
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:script:run { wallc: %02f }" % wallc)
-        cij.emph("rnr:script:run { rcode: %r } " % rcode)
+        cij.emph("rnr:script:run { wallc: %02f }" % script["wallc"])
+        cij.emph("rnr:script:run { rcode: %r } " % script["rcode"])
 
-    return rcode
+    return script["rcode"]
 
-def hook_setup(trun, hooks=None):
+def hook_setup(trun, parent, hook_fpath):
+    """Setup hook"""
+
+    hook = copy.deepcopy(HOOK)
+    hook["res_root"] = parent["res_root"]
+    hook["fpath_orig"] = hook_fpath
+    hook["fname"] = "hook_%s" % os.path.basename(hook["fpath_orig"])
+    hook["fpath"] = os.sep.join([hook["res_root"], hook["fname"]])
+    hook["log_fpath"] = os.sep.join([
+        hook["res_root"],
+        "%s.log" % hook["fname"]
+    ])
+
+    hook["evars"].update(copy.deepcopy(parent["evars"]))
+
+    shutil.copyfile(hook["fpath_orig"], hook["fpath"])
+
+    return hook
+
+def hooks_setup(trun, parent, hnames=None):
     """
     Setup test-hooks
     @returns dict of hook filepaths {"enter": [], "exit": []}
     """
 
-    hook_fpaths = {
+    hooks = {
         "enter": [],
         "exit": []
     }
 
-    if hooks is None:       # Nothing to do, just return the struct
-        return hook_fpaths
+    if hnames is None:       # Nothing to do, just return the struct
+        return hooks
 
-    for hook in hooks:      # Fill out paths
-        fpaths = []
+    for hname in hnames:      # Fill out paths
         for med in HOOK_PATTERNS:
             for ptn in HOOK_PATTERNS[med]:
-                fpath = os.sep.join([trun["conf"]["HOOKS"], ptn % hook])
+                fpath = os.sep.join([trun["conf"]["HOOKS"], ptn % hname])
+                if not os.path.exists(fpath):
+                    continue
 
-                if os.path.exists(fpath):
-                    hook_fpaths[med].append(fpath)
-                    fpaths.append(fpath)
+                hook = hook_setup(trun, parent, fpath)
+                if not hook:
+                    continue
 
-        if not hook_fpaths:
-            cij.err("rnr:hook_setup:FAIL { hook: %r has no files }" % hook)
+                hooks[med].append(hook)
+
+        if not hooks["enter"] + hooks["exit"]:
+            cij.err("rnr:hooks_setup:FAIL { hname: %r has no files }" % hname)
             return None
 
-    return hook_fpaths
+    return hooks
 
 
 def trun_to_file(trun, fpath=None):
@@ -153,12 +250,6 @@ def trun_emph(trun):
             cij.emph("  % 16s: %r" % (cvar, trun["conf"][cvar]))
         cij.emph("}")
 
-    if trun["conf"]["VERBOSE"] > 1:
-        cij.emph("rnr:HOOKS {")
-        for arg in sorted(trun["hooks"]):
-            cij.emph("  % 8s: %r" % (arg, trun["hooks"][arg]))
-        cij.emph("}")
-
     if trun["conf"]["VERBOSE"]:
         cij.emph("rnr:INFO {")
         cij.emph("  OUTPUT: %r" % trun["conf"]["OUTPUT"])
@@ -166,44 +257,41 @@ def trun_emph(trun):
         cij.emph("}")
 
 
-def tcase_setup(trun, tsuite, tcase_fname):
+def tcase_setup(trun, parent, tcase_fname):
     """
-    @returns a testcase for the given tcase_fpath
-
+    Create and initialize a testcase
     """
     #pylint: disable=locally-disabled, unused-argument
 
-    tcase_fpath = os.sep.join([trun["conf"]["TESTCASES"], tcase_fname])
-    if not os.path.exists(tcase_fpath):
-        cij.err("rnr:tcase_setup: !tcase_fpath: %r" % tcase_fpath)
+    case = copy.deepcopy(TESTCASE)
+
+    case["fname"] = tcase_fname
+    case["fpath_orig"] = os.sep.join([trun["conf"]["TESTCASES"], case["fname"]])
+
+    if not os.path.exists(case["fpath_orig"]):
+        cij.err('rnr:tcase_setup: !case["fpath_orig"]: %r' % case["fpath_orig"])
         return None
 
-    tcase_fname = os.path.basename(tcase_fpath)
-    tcase_name = os.path.splitext(tcase_fname)[0]
+    case["name"] = os.path.splitext(case["fname"])[0]
+    case["ident"] =  "/".join([parent["ident"], case["fname"]])
 
-    tcase_res_root = os.sep.join([tsuite["res_root"], tcase_fname])
-    tcase_aux_root = os.sep.join([tcase_res_root, "_aux"])
-    tcase_log_fpath = os.sep.join([tcase_res_root, "run.log"])
+    case["res_root"] = os.sep.join([parent["res_root"], case["fname"]])
+    case["aux_root"] = os.sep.join([case["res_root"], "_aux"])
+    case["log_fpath"] = os.sep.join([case["res_root"], "run.log"])
 
-    return {
-        "ident": "/".join([tsuite["ident"], tcase_fpath]),
-        "fpath": tcase_fpath,
-        "fname": tcase_fname,
-        "name": tcase_name,
-        "res_root": tcase_res_root,
-        "aux_root": tcase_aux_root,
-        "aux_list": [],
-        "log_fpath": tcase_log_fpath,
+    case["fpath"] = os.sep.join([case["res_root"], case["fname"]])
 
-        "hooks": {
-            "enter": [],
-            "exit": []
-        },
+    case["evars"].update(copy.deepcopy(parent["evars"]))
 
-        "status": "UNKN",
-        "rcode": None,
-        "wallc": None,
-    }
+    # Initalize
+    os.makedirs(case["res_root"])                       # Create DIRS
+    os.makedirs(case["aux_root"])
+    shutil.copyfile(case["fpath_orig"], case["fpath"])  # Copy testcase
+
+    # Initialize hooks
+    case["hooks"] = hooks_setup(trun, case, parent.get("hooks_pr_tcase"))
+
+    return case
 
 
 def tsuite_exit(trun, tsuite):
@@ -213,14 +301,8 @@ def tsuite_exit(trun, tsuite):
         cij.emph("rnr:tsuite:exit")
 
     rcode = 0
-    for hook_fpath in reversed(tsuite["hooks"]["exit"]):      # EXIT-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            tsuite["res_root"],
-            "hook_%s" % hook_fname
-        )
+    for hook in reversed(tsuite["hooks"]["exit"]):      # EXIT-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -236,18 +318,9 @@ def tsuite_enter(trun, tsuite):
     if trun["conf"]["VERBOSE"]:
         cij.emph("rnr:tsuite:enter { name: %r }" % tsuite["name"])
 
-    os.makedirs(tsuite["res_root"])                         # Create DIRS
-    os.makedirs(tsuite["aux_root"])
-
     rcode = 0
-    for hook_fpath in tsuite["hooks"]["enter"]:     # ENTER-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            tsuite["res_root"],
-            "hook_%s" % hook_fname
-        )
+    for hook in tsuite["hooks"]["enter"]:     # ENTER-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -257,63 +330,51 @@ def tsuite_enter(trun, tsuite):
     return rcode
 
 
-def tsuite_setup(trun, tplan_tsuite, enum):
+def tsuite_setup(trun, declr, enum):
     """
-    @returns a list of testcases from tcases_dpath that are in the given
-    testsuite (tsuite_fpath)
+    Creates and initialized a TESTSUITE struct and site-effects such as creating
+    output directories and forwarding initialization of testcases
     """
 
-    tsuite_name = tplan_tsuite["name"]
-    tsuite_fname = "%s.suite" % tsuite_name
-    tsuite_fpath = os.sep.join([trun["conf"]["TESTSUITES"], tsuite_fname])
-    tsuite_ident = "%s_%d" % (tsuite_name, enum)
+    suite = copy.deepcopy(TESTSUITE)  # Setup the test-suite
+    suite["name"] = declr.get("name")
+    if suite["name"] is None:
+        cij.err("rnr:tsuite_setup: no testsuite is given")
+        return None
 
-    tsuite_res_root = os.sep.join([trun["conf"]["OUTPUT"], tsuite_ident])
-    tsuite_aux_root = os.sep.join([tsuite_res_root, "_aux"])
+    suite["fname"] = "%s.suite" % suite["name"]
+    suite["fpath"] = os.sep.join([trun["conf"]["TESTSUITES"], suite["fname"]])
+    suite["ident"] = "%s_%d" % (suite["name"], enum)
 
-    tsuite = {
-        "ident": tsuite_ident,
-        "name": tsuite_name,
-        "hooks": {
-            "enter": [],
-            "exit": []
-        },
-        "hooks_pr_tcase": {
-            "enter": [],
-            "exit": []
-        },
-        "evars": {},
-        "evars_pr_tcase": [],
+    suite["res_root"] = os.sep.join([trun["conf"]["OUTPUT"], suite["ident"]])
+    suite["aux_root"] = os.sep.join([suite["res_root"], "_aux"])
 
-        "fpath": tsuite_fpath,
-        "fname": tsuite_fname,
-        "res_root": tsuite_res_root,
-        "aux_root": tsuite_aux_root,
-        "aux_list": [],
-        "testcases": [],
+    # Initialize
+    os.makedirs(suite["res_root"])
+    os.makedirs(suite["aux_root"])
 
-        "status": "UNKN",
-        "wallc": None,
-    }
+    suite["evars"].update(copy.deepcopy(trun["evars"]))
+    suite["evars"].update(copy.deepcopy(declr.get("evars", {})))
 
     # Setup hooks
-    tsuite["hooks"] = hook_setup(trun, tplan_tsuite.get("hooks"))
-    tsuite["hooks_pr_tcase"] = hook_setup(trun, tplan_tsuite.get("hooks_pr_tcase"))
+    suite["hooks"] = hooks_setup(trun, suite, declr.get("hooks"))
+
+    # Forward from declaration
+    suite["hooks_pr_tcase"] = declr.get("hooks_pr_tcase", [])
 
     # Filter testcases, remove those that have been commented out with "#"
-    tsuite_lines = (l.strip() for l in open(tsuite_fpath).read().splitlines())
-    tsuite_tcase_line = (l for l in tsuite_lines if len(l) > 1 and l[0] != "#")
+    suite_lines = (l.strip() for l in open(suite["fpath"]).read().splitlines())
+    suite_tcase_line = (l for l in suite_lines if len(l) > 1 and l[0] != "#")
 
-    # Add the tcases by their fname
-    for tcase_fname in tsuite_tcase_line:
-        tcase = tcase_setup(trun, tsuite, tcase_fname)
+    for tcase_fname in suite_tcase_line:    # Add testcases by filename
+        tcase = tcase_setup(trun, suite, tcase_fname)
         if not tcase:
-            cij.err("rnr:tsuite:  SETUP: FAILED")
+            cij.err("rnr:suite: failed: tcase_setup")
             return None
 
-        tsuite["testcases"].append(tcase)
+        suite["testcases"].append(tcase)
 
-    return tsuite
+    return suite
 
 
 def tcase_exit(trun, tsuite, tcase):
@@ -324,14 +385,8 @@ def tcase_exit(trun, tsuite, tcase):
         cij.emph("rnr:tcase:exit { fname: %r }" % tcase["fname"])
 
     rcode = 0
-    for hook_fpath in reversed(tsuite["hooks_pr_tcase"]["exit"]):     # tcase EXIT-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            tcase["res_root"],
-            "hook_%s" % hook_fname
-        )
+    for hook in reversed(tcase["hooks"]["exit"]):    # tcase EXIT-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -349,23 +404,14 @@ def tcase_enter(trun, tsuite, tcase):
     """
     #pylint: disable=locally-disabled, unused-argument
 
-    os.makedirs(tcase["res_root"])                          # Create OUTPUT dirs
-    os.makedirs(tcase["aux_root"])
-
     if trun["conf"]["VERBOSE"]:
         cij.emph("rnr:tcase:enter")
         cij.emph("rnr:tcase:enter { fname: %r }" % tcase["fname"])
         cij.emph("rnr:tcase:enter { log_fpath: %r }" % tcase["log_fpath"])
 
     rcode = 0
-    for hook_fpath in tsuite["hooks_pr_tcase"]["enter"]:    # tcase ENTER-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            tcase["res_root"],
-            "hook_%s" % hook_fname
-        )
+    for hook in tcase["hooks"]["enter"]:    # tcase ENTER-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -374,63 +420,6 @@ def tcase_enter(trun, tsuite, tcase):
 
     return rcode
 
-
-def tcase_run(trun, tsuite, tcase):
-    """
-    Run the given test
-
-    @returns 0 on success, some value othervise
-    """
-    #pylint: disable=locally-disabled, unused-argument
-
-    cij.emph("rnr:tcase:run { fname: %r }" % tcase["fname"])
-
-    launchers = {
-        ".py": "python",
-        ".sh": "source"
-    }
-
-    ext = os.path.splitext(tcase["fname"])[-1]
-    if not ext in launchers.keys():
-        cij.err("rnr:tcase:run { invalid fname: %r }" % tcase["fname"])
-        return 1
-
-    launch = launchers[ext]
-
-    with open(tcase["log_fpath"], 'a') as log_fd:
-        bgn = time.time()
-        cmd = [
-            'bash', '-c',
-            'source %s && '
-            'source cijoe.sh && '
-            'CIJ_TEST_RES_ROOT="%s" %s %s' % (
-                trun["conf"]["ENV_FPATH"],
-                tcase["res_root"],
-                launch,
-                tcase["fpath"]
-            )
-        ]
-        if trun["conf"]["VERBOSE"] > 1:
-            cij.emph("rnr:tcase:run { cmd: %r }" % " ".join(cmd))
-
-        process = Popen(
-            cmd,
-            stdout=log_fd,
-            stderr=STDOUT,
-            cwd=trun["conf"]["MODULES"]
-        )
-        process.wait()
-
-        tcase["rcode"] = process.returncode
-        tcase["wallc"] = time.time() - bgn
-
-    if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tcase:run { wallc: %02f }" % tcase["wallc"])
-        cij.emph("rnr:tcase:run { rcode: %r }" % tcase["rcode"])
-
-    return tcase["rcode"]
-
-
 def trun_exit(trun):
     """Triggers when exiting the given testrun"""
 
@@ -438,14 +427,8 @@ def trun_exit(trun):
         cij.emph("rnr:trun:exit")
 
     rcode = 0
-    for hook_fpath in reversed(trun["hooks"]["exit"]):    # EXIT-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            trun["conf"]["OUTPUT"],
-            "hook_%s" % hook_fname
-        )
+    for hook in reversed(trun["hooks"]["exit"]):    # EXIT-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -461,20 +444,11 @@ def trun_enter(trun):
     if trun["conf"]["VERBOSE"]:
         cij.emph("rnr:trun::enter")
 
-    trun_aux_root = os.sep.join([trun["conf"]["OUTPUT"], "_aux"])      # Create AUX
-    os.makedirs(trun_aux_root)
-
     trun["stamp"]["begin"] = int(time.time())     # Record start timestamp
 
     rcode = 0
-    for hook_fpath in trun["hooks"]["enter"]:     # ENTER-hooks
-        hook_fname = os.path.basename(hook_fpath)
-        rcode = script_run(
-            trun,
-            hook_fpath,
-            trun["conf"]["OUTPUT"],
-            "hook_%s" % hook_fname
-        )
+    for hook in trun["hooks"]["enter"]:     # ENTER-hooks
+        rcode = script_run(trun, hook)
         if rcode:
             break
 
@@ -491,53 +465,39 @@ def trun_setup(conf):
     testsuites, and testcases
     """
 
-    tplan = None
+    declr = None
     try:
-        with open(conf["TESTPLAN_FPATH"]) as tplan_fd:
-            tplan = yaml.load(tplan_fd)
+        with open(conf["TESTPLAN_FPATH"]) as declr_fd:
+            declr = yaml.load(declr_fd)
     except AttributeError as exc:
         cij.err("rnr: %r" % exc)
 
-    if not tplan:
+    if not declr:
         return None
 
-    trun = {
-        "ver": cij.VERSION,
-        "conf": copy.deepcopy(conf),
-        "evars": {},
-        "progress": {
-            "PASS": 0, "FAIL": 0, "UNKN": 0
-        },
-        "stamp": {"begin": None, "end": None},
-        "hooks": {
-            "enter": [],
-            "exit": []
-        },
-        "aux_root": os.sep.join([conf["OUTPUT"], "_aux"]),
-        "aux_list": [],
+    trun = copy.deepcopy(TRUN)
+    trun["ver"] = cij.VERSION
 
-        "testsuites": [],
+    trun["conf"] = copy.deepcopy(conf)
+    trun["res_root"] = conf["OUTPUT"]
+    trun["aux_root"] = os.sep.join([trun["res_root"], "_aux"])
+    trun["evars"].update(copy.deepcopy(declr.get("evars", {})))
 
-        "status": "UNKN",
-        "wallc": None,
-    }
+    os.makedirs(trun["aux_root"])
 
-    hooks = tplan.get("hooks")
-    if hooks is None:
-        hooks = []
+    hook_names = declr.get("hooks", [])
+    if "lock" not in hook_names:
+        hook_names = ["lock"] + hook_names
 
-    if "lock" not in hooks:
-        hooks = ["lock"] + hooks
-
-    if hooks[0] != "lock":
+    if hook_names[0] != "lock":
         return None
 
     # Setup top-level hooks
-    trun["hooks"] = hook_setup(trun, hooks)
+    trun["hooks"] = hooks_setup(trun, trun, hook_names)
 
-    for enum, tplan_tsuite in enumerate(tplan["testsuites"]):# Setup testsuites
-        tsuite = tsuite_setup(trun, tplan_tsuite, enum)
-        if not tsuite:
+    for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
+        tsuite = tsuite_setup(trun, declr, enum)
+        if tsuite is None:
             cij.err("main::FAILED: setting up tsuite: %r" % tsuite)
             return 1
 
@@ -572,7 +532,7 @@ def main(conf):
 
             tc_err = tcase_enter(trun, tsuite, tcase)
             if not tc_err:
-                tc_err += tcase_run(trun, tsuite, tcase)
+                tc_err += script_run(trun, tcase)
                 tc_err += tcase_exit(trun, tsuite, tcase)
 
             tcase["status"] = "FAIL" if tc_err else "PASS"
