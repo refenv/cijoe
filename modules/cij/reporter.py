@@ -83,7 +83,7 @@ def runlogs_to_html(args, cij_conf, trun, run_root):
     enter = []
     exit = []
     tcase = []
-    for fpath in glob.glob(os.sep.join([run_root, "run*.log"])):
+    for fpath in glob.glob(os.sep.join([run_root, "*.log"])):
         if "exit" in fpath:
             exit.append(fpath)
             continue
@@ -133,7 +133,7 @@ def aux_listing(args, cij_conf, trun, aux_root):
 
 
 def process_tsuite(args, cij_conf, trun, tsuite):
-    """Goes through the tsuite and processes "run-*.log" """
+    """Goes through the tsuite and processes "*.log" """
 
     # scoop of output from all run-logs
 
@@ -178,7 +178,7 @@ def process_trun(args, cij_conf, trun):
         args,
         cij_conf,
         trun,
-        trun["conf"]["OUTPUT"]
+        trun["res_root"]
     )
     trun["aux_list"] = aux_listing(args, cij_conf, trun, trun["aux_root"])
 
@@ -253,33 +253,31 @@ def trun_to_html(args, cij_conf, trun, tmpl_fpath):
 
     return tmpl.render(trun=trun)
 
+def rehome(old, new, struct):
+    """Replace all absolute paths to "re-home" it"""
 
-def html_to_pdf(args, html_fpath):
-    """..."""
+    if old == new:
+        return
 
-    # Convert HTML html to PDF
-    pdf_fpath = os.sep.join([args.output, "%s.pdf" % args.tmpl_name])
-    cij.emph("rprtr:html_to_pdf: pdf_fpath: %r" % pdf_fpath)
-
-    out, err, rcode = ("", "have you installed 'wkhtmltopdf'?", 1)
-    try:
-        cmd = ["wkhtmltopdf", "--page-size", "A4", html_fpath, pdf_fpath]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = process.communicate()
-        rcode = process.returncode
-    except Exception as exc:
-        cij.warn("rprtr:html_to_pdf: exc: %r" % exc)
-
-    if rcode:
-        cij.warn("rprtr:html_to_pdf: out: %r, err: %r, rcode: %r" % (
-            out, err, rcode
-        ))
-
+    if isinstance(struct, list):
+        for item in struct:
+            rehome(old, new, item)
+    elif isinstance(struct, dict):
+        for key, val in struct.iteritems():
+            if isinstance(val, dict) or isinstance(val, list):
+                rehome(old, new, val)
+            elif "conf" in key:
+                continue
+            elif "orig" in key:
+                continue
+            elif "root" in key or "path" in key:
+                struct[key] = struct[key].replace(old, new)
 
 def main(args, cij_conf):
     """.."""
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
+    rehome(trun["conf"]["OUTPUT"], args.output, trun)
 
     postprocess(args, cij_conf, trun)   # Post process the test run
 
@@ -297,7 +295,5 @@ def main(args, cij_conf):
         traceback.print_exc()
         cij.err("rprtr:main: exc: %s" % exc)
         return 1
-
-    # html_to_pdf(args, html_fpath)
 
     return 0

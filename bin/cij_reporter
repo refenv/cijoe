@@ -68,7 +68,7 @@ def main():
         "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
         "HOOKS", "TEMPLATES"
     ])
-    if cij_conf is None:
+    if None in [val for _, val in cij_conf.iteritems()]:
         cij.err("rprtr: failed parsing CIJOE config from environment variables")
         return 1
 
