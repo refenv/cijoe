@@ -2,13 +2,14 @@
 #
 # Logs dmesg to file $CIJ_TEST_RES_ROOT/hook_dmesg.log
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::require ssh
 test::enter
 
-function hook::dmesg_enter {
-
+hook::dmesg_enter() {
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
     cij:err "hook::dmesg_enter: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     return 1

@@ -2,14 +2,16 @@
 #
 # kills the dmesg log process spawned by the dmesg_enter hook
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
+test::require ssh
 test::enter
 
-function hook::dmesg_exit {
-  ssh::cmd 'pkill -f "dmesg -w"'
-  if [[ $? -ne 0 ]]; then
-    cij::warn "hook::dmesg_exit: error when killing dmesg"
+hook::dmesg_exit() {
+  if ! ssh::cmd 'pgrep dmesg | xargs kill'; then
+    cij::warn "hook::dmesg_exit: error killing dmesg"
     return 1;
   fi
 
