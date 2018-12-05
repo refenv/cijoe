@@ -1,3 +1,4 @@
+DOC_BUILD_DIR=build
 PROJECT_NAME=cijoe
 PROJECT_VERSION_MAJOR=$(shell grep "VERSION_MAJOR = ." modules/cij/__init__.py | cut -d " " -f 3)
 PROJECT_VERSION_MINOR=$(shell grep "VERSION_MINOR = ." modules/cij/__init__.py | cut -d " " -f 3)
@@ -41,3 +42,14 @@ release-upload:
 .PHONY: release
 release: release-build release-upload
 	@echo -n "# rel: "; date
+
+.PHONY: docs-view
+docs-view:
+	xdg-open $(DOC_BUILD_DIR)/docs/sphinx/html/index.html
+
+# Produce the sphinx stuff
+.PHONY: docs
+docs:
+	@mkdir -p $(DOC_BUILD_DIR)/docs/sphinx/html
+	@mkdir -p $(DOC_BUILD_DIR)/docs/sphinx/pdf
+	sphinx-build -b html -E docs $(DOC_BUILD_DIR)/docs/sphinx/html
