@@ -38,9 +38,11 @@ ENV_NAME=${ENV_FNAME%.*}
 
 if [[ ! -f "$ENV_FPATH" ]]; then
 	if [[ -f "$HERE/$ENV_FNAME" ]]; then
-		ENV_FPATH=$HERE/$ENV_FNAME
+		ENV_FPATH="$HERE/$ENV_FNAME"
 	elif [[ -f "$CIJ_ENVS/$ENV_FNAME" ]]; then
-		ENV_FPATH=$CIJ_ENVS/$ENV_FNAME
+		ENV_FPATH="$CIJ_ENVS/$ENV_FNAME"
+	elif [[ -f "$CIJ_ROOT/envs/$ENV_FPATH" ]]; then
+		ENV_FPATH="$CIJ_ROOT/envs/$ENV_FPATH"
 	else
 		cij::err "cannot find default ENV_FPATH: '$ENV_FPATH'"
 		popd
