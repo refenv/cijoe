@@ -94,8 +94,8 @@ example of setting up a guest named `emujoe` using a reference Ubuntu image:
   # Rename it
   mv box.img boot.qcow2
 
-CIJOE usage
------------
+Usage
+-----
 
 ...
 
