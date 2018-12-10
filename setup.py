@@ -3,7 +3,7 @@ import glob
 
 setup(
     name="cijoe",
-    version="0.0.6",
+    version="0.0.8",
     description="Tools for for development and testing",
     author="Simon A. F. Lund",
     author_email="slund@cnexlabs.com",
