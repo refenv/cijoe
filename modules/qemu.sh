@@ -47,7 +47,7 @@
 # QEMU_GUEST_BOOT_IMG   - Default "QEMU_GUEST_PATH/boot.img"
 # QEMU_GUEST_BOOT_IMG_FMT - Default "qcow2"
 # QEMU_GUEST_CPU        - Adds "-cpu $QEMU_GUEST_CPU", DEFAULT: "host"
-# QEMU_GUEST_MEM        - Adds "-m QEMU_GUEST_MEM", DEFAULT: "2GB"
+# QEMU_GUEST_MEM        - Adds "-m QEMU_GUEST_MEM", DEFAULT: "2G"
 # QEMU_GUEST_SMP        - Adds "-smp $QEMU_GUEST_SMP", OPTIONAL, no DEFAULT
 # QEMU_GUEST_KERNEL     - Adds "-kernel $QEMU_GUEST_KERNEL" and additional args
 # QEMU_GUEST_SSH_FWD_PORT - Port to forward port 22 to host. Default: 2022
