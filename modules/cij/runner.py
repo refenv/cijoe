@@ -26,6 +26,7 @@ HOOK_PATTERNS = {
 HOOK = {
     "evars": {},
 
+    "name": None,
     "fname": None,
     "fpath": None,
     "fpath_orig": None,
@@ -178,6 +179,8 @@ def hook_setup(trun, parent, hook_fpath):
     """Setup hook"""
 
     hook = copy.deepcopy(HOOK)
+    hook["name"] = os.path.splitext(os.path.basename(hook_fpath))[0]
+    hook["name"] = hook["name"].replace("_enter", "").replace("_exit", "")
     hook["res_root"] = parent["res_root"]
     hook["fpath_orig"] = hook_fpath
     hook["fname"] = "hook_%s" % os.path.basename(hook["fpath_orig"])
