@@ -39,6 +39,7 @@ HOOK = {
 TESTSUITE = {
     "ident": None,
     "name": None,
+    "alias": None,
     "hooks": {
         "enter": [],
         "exit": []
@@ -166,7 +167,10 @@ def script_run(trun, script):
 
     if trun["conf"]["VERBOSE"]:
         cij.emph("rnr:script:run { wallc: %02f }" % script["wallc"])
-        cij.emph("rnr:script:run { rcode: %r } " % script["rcode"])
+        cij.emph(
+            "rnr:script:run { rcode: %r } " % script["rcode"],
+            script["rcode"]
+        )
 
     return script["rcode"]
 
@@ -307,7 +311,7 @@ def tsuite_exit(trun, tsuite):
             break
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tsuite:exit { rcode: %r }" % rcode)
+        cij.emph("rnr:tsuite:exit { rcode: %r } " % rcode, rcode)
 
     return rcode
 
@@ -325,7 +329,7 @@ def tsuite_enter(trun, tsuite):
             break
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tsuite:enter { rcode: %r }" % rcode)
+        cij.emph("rnr:tsuite:enter { rcode: %r } " % rcode, rcode)
 
     return rcode
 
@@ -341,6 +345,8 @@ def tsuite_setup(trun, declr, enum):
     if suite["name"] is None:
         cij.err("rnr:tsuite_setup: no testsuite is given")
         return None
+
+    suite["alias"] = declr.get("alias")
 
     suite["fname"] = "%s.suite" % suite["name"]
     suite["fpath"] = os.sep.join([trun["conf"]["TESTSUITES"], suite["fname"]])
@@ -391,7 +397,7 @@ def tcase_exit(trun, tsuite, tcase):
             break
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tcase:exit { rcode: %r }" % rcode)
+        cij.emph("rnr:tcase:exit { rcode: %r }" % rcode, rcode)
 
     return rcode
 
@@ -416,7 +422,7 @@ def tcase_enter(trun, tsuite, tcase):
             break
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tcase:exit: { rcode: %r }" % rcode)
+        cij.emph("rnr:tcase:exit: { rcode: %r }" % rcode, rcode)
 
     return rcode
 
@@ -453,7 +459,7 @@ def trun_enter(trun):
             break
 
     if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:trun::enter { rcode: %r }" % rcode)
+        cij.emph("rnr:trun::enter { rcode: %r }" % rcode, rcode)
 
     return rcode
 
