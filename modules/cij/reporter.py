@@ -11,6 +11,25 @@ import ansi2html
 import cij.runner
 import cij
 
+def extract_hook_names(ent):
+    """Extract hook names from the given entity"""
+
+    hnames = []
+    for hook in ent["hooks"]["enter"] + ent["hooks"]["exit"]:
+        hname = os.path.basename(hook["fpath_orig"])
+        hname = os.path.splitext(hname)[0]
+        hname = hname.strip()
+        hname = hname.replace("_enter", "")
+        hname = hname.replace("_exit", "")
+        if hname in hnames:
+            continue
+
+        hnames.append(hname)
+
+    hnames.sort()
+
+    return hnames
+
 def tcase_comment(args, cij_conf, tcase):
     """
     Extracting the testcase description requires that the same versions are
@@ -143,6 +162,7 @@ def process_tsuite(args, cij_conf, trun, tsuite):
     tsuite["aux_list"] = aux_listing(
         args, cij_conf, trun, tsuite["aux_root"]
     )
+    tsuite["hnames"] = extract_hook_names(tsuite)
 
     return True
 
@@ -167,6 +187,7 @@ def process_tcase(args, cij_conf, trun, tsuite, tcase):
     tcase["descr_short"], tcase["descr_long"] = tcase_parse_descr(
         args, cij_conf, tcase
     )
+    tcase["hnames"] = extract_hook_names(tcase)
 
     return True
 
@@ -181,6 +202,7 @@ def process_trun(args, cij_conf, trun):
         trun["res_root"]
     )
     trun["aux_list"] = aux_listing(args, cij_conf, trun, trun["aux_root"])
+    trun["hnames"] = extract_hook_names(trun)
 
     return True
 
