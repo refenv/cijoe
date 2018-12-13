@@ -41,6 +41,16 @@
   background-opacity: 0.9;
 }
 
+.nav-item > a.nav-link {
+  border: 1px solid transparent;
+  border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+.nav-item > a.nav-link:hover {
+  background-color: white;
+  background-opacity: 0.5;
+}
+
 </style>
 </head>
 <body>
@@ -64,24 +74,42 @@
 
   <div class="card mb-3">
     <div class="card-header">
+      <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
+        <li class="nav-item no-gutters">
+          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">TESTRUN <b>{{ trun.status }}</b></a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card-header">
 
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item">
           <a class="nav-link active show" href="#SUMMARY" data-toggle="tab">Summary</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#RUNNER" data-toggle="tab">Runner</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#AUX" data-toggle="tab">Aux</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#LOG" data-toggle="tab">Log</a>
-        </li>
-
         <li class="nav-item ml-auto">
-          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">
-          TESTRUN <b>{{ trun.status }}</b>
+          <a class="nav-link" href="#RUNNER" data-toggle="tab">
+            Runner Conf ({{ trun.conf | length }})
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#EVARS" data-toggle="tab">
+            Evars ({{ trun.evars | length }})
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#HOOKS" data-toggle="tab">
+            Hooks ({{ trun.hnames | length }})
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#AUX" data-toggle="tab">
+            Aux ({{ trun.aux_list | length }})
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#LOG" data-toggle="tab">
+            Log ({{ trun.log_content.splitlines() | length }})
           </a>
         </li>
       </ul>
@@ -159,6 +187,44 @@
         <div class="card-footer text-muted">&nbsp;</div>
       </div>
 
+      <!-- TRUN: EVARS-SNIPPET -->
+      <div class="tab-pane" id="EVARS">
+        <div class="card-body">
+          <p class="card-text">
+          A total of <b>{{ trun.evars | length }}</b> environment variables are defined.
+          Testsuites inherit testrun environment variables and testcases inherit testsuite
+          environment variables.
+          These environment variables and then defined before executing hooks and testcases, prior
+          to sourcing in the environment definition.
+          </p>
+        </div>
+
+        <ul class="list-group">
+        {% for evar in trun.evars %}
+        <li class="list-group-item">{{ evar }}: {{ trun.evars[evar] }}</li>
+        {% endfor %}
+        </ul>
+
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
+      <!-- TRUN: HOOKS-SNIPPET -->
+      <div class="tab-pane" id="HOOKS">
+        <div class="card-body">
+          <p class="card-text">
+          A total of <b>{{ trun.hnames | length }}</b> hooks are used per testrun.
+          </p>
+        </div>
+
+        <ul class="list-group list-files">
+        {% for hname in trun.hnames %}
+        <li class="list-group-item">{{ hname }}</li>
+        {% endfor %}
+        </ul>
+
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
       <!-- TRUN: AUX-SNIPPET -->
       <div class="tab-pane" id="AUX">
         <div class="card-body">
@@ -177,6 +243,7 @@
         <div class="card-footer text-muted">&nbsp;</div>
       </div>
 
+      <!-- TRUN: LOG-SNIPPET -->
       <div class="tab-pane runlog" id="LOG">
         <div class="card-body">
           <p class="card-text">
@@ -210,20 +277,39 @@
 
 <div class="card mb-3" id="{{ tsuite.ident }}">
   <div class="card-header">
-
+    <ul class="nav nav-pills  nav-fill card-header-pills row.no-gutters">
+      <li class="nav-item">
+        <a class="nav-link bg-{{ tsuite_bg_color }} text-{{ tsuite_color }} text-left">
+          TESTSUITE: <b>{{ tsuite.alias if tsuite.alias else tsuite.name }}</b> ({{ tsuite.name }}.suite)
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.ident }}" data-toggle="tab">Testcases</a>
+        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.ident }}"
+          data-toggle="tab">Testcases ({{ tsuite.testcases | length }})</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#AUX_{{ tsuite.ident }}" data-toggle="tab">Aux</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#LOG_{{ tsuite.ident }}" data-toggle="tab">Log</a>
-      </li>
-
       <li class="nav-item ml-auto">
-        <a class="nav-link bg-{{ tsuite_bg_color }} text-{{ tsuite_color }}">TESTSUITE <b>{{ tsuite.name }}</b></a>
+        <a class="nav-link" href="#EVARS_{{ tsuite.ident }}" data-toggle="tab">
+          Evars ({{ tsuite.evars | length }})
+        </a>
+      </li>
+      <li class="nav-item ml">
+        <a class="nav-link" href="#HOOKS_{{ tsuite.ident }}" data-toggle="tab">
+          Hooks ({{ tsuite.hnames | length }})
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#AUX_{{ tsuite.ident }}" data-toggle="tab">
+          Aux ({{ tsuite.aux_list | length }})
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#LOG_{{ tsuite.ident }}" data-toggle="tab">
+          Log ({{ tsuite.log_content.splitlines() | length }})
+        </a>
       </li>
     </ul>
 
@@ -257,24 +343,34 @@
           </button>
           <div class="btn-group float-right" role="group">
             <button class="btn btn-primary" type="button" data-toggle="collapse"
-                                                                    data-target="#DESCR_{{ ident }}"
-                                                                    aria-controls="DESCR_{{ ident }}"
-                                                                    aria-expanded="false" >DESCR</button>
+                                                          data-target="#DESCR_{{ ident }}"
+                                                          aria-controls="DESCR_{{ ident }}"
+                                                          aria-expanded="false" >DESCR</button>
 
             <button class="btn btn-primary" type="button" data-toggle="collapse"
-                                                                    data-target="#SRC_{{ ident }}"
-                                                                    aria-controls="SRC_{{ ident }}"
-                                                                    aria-expanded="false" >SRC</button>
+                                                          data-target="#SRC_{{ ident }}"
+                                                          aria-controls="SRC_{{ ident }}"
+                                                          aria-expanded="false" >SRC</button>
 
             <button class="btn btn-primary" type="button" data-toggle="collapse"
-                                                                    data-target="#AUX_{{ ident }}"
-                                                                    aria-controls="AUX_{{ ident }}"
-                                                                    aria-expanded="false">AUX</button>
+                                                          data-target="#EVARS_{{ ident }}"
+                                                          aria-controls="EVARS_{{ ident }}"
+                                                          aria-expanded="false">EVARS</button>
 
             <button class="btn btn-primary" type="button" data-toggle="collapse"
-                                                                    data-target="#LOG_{{ ident }}"
-                                                                    aria-controls="LOG_{{ ident }}"
-                                                                    aria-expanded="false" >LOG</button>
+                                                          data-target="#HOOKS_{{ ident }}"
+                                                          aria-controls="HOOKS_{{ ident }}"
+                                                          aria-expanded="false">HOOKS</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                          data-target="#AUX_{{ ident }}"
+                                                          aria-controls="AUX_{{ ident }}"
+                                                          aria-expanded="false">AUX</button>
+
+            <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                          data-target="#LOG_{{ ident }}"
+                                                          aria-controls="LOG_{{ ident }}"
+                                                          aria-expanded="false" >LOG</button>
           </div>
 
           <div class="collapse" id="DESCR_{{ ident }}" data-parent="#results">
@@ -285,6 +381,31 @@
           <div class="collapse" id="SRC_{{ ident }}" data-parent="#results">
             <p class="m-2">Source code for the testcase definition</p>
             <pre><code class="bash">{{ tcase.src_content }}</code></pre>
+          </div>
+
+          <!-- TCASE: EVARS-SNIPPET -->
+          <div class="collapse" id="EVARS_{{ ident }}" data-parent="#results">
+            <p class="m-2">A total of <b>{{ tcase.evars | length }}</b> evars are defined for the
+            testcase before sourcing environment definition</p>
+
+            <ul class="list-group">
+            {% for evar in tcase.evars %}
+            <li class="list-group-item">{{ evar }}: {{ tcase.evars[evar] }}</li>
+            {% endfor %}
+            </ul>
+
+          </div>
+
+          <!-- TCASE: HOOKS-SNIPPET -->
+          <div class="collapse" id="HOOKS_{{ ident }}" data-parent="#results">
+            <p class="m-2">A total of <b>{{ tcase.hnames | length }}</b> evars are defined for the
+            testcase before sourcing environment definition</p>
+
+            <ul class="list-group">
+            {% for hname in tcase.hnames %}
+            <li class="list-group-item">{{ hname }}</li>
+            {% endfor %}
+            </ul>
           </div>
 
           <!-- TCASE: AUX-SNIPPET -->
@@ -313,6 +434,38 @@
     </div>
     <!-- TESTCASES-END -->
 
+    <!-- TSUITE: EVAR-SNIPPET -->
+    <div class="collapse" id="EVARS_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+      <div class="card-body">
+        <p class="card-text">
+          A total of <b>{{ tsuite.evars | length }}</b> environment vars are defined for this
+          testsuite, the testcases will define these prior to sourcing the environment definition
+        </p>
+      </div>
+
+      <ul class="list-group">
+        {% for evar in tsuite.evars %}
+        <li class="list-group-item">{{ evar }}: {{ tsuite.evars[evar] }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- TSUITE: HOOKS-SNIPPET -->
+    <div class="collapse" id="HOOKS_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+      <div class="card-body">
+        <p class="card-text">
+          A total of <b>{{ tsuite.hnames | length }}</b> hooks per test suite. That is, these hooks
+          are run before and after all the testcases have run.
+        </p>
+      </div>
+
+      <ul class="list-group">
+      {% for hname in tsuite.hnames %}
+      <li class="list-group-item">{{ hname }}</a></li>
+      {% endfor %}
+      </ul>
+    </div>
+
     <!-- TSUITE: AUX-SNIPPET -->
     <div class="collapse" id="AUX_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
       <div class="card-body">
@@ -327,9 +480,9 @@
       <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
       {% endfor %}
       </ul>
-
     </div>
 
+    <!-- TSUITE: RUN-LOG -->
     <div class="collapse runlog" id="LOG_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
