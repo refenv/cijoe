@@ -4,11 +4,21 @@
  Quick Start
 =============
 
-Install **cijoe** via the Python Package index:
+Install **cijoe** system-wide via the pip:
+
+.. code-block:: bash
+
+  sudo pip install cijoe
+
+Or install it user-level:
 
 .. code-block:: bash
 
   pip install cijoe
+
+.. note:: When doing user-level install, then include the :code:`pip` binary
+  install path in your :code:`PATH` definition. For example
+  :code:`PATH="$PATH:$HOME/.local/bin"`
 
 Run **cijoe** interactively and define the target environment:
 
@@ -23,7 +33,7 @@ Run **cijoe** interactively and define the target environment:
   # Open up your favorite editor and modify accordingly
   vim target_env.sh
 
-Start the test-runner and view the report:
+Invoke the test runner, generate report and inspect the result:
 
 .. code-block:: bash
 
