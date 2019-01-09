@@ -75,7 +75,7 @@ lnvm::create() {
 
   cij::emph "lnvm::create: LNVM_DEV_NAME: '$LNVM_DEV_NAME'"
 
-  LNVM_CMD="nvme lnvme create"
+  LNVM_CMD="nvme lnvm create"
   LNVM_CMD="$LNVM_CMD -d $NVME_DEV_NAME"
   LNVM_CMD="$LNVM_CMD -n $LNVM_DEV_NAME"
   LNVM_CMD="$LNVM_CMD -t $LNVM_DEV_TYPE"
@@ -99,7 +99,7 @@ lnvm::recover() {
 
   cij::emph "lnvm::recover: LNVM_DEV_NAME: '$LNVM_DEV_NAME'"
 
-  LNVM_CMD="nvme lnvme create"
+  LNVM_CMD="nvme lnvm create"
   LNVM_CMD="$LNVM_CMD -d $NVME_DEV_NAME"
   LNVM_CMD="$LNVM_CMD -n $LNVM_DEV_NAME"
   LNVM_CMD="$LNVM_CMD -t $LNVM_DEV_TYPE"
