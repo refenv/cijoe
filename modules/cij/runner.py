@@ -138,9 +138,9 @@ def script_run(trun, script):
         bgn = time.time()
         cmd = [
             'bash', '-c',
-            'source %s && '
             'CIJ_ROOT=$(cij_root) && '
             'source $CIJ_ROOT/modules/cijoe.sh && '
+            'source %s && '
             'CIJ_TEST_RES_ROOT="%s" %s %s ' % (
                 trun["conf"]["ENV_FPATH"],
                 script["res_root"],
