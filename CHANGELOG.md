@@ -10,10 +10,17 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
-## v0.0.6 (Upcoming)
+## v0.0.11
 
-* Expand usage example
-* Style and logic fixes
+* Added option to define testcases "inline" in testplan
+  - It used to rely on a specific testsuite file
+  - It now uses inline, when it is defined, testsuite otherwise
+* Added testplan/testsuite alias
+  - To be used for briefly describing how a set of testcases relates to the
+    testplan
+* Expanded usage examples
+* Fixes to environment sourcing and lnvm module
+* Fixed prefix to interactive shell
 
 ## v0.0.5
 
