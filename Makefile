@@ -9,7 +9,7 @@ NEXT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${NEXT_VERSION_PA
 
 .PHONY: install
 install:
-	pip install .
+	pip install . --user
 
 .PHONY: uninstall
 uninstall:
