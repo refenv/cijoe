@@ -114,6 +114,7 @@ def tplans_content(ident, args):
         ],
         "suites": [
             ("name", True),
+            ("alias", False),
             ("hooks", False),
             ("hooks_pr_tcase", False),
             ("evars", False),
