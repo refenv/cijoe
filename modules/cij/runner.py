@@ -280,7 +280,7 @@ def tcase_setup(trun, parent, tcase_fname):
         return None
 
     case["name"] = os.path.splitext(case["fname"])[0]
-    case["ident"] =  "/".join([parent["ident"], case["fname"]])
+    case["ident"] = "/".join([parent["ident"], case["fname"]])
 
     case["res_root"] = os.sep.join([parent["res_root"], case["fname"]])
     case["aux_root"] = os.sep.join([case["res_root"], "_aux"])
@@ -336,7 +336,6 @@ def tsuite_enter(trun, tsuite):
 
     return rcode
 
-
 def tsuite_setup(trun, declr, enum):
     """
     Creates and initialized a TESTSUITE struct and site-effects such as creating
@@ -344,38 +343,55 @@ def tsuite_setup(trun, declr, enum):
     """
 
     suite = copy.deepcopy(TESTSUITE)  # Setup the test-suite
+
     suite["name"] = declr.get("name")
     if suite["name"] is None:
         cij.err("rnr:tsuite_setup: no testsuite is given")
         return None
 
     suite["alias"] = declr.get("alias")
-
-    suite["fname"] = "%s.suite" % suite["name"]
-    suite["fpath"] = os.sep.join([trun["conf"]["TESTSUITES"], suite["fname"]])
     suite["ident"] = "%s_%d" % (suite["name"], enum)
 
     suite["res_root"] = os.sep.join([trun["conf"]["OUTPUT"], suite["ident"]])
     suite["aux_root"] = os.sep.join([suite["res_root"], "_aux"])
 
+    suite["evars"].update(copy.deepcopy(trun["evars"]))
+    suite["evars"].update(copy.deepcopy(declr.get("evars", {})))
+
     # Initialize
     os.makedirs(suite["res_root"])
     os.makedirs(suite["aux_root"])
 
-    suite["evars"].update(copy.deepcopy(trun["evars"]))
-    suite["evars"].update(copy.deepcopy(declr.get("evars", {})))
-
-    # Setup hooks
+    # Setup testsuite-hooks
     suite["hooks"] = hooks_setup(trun, suite, declr.get("hooks"))
 
     # Forward from declaration
     suite["hooks_pr_tcase"] = declr.get("hooks_pr_tcase", [])
 
-    # Filter testcases, remove those that have been commented out with "#"
-    suite_lines = (l.strip() for l in open(suite["fpath"]).read().splitlines())
-    suite_tcase_line = (l for l in suite_lines if len(l) > 1 and l[0] != "#")
+    suite["fname"] = "%s.suite" % suite["name"]
+    suite["fpath"] = os.sep.join([trun["conf"]["TESTSUITES"], suite["fname"]])
 
-    for tcase_fname in suite_tcase_line:    # Add testcases by filename
+    #
+    # Load testcases from .suite file OR from declaration
+    #
+    tcase_fpaths = []                               # Load testcase fpaths
+    if os.path.exists(suite["fpath"]):              # From suite-file
+        suite_lines = (
+            l.strip() for l in open(suite["fpath"]).read().splitlines()
+        )
+        tcase_fpaths.extend(
+            (l for l in suite_lines if len(l) > 1 and l[0] != "#")
+        )
+    else:                                           # From declaration
+        tcase_fpaths.extend(declr.get("testcases", []))
+
+    # TODO: fix duplicates; allow them
+    # NOTE: Currently hot-fixed here
+    if len(set(tcase_fpaths)) != len(tcase_fpaths):
+        cij.err("rnr:suite: failed: duplicate tcase in suite not supported")
+        return None
+
+    for tcase_fname in tcase_fpaths:                # Setup testcases
         tcase = tcase_setup(trun, suite, tcase_fname)
         if not tcase:
             cij.err("rnr:suite: failed: tcase_setup")
