@@ -40,7 +40,7 @@ release-upload:
 	twine upload dist/*
 
 .PHONY: release
-release: release-build release-upload
+release: clean release-build release-upload
 	@echo -n "# rel: "; date
 
 .PHONY: docs-view
