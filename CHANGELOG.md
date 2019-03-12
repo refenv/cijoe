@@ -10,6 +10,11 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.12
+
+* Bumped version number
+* Added 'clean' to release-script
+
 ## v0.0.11
 
 * Added option to define testcases "inline" in testplan
