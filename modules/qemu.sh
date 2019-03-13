@@ -29,6 +29,7 @@
 # Variables:
 #
 # QEMU_BIN              - Path to qemu binary, no default, MUST be set.
+# QEMU_IMG_BIN          - Path to qemu-img binary, no default, MUST be set.
 # QEMU_GUESTS           - Path to qemu guests, default /tmp/guests.
 # QEMU_ARGS_EXTRA       - Wildcard for options which aren't wrapped below.
 #
@@ -50,6 +51,7 @@
 # QEMU_GUEST_MEM        - Adds "-m QEMU_GUEST_MEM", DEFAULT: "2G"
 # QEMU_GUEST_SMP        - Adds "-smp $QEMU_GUEST_SMP", OPTIONAL, no DEFAULT
 # QEMU_GUEST_KERNEL     - Adds "-kernel $QEMU_GUEST_KERNEL" and additional args
+# QEMU_GUEST_APPEND     - Adds extra kernel parameters for -append
 # QEMU_GUEST_SSH_FWD_PORT - Port to forward port 22 to host. Default: 2022
 # QEMU_GUEST_CONSOLE    - Default: "file"
 #
@@ -58,36 +60,32 @@
 #   "foo":  The SDL interface pops up.
 #
 # The QEMU_NVME_* environment variables defines the Open-Channel SSD device to
-# emulate. The drive will be backed by files storing data, metadata, various
+# emulate. The drive will be backed by files storing data, various
 # error-injection files, and monitor.
 #
 # QEMU_NVME_ID          - Name of drive to simulate
 #                         Defaults to nvme0
-# QEMU_NVME_MDTS        - Maximum data transfer size
-#                       - DEFAULT: governed by qemu
-# QEMU_NVME_MS          - Meta-data size
-#                       - DEFAULT: governed by qemu
-# QEMU_NVME_NLBAF       - Number of NVMe LBA formats
-#                       - DEFAULT: governed by qemu
-#
-# QEMU_NVME_LINES       - Number of lines(chunks per PU)
-#                         DEFAULT: 80
-#
-# QEMU_NVME_NUM_GRP     - Number of OCSSD groups on device
-#                         DEFAULT: governed by qemu
-# QEMU_NVME_NUM_PU      - Number of parallel units
-#                         DEFAULT: governed by qemu
-# QEMU_NVME_NUM_SEC     - Number of parallel units
-#                         DEFAULT: govered by qemu
-# QEMU_NVME_SEC_SIZE    - Number of bytes in a sector
-#                         DEFAULT: governed by qemu
-#
+# QEMU_NVME_MDTS        - Maximum Data Transfer Size. In units of the minimum
+#                         memory page size. Specified as 2**n.
+#                         DEFAULT: 7
+# QEMU_NVME_NUM_GRP     - Number of groups
+#                         DEFAULT: 2
+# QEMU_NVME_NUM_PU      - Number of parallel units per group
+#                         DEFAULT: 4
+# QEMU_NVME_NUM_CHK     - Number of chunks per parallel unit
+#                         DEFAULT: 60
+# QEMU_NVME_NUM_SEC     - Number of sectors per chunk
+#                         DEFAULT: 4096
+# QEMU_NVME_LBADS       - LBA data size (LBADS)
+#                         DEFAULT: 4096
+# QEMU_NVME_MS          - Meta-data size (MS)
+#                       - DEFAULT: 16
 # QEMU_NVME_WS_MIN      - Minimum write size, in sectors
-#                         DEFAULT: governed by qemu
+#                         DEFAULT: 4
 # QEMU_NVME_WS_OPT      - Optimal write size
-#                         DEFAULT: governed by qemu
-# QEMU_NVME_MW_CUNITS   - Min write/read-distance
-#                         DEFAULT: governed by qemu
+#                         DEFAULT: 8
+# QEMU_NVME_MW_CUNITS   - Cache minimum write size units
+#                         DEFAULT: 24
 # QEMU_NVME_CHUNKTABLE  - Chunk status table file
 # QEMU_NVME_RESETFAIL   - Reset fail configuration file
 # QEMU_NVME_WRITEFAIL   - Write fail configuration file
@@ -103,9 +101,8 @@ qemu::env() {
     return 1
   fi
 
-  if [[ -z "$QEMU_HOST_PORT" ]]; then
-    QEMU_HOST_PORT=22
-  fi
+  # set host defaults
+  : "${QEMU_HOST_PORT:=22}"
 
   if [[ -z "$QEMU_GUESTS" ]]; then
     cij::info "QEMU_GUESTS is unset using '/tmp/guests'"
@@ -117,73 +114,39 @@ qemu::env() {
     QEMU_GUEST_NAME="default-guest"
   fi
 
-  if [[ -z "$QEMU_GUEST_PATH" ]]; then
-    QEMU_GUEST_PATH="$QEMU_GUESTS/$QEMU_GUEST_NAME"
-  fi
-
+  # set guest defaults
+  : "${QEMU_GUEST_BOOT_ISO:=}"
+  : "${QEMU_GUEST_PATH:=$QEMU_GUESTS/$QEMU_GUEST_NAME}"
   QEMU_GUEST_MONITOR="$QEMU_GUEST_PATH/guest.monitor"
   QEMU_GUEST_PIDFILE="$QEMU_GUEST_PATH/guest.pid"
-
-  if [[ -z "$QEMU_GUEST_SSH_FWD_PORT" ]]; then
-    QEMU_GUEST_SSH_FWD_PORT="2022"
-  fi
-
-  if [[ -z "$QEMU_GUEST_CPU" ]]; then
-    QEMU_GUEST_CPU="host"
-  fi
-
-  if [[ -z "$QEMU_GUEST_MEM" ]]; then
-    QEMU_GUEST_MEM="2G"
-  fi
-
-  if [[ -z "$QEMU_GUEST_BOOT_IMG_FMT" ]]; then
-    QEMU_GUEST_BOOT_IMG_FMT="qcow2"
-  fi
-
-  if [[ -z "$QEMU_GUEST_BOOT_IMG" ]]; then
-    QEMU_GUEST_BOOT_IMG="$QEMU_GUEST_PATH/boot.img"
-  fi
+  : "${QEMU_GUEST_APPEND:=}"
+  : "${QEMU_GUEST_SSH_FWD_PORT:=2022}"
+  : "${QEMU_GUEST_MACHINE_TYPE:=q35}"
+  : "${QEMU_GUEST_CPU:=host}"
+  : "${QEMU_GUEST_MEM:=2G}"
+  : "${QEMU_GUEST_BOOT_IMG:=$QEMU_GUEST_PATH/boot.img}"
+  : "${QEMU_GUEST_BOOT_IMG_FMT:=qcow2}"
 
   if [[ -z "$QEMU_GUEST_KERNEL" && -f "$QEMU_GUEST_PATH/bzImage" ]]; then
     QEMU_GUEST_KERNEL="$QEMU_GUEST_PATH/bzImage"
   fi
 
-  if [[ -z "$QEMU_GUEST_CONSOLE" ]]; then
-    QEMU_GUEST_CONSOLE="file"
-  fi
-
+  : "${QEMU_GUEST_CONSOLE:=file}"
   if [[ "$QEMU_GUEST_CONSOLE" = "file" ]]; then
     QEMU_GUEST_CONSOLE_FILE="$QEMU_GUEST_PATH/console.out"
   fi
 
-  if [[ -z "$QEMU_GUEST_MEM" ]]; then
-    QEMU_GUEST_MEM="2G"
-  fi
-
-  if [[ -z "$QEMU_NVME_ID" ]]; then
-    QEMU_NVME_ID="cij_nvme"
-  fi
-  if [[ -z "$QEMU_NVME_LINES" ]]; then
-    QEMU_NVME_LINES=80
-  fi
-  if [[ -z "$QEMU_NVME_NUM_PU" ]]; then
-    QEMU_NVME_NUM_PU=4
-  fi
-  if [[ -z "$QEMU_NVME_SECS_PER_CHK" ]]; then
-    QEMU_NVME_SECS_PER_CHK=3072
-  fi
-  if [[ -z "$QEMU_NVME_META_SZ" ]]; then
-    QEMU_NVME_META_SZ=16
-  fi
-  if [[ -z "$QEMU_NVME_WS_MIN" ]]; then
-    QEMU_NVME_WS_MIN=12
-  fi
-  if [[ -z "$QEMU_NVME_WS_OPT" ]]; then
-    QEMU_NVME_WS_OPT=24
-  fi
-  if [[ -z "$QEMU_NVME_CUNITS" ]]; then
-    QEMU_NVME_CUNITS=192
-  fi
+  # set nvme defaults
+  : "${QEMU_NVME_ID:=cij_nvme}"
+  : "${QEMU_NVME_NUM_GRP:=2}"
+  : "${QEMU_NVME_NUM_CHK:=60}"
+  : "${QEMU_NVME_NUM_PU:=4}"
+  : "${QEMU_NVME_NUM_SEC:=4096}"
+  : "${QEMU_NVME_LBADS:=4096}"
+  : "${QEMU_NVME_MS:=16}"
+  : "${QEMU_NVME_WS_MIN:=4}"
+  : "${QEMU_NVME_WS_OPT:=8}"
+  : "${QEMU_NVME_CUNITS:=24}"
 
   if [[ -n "$QEMU_NVME_CHUNKTABLE" && ! -f "$QEMU_NVME_CHUNKTABLE" ]]; then
     cij::err "qemu::env: QEMU_NVME_CHUNKTABLE is set but file does not exist"
@@ -199,10 +162,12 @@ qemu::env() {
   fi
 
   QEMU_NVME_IMAGE="$QEMU_NVME_ID"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_l$QEMU_NVME_LINES"
+  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_grp$QEMU_NVME_NUM_GRP"
   QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_pu$QEMU_NVME_NUM_PU"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_sc$QEMU_NVME_SECS_PER_CHK"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_mz$QEMU_NVME_META_SZ"
+  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_chk$QEMU_NVME_NUM_CHK"
+  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_sec$QEMU_NVME_NUM_SEC"
+  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_lbads$QEMU_NVME_LBADS"
+  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_ms$QEMU_NVME_MS"
 
   return 0
 }
@@ -382,23 +347,20 @@ qemu::guest_nvme_create() {
     return 1
   fi
 
-  DRIVE_IMG="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.data"
-  DRIVE_META="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.meta"
+  local name="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
+  local opts="num_ns=1"
+  opts="$opts,num_grp=$QEMU_NVME_NUM_GRP"
+  opts="$opts,num_pu=$QEMU_NVME_NUM_PU"
+  opts="$opts,num_chk=$QEMU_NVME_NUM_CHK"
+  opts="$opts,num_sec=$QEMU_NVME_NUM_SEC"
+  opts="$opts,sec_size=$QEMU_NVME_LBADS"
+  opts="$opts,md_size=$QEMU_NVME_MS"
+  opts="$opts,ws_min=$QEMU_NVME_WS_MIN"
+  opts="$opts,ws_opt=$QEMU_NVME_WS_OPT"
+  opts="$opts,mw_cunits=$QEMU_NVME_MW_CUNITS"
 
-  DD_BS=$(( QEMU_NVME_SECS_PER_CHK * 4))"k"
-  DD_COUNT=$(( QEMU_NVME_NUM_PU * QEMU_NVME_LINES + 1))
-
-  cij::info "Creating drive: bs($DD_BS) count($DD_COUNT)"
-  if ! qemu::hostcmd "dd if=/dev/zero of=$DRIVE_IMG bs=$DD_BS count=$DD_COUNT"; then
-    cij::err "qemu::guest_nvme_create: failed"
-    return 1
-  fi
-
-  DD_BS=$(( QEMU_NVME_SECS_PER_CHK * QEMU_NVME_META_SZ ))
-  DD_COUNT=$(( QEMU_NVME_NUM_PU * QEMU_NVME_LINES + 1))
-
-  cij::info "Creating drive meta: bs($DD_BS) count($DD_COUNT)"
-  if ! qemu::hostcmd "dd if=/dev/zero of=$DRIVE_META bs=$DD_BS count=$DD_COUNT"; then
+  cij::info "Creating ocssd backing file"
+  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f ocssd -o $opts $name"; then
     cij::err "qemu::guest_nvme_create: failed"
     return 1
   fi
@@ -418,69 +380,63 @@ qemu::guest_nvme_config() {
     return 1
   fi
 
-  GUEST_NVME_DRIVE="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.data"
-  #GUEST_NVME_DRIVE_META="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.meta"
+  local ocssd_img="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
 
-  QEMU_ARGS_NVME=""
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -drive file=\"$GUEST_NVME_DRIVE\",if=none,id=\"drive_$QEMU_NVME_ID\",format=raw"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme,drive=\"drive_$QEMU_NVME_ID\",serial=deadbeef,id=\"$QEMU_NVME_ID\""
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,namespaces=1"
+  QEMU_ARGS_NVME=
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -blockdev ocssd,node-name=drive_$QEMU_NVME_ID,discard=unmap,detect-zeroes=unmap,file.driver=file,file.filename=$ocssd_img"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme,drive=drive_$QEMU_NVME_ID,serial=deadbeef,id=$QEMU_NVME_ID"
 
-  if [[ ! -z "$QEMU_NVME_MDTS" ]]; then
+  : "${QEMU_NVME_MDTS:=}"
+  : "${QEMU_NVME_MS:=}"
+
+  if [[ -n "$QEMU_NVME_MDTS" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mdts=$QEMU_NVME_MDTS"
   fi
-  if [[ ! -z "$QEMU_NVME_NLBAF" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,nlbaf=$QEMU_NVME_NLBAF"
-  fi
-  # shellcheck disable=SC2153
-  if [[ ! -z "$QEMU_NVME_MS" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ms=$QEMU_NVME_MS"
-  fi
 
-  if [[ ! -z "$QEMU_NVME_DEBUG" ]]; then
+  if [[ -n "$QEMU_NVME_DEBUG" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ldebug=$QEMU_NVME_DEBUG"
   fi
-  if [[ ! -z "$QEMU_NVME_NUM_GRP" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lnum_grp=$QEMU_NVME_NUM_GRP"
-  fi
-  if [[ ! -z "$QEMU_NVME_NUM_PU" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lnum_pu=$QEMU_NVME_NUM_PU"
-  fi
-  if [[ ! -z "$QEMU_NVME_NUM_SEC" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lnum_sec=$QEMU_NVME_NUM_SEC"
-  fi
-  if [[ ! -z "$QEMU_NVME_SEC_SIZE" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lsec_size=$QEMU_NVME_SEC_SIZE"
-  fi
 
-  if [[ ! -z "$QEMU_NVME_WS_MIN" ]]; then
+  if [[ -n "$QEMU_NVME_WS_MIN" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lws_min=$QEMU_NVME_WS_MIN"
   fi
-  if [[ ! -z "$QEMU_NVME_WS_OPT" ]]; then
+
+  if [[ -n "$QEMU_NVME_WS_OPT" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lws_opt=$QEMU_NVME_WS_OPT"
   fi
-  if [[ ! -z "$QEMU_NVME_WS_CUNITS" ]]; then
+
+  if [[ -n "$QEMU_NVME_WS_CUNITS" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lmw_cunits=$QEMU_NVME_MW_CUNITS"
   fi
 
-  if [[ ! -z "$QEMU_NVME_CHUNKTABLE" ]]; then
-    QEMU_GUEST_CHUNKTABLE="$QEMU_GUEST_PATH/chunktable.qemu"
+  if [[ -n "$QEMU_NVME_CHUNKTABLE" ]]; then
+    QEMU_GUEST_CHUNKTABLE="$QEMU_GUEST_PATH/chunktable.txt"
     qemu::hostcmd "[[ -f \"$QEMU_GUEST_CHUNKTABLE\" ]] && rm \"$QEMU_GUEST_CHUNKTABLE\""
-    if ! qemu::host_push "$QEMU_NVME_CHUNKTABLE" "$QEMU_GUEST_PATH/chunktable.qemu"; then
+    if ! qemu::host_push "$QEMU_NVME_CHUNKTABLE" "$QEMU_GUEST_PATH/chunktable.txt"; then
       cij::err "qemu::config_guest_nvme failed"
       return 1
     fi
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lchunktable_txt=$QEMU_GUEST_CHUNKTABLE"
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lchunkstate=$QEMU_GUEST_CHUNKTABLE"
   fi
 
-  if [[ ! -z "$QEMU_NVME_RESETFAIL" ]]; then
-    QEMU_GUEST_RESETFAIL="$QEMU_GUEST_PATH/resetfail.qemu"
+  if [[ -n "$QEMU_NVME_RESETFAIL" ]]; then
+    QEMU_GUEST_RESETFAIL="$QEMU_GUEST_PATH/resetfail.txt"
     qemu::hostcmd "rm $QEMU_GUEST_RESETFAIL"
     if ! qemu::host_push "$QEMU_NVME_RESETFAIL" "$QEMU_GUEST_RESETFAIL"; then
       cij::err "qemu::config_guest_nvme failed"
       return 1
     fi
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lresetfail=$QEMU_GUEST_RESETFAIL"
+  fi
+
+  if [[ -n "$QEMU_NVME_WRITEFAIL" ]]; then
+    QEMU_GUEST_RESETFAIL="$QEMU_GUEST_PATH/writefail.txt"
+    qemu::hostcmd "rm $QEMU_GUEST_WRITEFAIL"
+    if ! qemu::host_push "$QEMU_NVME_WRITEFAIL" "$QEMU_GUEST_WRITEFAIL"; then
+      cij::err "qemu::config_guest_nvme failed"
+      return 1
+    fi
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lwritefail=$QEMU_GUEST_WRITEFAIL"
   fi
 
   return 0;
@@ -499,11 +455,11 @@ qemu::run() {
 
   cij::info "Guests: " $QEMU_GUESTS " Name: " $QEMU_GUEST_NAME " Path: " $QEMU_GUEST_PATH
   if ! qemu::hostcmd "[[ -f $QEMU_GUEST_BOOT_IMG ]]"; then
-    cij::err "Cannot find guest boot image($QEMU_GUEST_BOOT_IMG)"
+    cij::err "Cannot find guest boot image ($QEMU_GUEST_BOOT_IMG)"
     return 1
   fi
 
-  if [[ ! -z "$QEMU_NVME_ID" ]]; then
+  if [[ -n "$QEMU_NVME_ID" ]]; then
     if ! qemu::guest_nvme_config; then
       cij:err "qemu::run: failed: guest_nvme_config"
       return 1
@@ -518,34 +474,55 @@ qemu::run() {
 
   # Setup arguments, `qemu::env` provides sensible defaults for the
   # non-optional arguments
-  QEMU_ARGS="--enable-kvm"
+
+  # cpu/memory
+  QEMU_ARGS=
+  QEMU_ARGS="$QEMU_ARGS -machine type=$QEMU_GUEST_MACHINE_TYPE,kernel_irqchip=split,accel=kvm"
   QEMU_ARGS="$QEMU_ARGS -cpu $QEMU_GUEST_CPU"
-  if [[ -n "$QEMU_GUEST_SMP" ]]; then
+
+  if [[ -n "${QEMU_GUEST_SMP}" ]]; then
     QEMU_ARGS="$QEMU_ARGS -smp $QEMU_GUEST_SMP"
   fi
+
   QEMU_ARGS="$QEMU_ARGS -m $QEMU_GUEST_MEM"
-  # shellcheck disable=2153
-  if [[ -n "$QEMU_GUEST_BOOT_ISO" ]]; then
+
+  # optionally boot from iso
+  if [[ -n "${QEMU_GUEST_BOOT_ISO}" ]]; then
     QEMU_ARGS="$QEMU_ARGS -boot d -cdrom $QEMU_GUEST_BOOT_ISO"
   fi
-  QEMU_ARGS="$QEMU_ARGS -drive file=${QEMU_GUEST_BOOT_IMG},id=bootdrive,format=${QEMU_GUEST_BOOT_IMG_FMT},if=none"
-  QEMU_ARGS="$QEMU_ARGS -device virtio-blk-pci,drive=bootdrive,scsi=off,config-wce=off"
+
+  # boot drive
+  QEMU_ARGS="$QEMU_ARGS -blockdev ${QEMU_GUEST_BOOT_IMG_FMT},node-name=boot,file.driver=file,file.filename=${QEMU_GUEST_BOOT_IMG}"
+  QEMU_ARGS="$QEMU_ARGS -device virtio-blk-pci,drive=boot"
+
+  # nic
+  QEMU_ARGS="$QEMU_ARGS -netdev user,id=n1,ipv6=off,hostfwd=tcp::$QEMU_GUEST_SSH_FWD_PORT-:22"
+  QEMU_ARGS="$QEMU_ARGS -device virtio-net-pci,netdev=n1"
+
+  # qemu monitor
   QEMU_ARGS="$QEMU_ARGS -monitor unix:$QEMU_GUEST_MONITOR,server,nowait"
+
+  # pidfile
   QEMU_ARGS="$QEMU_ARGS -pidfile $QEMU_GUEST_PIDFILE"
 
+  # optionally boot specific kernel
   if [[ -n "$QEMU_GUEST_KERNEL" ]]; then
-    QEMU_ARGS="$QEMU_ARGS -kernel \"$QEMU_GUEST_KERNEL\""
+    QEMU_ARGS="$QEMU_ARGS -kernel \"${QEMU_GUEST_KERNEL}\""
     QEMU_ARGS="$QEMU_ARGS -append \"root=/dev/vda1 vga=0 console=ttyS0,kgdboc=ttyS1,115200 $QEMU_GUEST_APPEND\""
   fi
 
-  if [[ "$QEMU_GUEST_CONSOLE" = "file" ]]; then
-    QEMU_ARGS="$QEMU_ARGS -display none -serial file:$QEMU_GUEST_CONSOLE_FILE"
-    QEMU_ARGS="$QEMU_ARGS -daemonize"
-  elif [[ "$QEMU_GUEST_CONSOLE" = "stdio" ]]; then
-    QEMU_ARGS="$QEMU_ARGS -nographic -serial mon:stdio"
-  fi
+  case $QEMU_GUEST_CONSOLE in
+    file )
+      QEMU_ARGS="$QEMU_ARGS -display none -serial file:$QEMU_GUEST_CONSOLE_FILE"
+      QEMU_ARGS="$QEMU_ARGS -daemonize"
+      ;;
 
-  QEMU_ARGS="$QEMU_ARGS -net user,hostfwd=tcp::$QEMU_GUEST_SSH_FWD_PORT-:22 -net nic"
+    stdio )
+      QEMU_ARGS="$QEMU_ARGS -nographic"
+      QEMU_ARGS="$QEMU_ARGS -serial mon:stdio"
+      ;;
+  esac
+
   QEMU_ARGS="$QEMU_ARGS $QEMU_ARGS_NVME $QEMU_ARGS_EXTRA"
 
   QEMU_CMD="$QEMU_BIN $QEMU_ARGS"
