@@ -23,10 +23,8 @@
 #
 # Setup CIJOE core environment variables
 #
-CIJ_ROOT=$CIJ_ROOT
-if [[ -z "$CIJ_ROOT" ]]; then
-  CIJ_ROOT=$(pwd)
-fi
+
+: "${CIJ_ROOT:=$(pwd)}"
 DLIST="hooks modules templates"
 for DNAME in $DLIST; do
   if [[ ! -d "$CIJ_ROOT/$DNAME" ]]; then
@@ -36,28 +34,19 @@ for DNAME in $DLIST; do
 done
 export CIJ_ROOT
 
-if [[ -z "$CIJ_MODULES" ]]; then
-  CIJ_MODULES="$CIJ_ROOT/modules"
-fi
+: "${CIJ_MODULES:="$CIJ_ROOT/modules"}"
 export CIJ_MODULES
 
-if [[ -z "$CIJ_HOOKS" ]]; then
-  CIJ_HOOKS="$CIJ_ROOT/hooks"
-fi
+: "${CIJ_HOOKS:="$CIJ_ROOT/hooks"}"
 export CIJ_HOOKS
 
-if [[ -z "$CIJ_TEMPLATES" ]]; then
-  CIJ_TEMPLATES="$CIJ_ROOT/templates"
-fi
+: "${CIJ_TEMPLATES:="$CIJ_ROOT/templates"}"
 export CIJ_TEMPLATES
 
 #
 # Setup CIJOE package environment variables
 #
-CIJ_PKG_ROOT=$CIJ_PKG_ROOT
-if [[ -z "$CIJ_PKG_ROOT" ]]; then
-  CIJ_PKG_ROOT=$CIJ_ROOT
-fi
+: "${CIJ_PKG_ROOT:=$CIJ_ROOT}"
 DLIST="envs testcases testfiles testsuites testplans"
 for DNAME in $DLIST; do
   if [[ ! -d "$CIJ_PKG_ROOT/$DNAME" ]]; then
@@ -67,29 +56,19 @@ for DNAME in $DLIST; do
 done
 export CIJ_PKG_ROOT
 
-if [[ -z "$CIJ_ENVS" ]]; then
-  CIJ_ENVS="$CIJ_PKG_ROOT/envs"
-fi
+: "${CIJ_ENVS:="$CIJ_PKG_ROOT/envs"}"
 export CIJ_ENVS
 
-if [[ -z "$CIJ_TESTCASES" ]]; then
-  CIJ_TESTCASES="$CIJ_PKG_ROOT/testcases"
-fi
+: "${CIJ_TESTCASES:="$CIJ_PKG_ROOT/testcases"}"
 export CIJ_TESTCASES
 
-if [[ -z "$CIJ_TESTFILES" ]]; then
-  CIJ_TESTFILES="$CIJ_PKG_ROOT/testfiles"
-fi
+: "${CIJ_TESTFILES:="$CIJ_PKG_ROOT/testfiles"}"
 export CIJ_TESTFILES
 
-if [[ -z "$CIJ_TESTSUITES" ]]; then
-  CIJ_TESTSUITES="$CIJ_PKG_ROOT/testsuites"
-fi
+: "${CIJ_TESTSUITES:="$CIJ_PKG_ROOT/testsuites"}"
 export CIJ_TESTSUITES
 
-if [[ -z "$CIJ_TESTPLANS" ]]; then
-  CIJ_TESTPLANS="$CIJ_PKG_ROOT/testplans"
-fi
+: "${CIJ_TESTPLANS:="$CIJ_PKG_ROOT/testplans"}"
 export CIJ_TESTPLANS
 
 # shellcheck source=modules/bin.sh
