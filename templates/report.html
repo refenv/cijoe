@@ -62,21 +62,21 @@
 </div>
 
 <div class="container">
-  {% set tcases_count = trun.progress.UNKN + trun.progress.PASS + trun.progress.FAIL %}
-  {% set tcases_completed = trun.progress.PASS + trun.progress.FAIL %}
+  {% set tcases_count = dset.progress.UNKN + dset.progress.PASS + dset.progress.FAIL %}
+  {% set tcases_completed = dset.progress.PASS + dset.progress.FAIL %}
 
   {% set trun_bg_color = "secondary" %}
-  {% set trun_bg_color = "success" if trun.status == "PASS" else trun_bg_color %}
-  {% set trun_bg_color = "danger" if trun.status == "FAIL" else trun_bg_color %}
+  {% set trun_bg_color = "success" if dset.status == "PASS" else trun_bg_color %}
+  {% set trun_bg_color = "danger" if dset.status == "FAIL" else trun_bg_color %}
   {% set trun_color = "white" %}
-  {% set trun_color = "black" if trun.status == "PASS" else trun_color %}
-  {% set trun_color = "black" if trun.status == "FAIL" else trun_color %}
+  {% set trun_color = "black" if dset.status == "PASS" else trun_color %}
+  {% set trun_color = "black" if dset.status == "FAIL" else trun_color %}
 
   <div class="card mb-3">
     <div class="card-header">
       <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
         <li class="nav-item no-gutters">
-          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">TESTRUN <b>{{ trun.status }}</b></a>
+          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">TESTRUN <b>{{ dset.status }}</b></a>
         </li>
       </ul>
     </div>
@@ -89,27 +89,27 @@
         </li>
         <li class="nav-item ml-auto">
           <a class="nav-link" href="#RUNNER" data-toggle="tab">
-            Runner Conf ({{ trun.conf | length }})
+            Runner Conf ({{ dset.conf | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#EVARS" data-toggle="tab">
-            Evars ({{ trun.evars | length }})
+            Evars ({{ dset.evars | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#HOOKS" data-toggle="tab">
-            Hooks ({{ trun.hnames | length }})
+            Hooks ({{ dset.hnames | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#AUX" data-toggle="tab">
-            Aux ({{ trun.aux_list | length }})
+            Aux ({{ dset.aux_list | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#LOG" data-toggle="tab">
-            Log ({{ trun.log_content.splitlines() | length }})
+            Log ({{ dset.log_content.splitlines() | length }})
           </a>
         </li>
       </ul>
@@ -121,16 +121,16 @@
       <div class="tab-pane active" id="SUMMARY">
         <div class="card-body">
           <p class="card-text">
-          A total of <b>{{ tcases_count }}</b> testcases across <b>{{ trun.testsuites | length }}</b> testsuite(s).
+          A total of <b>{{ tcases_count }}</b> testcases across <b>{{ dset.testsuites | length }}</b> testsuite(s).
           </p>
           <p class="card-text">
           Test execution is {{ ((tcases_completed / tcases_count) * 100)|int }}% complete
-          {% if trun.stamp and trun.stamp.begin %}
-          , started {{ trun.stamp.begin | stamp_to_datetime | strftime("%b. %d %Y") }}
+          {% if dset.stamp and dset.stamp.begin %}
+          , started {{ dset.stamp.begin | stamp_to_datetime | strftime("%b. %d %Y") }}
           {% endif %}
-          {% if trun.stamp and trun.stamp.end %}
-          , ended {{ trun.stamp.end  | stamp_to_datetime | strftime("%b. %d %Y") }}
-          , spanning a wall-clock period of {{ "{0:0.2f}".format(((trun.stamp.end - trun.stamp.begin) / 60.0)/60.0) }} hours
+          {% if dset.stamp and dset.stamp.end %}
+          , ended {{ dset.stamp.end  | stamp_to_datetime | strftime("%b. %d %Y") }}
+          , spanning a wall-clock period of {{ "{0:0.2f}".format(((dset.stamp.end - dset.stamp.begin) / 60.0)/60.0) }} hours
           {% endif %}
           </p>
         </div>
@@ -144,15 +144,15 @@
           <tbody>
             <tr class="table-success">
               <td>PASS</td>
-              <td>{{ trun.progress.PASS }}</td>
+              <td>{{ dset.progress.PASS }}</td>
             </tr>
             <tr class="table-danger">
               <td>FAIL</td>
-              <td>{{ trun.progress.FAIL }}</td>
+              <td>{{ dset.progress.FAIL }}</td>
             </tr>
             <tr class="table-secondary">
               <td>UNKN</td>
-              <td>{{ trun.progress.UNKN }}</td>
+              <td>{{ dset.progress.UNKN }}</td>
             </tr>
           </tbody>
         </table>
@@ -175,7 +175,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for key, value in trun.conf|dictsort  %}
+            {% for key, value in dset.conf|dictsort  %}
             <tr>
               <td>{{ key }}</td>
               <td>{{ value }}</td>
@@ -191,7 +191,7 @@
       <div class="tab-pane" id="EVARS">
         <div class="card-body">
           <p class="card-text">
-          A total of <b>{{ trun.evars | length }}</b> environment variables are defined.
+          A total of <b>{{ dset.evars | length }}</b> environment variables are defined.
           Testsuites inherit testrun environment variables and testcases inherit testsuite
           environment variables.
           These environment variables and then defined before executing hooks and testcases, prior
@@ -200,8 +200,8 @@
         </div>
 
         <ul class="list-group">
-        {% for evar in trun.evars %}
-        <li class="list-group-item">{{ evar }}: {{ trun.evars[evar] }}</li>
+        {% for evar in dset.evars %}
+        <li class="list-group-item">{{ evar }}: {{ dset.evars[evar] }}</li>
         {% endfor %}
         </ul>
 
@@ -212,12 +212,12 @@
       <div class="tab-pane" id="HOOKS">
         <div class="card-body">
           <p class="card-text">
-          A total of <b>{{ trun.hnames | length }}</b> hooks are used per testrun.
+          A total of <b>{{ dset.hnames | length }}</b> hooks are used per testrun.
           </p>
         </div>
 
         <ul class="list-group list-files">
-        {% for hname in trun.hnames %}
+        {% for hname in dset.hnames %}
         <li class="list-group-item">{{ hname }}</li>
         {% endfor %}
         </ul>
@@ -229,14 +229,14 @@
       <div class="tab-pane" id="AUX">
         <div class="card-body">
           <p class="card-text">
-          A total of <b>{{ trun.aux_list | length }}</b> auxilary files, produced by
+          A total of <b>{{ dset.aux_list | length }}</b> auxilary files, produced by
           testplan hooks, are listed below
           </p>
         </div>
 
         <ul class="list-group list-files">
-        {% for aux in trun.aux_list %}
-        <li class="list-group-item"><a href="./{{ trun.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+        {% for aux in dset.aux_list %}
+        <li class="list-group-item"><a href="./{{ dset.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
         {% endfor %}
         </ul>
 
@@ -251,7 +251,7 @@
           </p>
         </div>
 
-        <pre><code class="runlog nohighlight">{{ trun.log_content | ansi_to_html | safe }}</code></pre>
+        <pre><code class="runlog nohighlight">{{ dset.log_content | ansi_to_html | safe }}</code></pre>
         <div class="card-footer text-muted">&nbsp;</div>
       </div>
 
@@ -266,7 +266,7 @@
 </div>
 
 <div class="container" id="results">
-{% for tsuite in trun.testsuites %}
+{% for tsuite in dset.testsuites %}
 
 {% set tsuite_bg_color = "secondary" %}
 {% set tsuite_bg_color = "success" if tsuite.status == "PASS" else tsuite_bg_color %}
@@ -339,9 +339,16 @@
         {% set tcase_color = "danger" if tcase.status == "FAIL" else tcase_color %}
         <li class="list-group-item list-group-item-{{ tcase_color }}">
           <button class="btn btn-{{ tcase_color }}" type="button" disabled="disabled">
-            <span style="font-family: monospace;">{{ tcase.status }}: {{ tcase.name }}</span>
+            <span style="font-family: monospace;">{{ tcase.status }}:</span>
+            <span style="font-family: monospace; font-weight: bold;"> {{ tcase.name }}</span>
           </button>
           <div class="btn-group float-right" role="group">
+            <button class="btn btn-info" type="button" disabled="disabled">
+              <span style="font-family: monospace;"
+                    title="Elapsed Wall-Clock time in seconds"
+                    data-original-title="Tooltip on right">{{ tcase.wallc | round }} sec</span>
+            </button>
+
             <button class="btn btn-primary" type="button" data-toggle="collapse"
                                                           data-target="#DESCR_{{ ident }}"
                                                           aria-controls="DESCR_{{ ident }}"
@@ -415,7 +422,7 @@
 
             <ul class="list-group">
             {% for aux in tcase.aux_list %}
-            <li class="list-group-item"><a href="./{{ tcase.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+            <li class="list-group-item"><a href="./{{ tcase.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
             {% endfor %}
             </ul>
 
@@ -477,7 +484,7 @@
 
       <ul class="list-group">
       {% for aux in tsuite.aux_list %}
-      <li class="list-group-item"><a href="./{{ tsuite.aux_root[trun.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+      <li class="list-group-item"><a href="./{{ tsuite.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
       {% endfor %}
       </ul>
     </div>
