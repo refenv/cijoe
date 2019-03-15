@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 """
-    plot
+    plot fio log files
+
+    TODO: Provide example log-files to answer the following questions
+
+    * What is the format/content of the log-files?
+    * What is the naming convention for the log-files?
 """
-from multiprocessing import Pool
+from __future__ import print_function
 import argparse
-import pprint
 import glob
 import csv
+import sys
 import os
-import matplotlib.pyplot as plt
-import itertools
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("Please install matplotlib")
+    sys.exit(0)
 
 YAXIS_LABELS = {
     "bw": "Bandwith",
@@ -25,70 +33,84 @@ def expandpath(path):
     return os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
 
 def find_logs(lpath):
-    """Find logs on in lpath and split them into components"""
+    """Find .log files in 'lpath' and split them into components"""
 
     def find(lpath):
+        """yielding components based on log files naming convention"""
 
-        for path in glob.glob(os.sep.join([lpath, "*.log"])):
-            fname = os.path.basename(path)
+        for fpath in glob.glob(os.sep.join([lpath, "*.log"])):
+            fname = os.path.basename(fpath)
 
             try:
-                name, job, _  = fname.split(".")
-                realm, ptn, iod, bs, log = name.split("_")
+                name, job, _ = fname.split(".")
+                realm, ptn, iod, bsize, log = name.split("_")
                 iod = int(iod[3:])
-                bs = int(bs[2:-1])
-            except:
+                bsize = int(bsize[2:-1])
+            except ValueError:
+                continue
+            except IndexError:
                 continue
 
-            components = (realm, path, fname, name, ptn, iod, bs, log, job)
-            yield components
+            yield realm, fpath, fname, name, ptn, iod, bsize, log, job
 
     logs = sorted(find(lpath))
     nlogs = len(logs)
 
     return (nlogs, logs)
 
+def etl(fpath):
+    """Extract, transform and load fio-logfile data"""
+
+    raw = list(csv.reader(open(fpath, 'rb')))
+
+    x_vals, y_vals, _, _ = map(list, zip(*raw))
+    x_vals = [int(v) for v in x_vals]
+    y_vals = [int(v) for v in y_vals]
+
+    return {
+        "x": {
+            "vals": x_vals,
+            "min": min(x_vals),
+            "max": max(x_vals),
+            "avg": sum(x_vals) / len(x_vals)
+        },
+        "y": {
+            "vals": y_vals,
+            "min": min(y_vals),
+            "max": max(y_vals),
+            "avg": sum(y_vals) / len(y_vals)
+        },
+    }
+
 def plot(args, components):
     """
     Load data and plot the given log components
     """
 
-    realm, path, fname, name, ptn, iod, bs, log, job = components
+    realm, fpath, fname, _, ptn, iod, bsize, log, _ = components
 
-    data = list(csv.reader(open(path, 'rb')))
-
-    x, y, _, _ = map(list, zip(*data))
-    x = [int(v) for v in x]
-    y = [int(v) for v in y]
-
-    y_min = min(y)
-    y_max = max(y)
-    y_avg = sum(y) / len(y)
-
-    x_max = max(x)
+    dset = etl(fpath)
 
     plt.clf()
-    plt.ylim((0, y_max))
-    plt.xlim((0, x_max))
-    plt.plot(x, y)
-    plt.title("%s: %s iod: %02d bs: %03d log: %s, (%d,%d,%d)" % (
-        realm, ptn, iod, bs, log, y_min, y_max, y_avg
+    plt.ylim((0, dset["y"]["max"]))
+    plt.xlim((0, dset["x"]["max"]))
+    plt.plot(dset["x"]["vals"], dset["y"]["vals"])
+    plt.title("%s: %s iod: %02d bsize: %03d log: %s, (%d, %d, %d)" % (
+        realm, ptn, iod, bsize, log,
+        dset["y"]["min"],
+        dset["y"]["max"],
+        dset["y"]["avg"]
     ))
     plt.ylabel(YAXIS_LABELS[log])
     plt.xlabel("Time")
     plt.savefig(os.sep.join([args.opath, "%s.png" % fname]))
 
 def main(args):
+    """Main entry point when running from CLI"""
 
     nlogs, logs = find_logs(args.lpath)
 
-    """
-    pool = Pool()
-    for i, _ in enumerate(pool.imap_unordered(plot, logs), 1):
-        print("Processed %d/%d" % (i, nlogs))
-    """
-
-    print("Found nlogs(%d)" % nlogs)
+    print("Found nlogs: '%d'" % nlogs)
     for i, components in enumerate(logs, 1):
         plot(args, components)
         print("Processed %d/%d" % (i, nlogs))
