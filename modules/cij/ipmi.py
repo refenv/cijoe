@@ -1,23 +1,22 @@
-#
-# ipmi.py - Script providing convenience functions for invoking ipmi
-#
-# Functions:
-#
-# ipmi.env - Sets default vars for ipmi wrapping
-# ipmi.cmd <CMD> - Execute ipmitool command <CMD>
-# ipmi.on    - Power on system
-# ipmi.off - Power off system
-# ipmi.reset - Power reset system
-#
-# Variables:
-#
-# IPMI_USER - login on server
-# IPMI_PASS - password to server
-# IPMI_HOST - server host
-# IPMI_PORT - server port
-#
+"""
+    ipmi.py - Script providing convenience functions for invoking ipmi
+
+    Functions:
+
+    ipmi.env        - Sets default vars for IPMI wrapping
+    ipmi.cmd <CMD>  - Execute ipmitool command <CMD>
+    ipmi.pwr_on     - Power on system
+    ipmi.pwr_off    - Power off system
+    ipmi.pwr_reset  - Power reset system
+
+    Variables:
+
+    IPMI_USER - login on server
+    IPMI_PASS - password to server
+    IPMI_HOST - server host
+    IPMI_PORT - server port
+"""
 import cij.util
-import cij.ssh
 import cij
 
 PREFIX = "IMPI"
@@ -44,33 +43,33 @@ def env():
     return 0
 
 
-def command(cmd):
-    """Send command to ipmi"""
+def cmd(command):
+    """Send IPMI 'command' via ipmitool"""
 
     env()
 
     ipmi = cij.env_to_dict(PREFIX, EXPORTED + REQUIRED)
 
-    cmd = "ipmitool -U %s -P %s -H %s -p %s %s" % (
-        ipmi["USER"], ipmi["PASS"], ipmi["HOST"], ipmi["PORT"], cmd)
-    cij.info("ipmi.command: %s" % cmd)
+    command = "ipmitool -U %s -P %s -H %s -p %s %s" % (
+        ipmi["USER"], ipmi["PASS"], ipmi["HOST"], ipmi["PORT"], command)
+    cij.info("ipmi.command: %s" % command)
 
-    return cij.util.execute(cmd, shell=True, echo=True)
+    return cij.util.execute(command, shell=True, echo=True)
 
 
-def on():
+def pwr_on():
     """Target On"""
 
-    command("power on")
+    cmd("power on")
 
 
-def off():
+def pwr_off():
     """Target Off"""
 
-    command("power off")
+    cmd("power off")
 
 
-def reset():
+def pwr_reset():
     """Target reset"""
 
-    command("power reset")
+    cmd("power reset")
