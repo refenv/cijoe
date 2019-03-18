@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CIJ_TYPE=unknown
-CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")"; pwd)")
+CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")" || true; pwd)")
 
 if [[ -f "$CIJ_ROOT/modules/cijoe.sh" ]]; then
 	CIJ_TYPE="reposrun"
@@ -18,14 +18,11 @@ fi
 export CIJ_TYPE
 export CIJ_ROOT
 
-# Silence pushd/popd
-function pushd { command pushd "$@" > /dev/null; }
-function popd { command popd "$@" > /dev/null; }
-
 HERE=$PWD
 
 # Source in CIJOE
-pushd $CIJ_ROOT
+pushd "$CIJ_ROOT" > /dev/null
+# shellcheck source=modules/cijoe.sh
 source modules/cijoe.sh
 
 # Provide sourcing in a default or user-provided environment definition
@@ -45,11 +42,12 @@ if [[ ! -f "$ENV_FPATH" ]]; then
 		ENV_FPATH="$CIJ_ROOT/envs/$ENV_FPATH"
 	else
 		cij::err "cannot find default ENV_FPATH: '$ENV_FPATH'"
-		popd
+		popd > /dev/null
 		exit
 	fi
 fi
-bash --rcfile <(echo '[[ -f ~/.bashrc ]] && . ~/.bashrc; source modules/cijoe.sh; cd '$HERE'; export PS1="[cijoe:'$ENV_NAME'] $PS1"; source '"$ENV_FPATH"'; cij::emph "Welcome to CIJOE ENV_FPATH: '$ENV_FPATH'"; ')
+# shellcheck disable=SC2016
+bash --rcfile <(echo '[[ -f ~/.bashrc ]] && . ~/.bashrc; source modules/cijoe.sh; cd '"$HERE"'; export PS1="[cijoe:'"$ENV_NAME"'] $PS1"; source '"$ENV_FPATH"'; cij::emph "Welcome to CIJOE ENV_FPATH: '"$ENV_FPATH"'"; ')
 popd
 
 cij::emph "So long, and thanks for all the fish"
