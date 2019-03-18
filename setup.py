@@ -10,7 +10,8 @@ setup(
     url="http://github.com/safl/cijoe",
     license="BSD-2",
     install_requires=[
-        "ansi2html (>=1.5.2)", "jinja2 (>=2.0)", "pyyaml (>=3.10)"
+        "ansi2html (>=1.5.2)", "jinja2 (>=2.0)", "pyyaml (>=3.10)",
+        "xlsxwriter", "matplotlib"
     ],
     zip_safe=False,
     packages=["cij", "cij.struct"],
