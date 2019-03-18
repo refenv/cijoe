@@ -10,9 +10,9 @@ def main(args):
     with open(args.cfg_fn, 'r') as cfg_fd:
         config = cfg_fd.read().split("\n")
 
-    with open(args.opt_fn, 'r') as opt_df:
-        for line in opt_df:
-            option, value = line.strip().split("=")
+    with open(args.opt_fn, 'r') as opt_fd:
+        for oline in opt_fd:
+            option, value = oline.strip().split("=")
 
             conf_addition = "%s=%s" % (option, value)
             added = False
