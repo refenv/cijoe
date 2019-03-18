@@ -419,7 +419,7 @@ qemu::guest_nvme_config() {
   fi
 
   GUEST_NVME_DRIVE="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.data"
-  GUEST_NVME_DRIVE_META="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.meta"
+  #GUEST_NVME_DRIVE_META="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.meta"
 
   QEMU_ARGS_NVME=""
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME -drive file=\"$GUEST_NVME_DRIVE\",if=none,id=\"drive_$QEMU_NVME_ID\",format=raw"
@@ -432,6 +432,7 @@ qemu::guest_nvme_config() {
   if [[ ! -z "$QEMU_NVME_NLBAF" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,nlbaf=$QEMU_NVME_NLBAF"
   fi
+  # shellcheck disable=SC2153
   if [[ ! -z "$QEMU_NVME_MS" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ms=$QEMU_NVME_MS"
   fi
