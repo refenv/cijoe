@@ -88,9 +88,3 @@ def dev_get_chunk(dev_name, state, pugrp=None, punit=None):
         return None
 
     return next((d for d in rprt if d["cs"] == state), None)
-
-
-def addr_dev2gen(dev_name, addr):
-    """Converts the given device address to gen-format"""
-
-    return None
