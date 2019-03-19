@@ -28,8 +28,8 @@ dev: uninstall install
 .PHONY: bump
 bump:
 	@echo "# Bumping '${PROJECT_VERSION}' to '${NEXT_VERSION}'"
-	@sed -i -e s/"^VERSION_PATCH = .*"/"VERSION_PATCH = ${NEXT_VERSION_PATCH}"/g modules/cij/__init__.py
 	@sed -i -e s/"version=\".*\""/"version=\"${NEXT_VERSION}\""/g setup.py
+	@sed -i -e s/"^VERSION_PATCH = .*"/"VERSION_PATCH = ${NEXT_VERSION_PATCH}"/g modules/cij/__init__.py
 
 .PHONY: clean
 clean:
