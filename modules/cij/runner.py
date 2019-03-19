@@ -175,7 +175,7 @@ def script_run(trun, script):
 
     return script["rcode"]
 
-def hook_setup(trun, parent, hook_fpath):
+def hook_setup(parent, hook_fpath):
     """Setup hook"""
 
     hook = copy.deepcopy(HOOK)
@@ -217,7 +217,7 @@ def hooks_setup(trun, parent, hnames=None):
                 if not os.path.exists(fpath):
                     continue
 
-                hook = hook_setup(trun, parent, fpath)
+                hook = hook_setup(parent, fpath)
                 if not hook:
                     continue
 
@@ -245,7 +245,7 @@ def trun_from_file(fpath):
     """Returns trun from the given fpath"""
 
     with open(fpath, 'r') as yml_file:
-        return yaml.load(yml_file)
+        return yaml.safe_load(yml_file)
 
 
 def trun_emph(trun):
@@ -385,7 +385,7 @@ def tsuite_setup(trun, declr, enum):
     else:                                           # From declaration
         tcase_fpaths.extend(declr.get("testcases", []))
 
-    # TODO: fix duplicates; allow them
+    # NOTE: fix duplicates; allow them
     # NOTE: Currently hot-fixed here
     if len(set(tcase_fpaths)) != len(tcase_fpaths):
         cij.err("rnr:suite: failed: duplicate tcase in suite not supported")
@@ -493,7 +493,7 @@ def trun_setup(conf):
     declr = None
     try:
         with open(conf["TESTPLAN_FPATH"]) as declr_fd:
-            declr = yaml.load(declr_fd)
+            declr = yaml.safe_load(declr_fd)
     except AttributeError as exc:
         cij.err("rnr: %r" % exc)
 

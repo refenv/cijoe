@@ -2,9 +2,9 @@
     Collection of Python utilities for CIJOE and CIJOE testing
 """
 from __future__ import print_function
-import os
-import sys
 import time
+import sys
+import os
 
 VERSION_MAJOR = 0
 VERSION_MINOR = 0
@@ -19,6 +19,28 @@ PR_NC = "\033[0m"
 
 ENV = os.environ
 CIJ_ECHO_TIME_STAMP = ENV.get("CIJ_ECHO_TIME_STAMP")
+
+EXTS = {
+    "TPLANS": [".plan"],
+    "TSUITES": [".suite"],
+    "TCASES": [".py", ".sh"],
+    "HOOKS": [".py", ".sh"],
+}
+
+
+def index(search_path, ext=None):
+    """@returns a set of filenames with extension 'ext' in 'search_path'"""
+
+    if ext is None:
+        ext = "TCASES"
+
+    fnames = set([])
+    for _, _, files in os.walk(search_path):
+        for fname in files:
+            if os.path.splitext(fname)[-1] in EXTS[ext]:
+                fnames.add(fname)
+
+    return fnames
 
 
 def get_time_stamp():
@@ -71,6 +93,13 @@ def emph(txt, rval=None):
 def paths_from_env(prefix=None, names=None):
     """Construct dict of paths from environment variables'"""
 
+
+    def expand_path(path):
+        """Expands variables in 'path' and turns it into absolute path"""
+
+        return os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
+
+
     if prefix is None:
         prefix = "CIJ"
     if names is None:
@@ -81,10 +110,10 @@ def paths_from_env(prefix=None, names=None):
 
     conf = {v: os.environ.get("_".join([prefix, v])) for v in names}
 
-    for env in (e for e in conf.keys() if e[:len(prefix)] in names):
-        conf[env] = cij.util.expand_path(conf[env])
+    for env in (e for e in conf.keys() if e[:len(prefix)] in names and conf[e]):
+        conf[env] = expand_path(conf[env])
         if not os.path.exists(conf[env]):
-            cij.err("%s_%s: %r, does not exist" % (prefix, env, conf[env]))
+            err("%s_%s: %r, does not exist" % (prefix, env, conf[env]))
 
     return conf
 

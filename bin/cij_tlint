@@ -2,7 +2,13 @@
 """
     CIJOE Test Linter
 
-    Runs through CIJOE testsuites and testcases looking for common mistakes
+    * Verifies that testplans can be parsed from Yaml to dict
+    * Verifies that testplans contains required content
+    * Verifies that testcases and hooks used exists
+    * Verifies that testcases that exists are used
+
+    And possibly more... e.g. the test linter runs through CIJOE testplans,
+    testsuites and testcases looking for common mistakes
 """
 from __future__ import print_function
 import argparse
@@ -11,98 +17,105 @@ import os
 import yaml
 import cij
 
-EXTS = {
-    "TPLAN": [".plan"],
-    "TSUITE": [".suite"],
-    "TCASE": [".py", ".sh"],
-}
 
-def _index(search_path, ext=None):
-    """@returns a set of testcases in the given search_path"""
+def _load_tplans(ident, roots, fnames):
+    """Returns a list of successfully loadable testplans and a lost of
+    violations for those that failed"""
 
-    if ext is None:
-        ext = "TCASE"
+    tplans = {}
+    violations = []
 
-    tcases = set([])
-    for _, _, files in os.walk(search_path):
-        for tc_fname in files:
-            if os.path.splitext(tc_fname)[-1] in EXTS[ext]:
-                tcases.add(tc_fname)
+    for tp_fname in fnames["TPLANS"]:
+        tp_fpath = os.sep.join([roots["TPLANS"], tp_fname])
 
-    return tcases
+        tplan = None
+        try:
+            with open(tp_fpath) as tp_fd:
+                tplan = yaml.safe_load(tp_fd)
+        except yaml.YAMLError:
+            violations.append(MESSAGES[ident] % (tp_fname, "invalid YAML"))
+            continue
+        except IOError:
+            violations.append(MESSAGES[ident] % (tp_fname, "IO error"))
+            continue
 
-def tsuite_testcases_exists(ident, args):
+        if not isinstance(tplan, dict):
+            violations.append(MESSAGES[ident] % (
+                tp_fname,
+                "could not be parsed as dictionary"
+            ))
+            continue
+
+        tplans[tp_fname] = tplan
+
+    return tplans, violations
+
+
+def tsuitefile_testcases_exists(ident, roots, fnames):
     """
     @returns list of violation messages for this check
     """
 
     violations = []
-    tcases = _index(args.testcases_root, "TCASE")
-    tsuites = _index(args.testsuites_root, "TSUITE")
 
-    for ts_fname in tsuites:
-        ts_fpath = os.sep.join([args.testsuites_root, ts_fname])
+    for ts_fname in fnames["TSUITES"]:    # Search .suite files
+        ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
         ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
         ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
 
         for tc_fname in ts_lines:
-            if tc_fname in tcases:
+            if tc_fname in fnames["TCASES"]:
                 continue
 
             violations.append(MESSAGES[ident] % (tc_fname, ts_fpath))
 
     return violations
 
-def testcase_unused(ident, args):
+
+def testcase_unused(ident, roots, fnames):
     """
     @returns list of violation messages for this check
     """
 
+    violations = []
+
     tcases_in_use = set([])
 
-    violations = []
-    tsuites = _index(args.testsuites_root, "TSUITE")
-    tcases = _index(args.testcases_root, "TCASE")
-
-    for ts_fname in tsuites:
-        ts_fpath = os.sep.join([args.testsuites_root, ts_fname])
+    for ts_fname in fnames["TSUITES"]:  # Testcases from suite-files
+        ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
         ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
         ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
 
         for tc_fname in ts_lines:
             tcases_in_use.add(tc_fname)
 
-    for tc_fname in sorted(list(tcases - tcases_in_use)):
-        violations.append(MESSAGES[ident] % tc_fname)
+    tplans, _ = _load_tplans(ident, roots, fnames)  # testcases inline
+    for _, tplan in tplans.items():
+        for testsuite in tplan.get("testsuites", []):
+            tcases_in_use.update(testsuite.get("testcases", []))
+
+    for tc_fname in sorted(list(fnames["TCASES"] - tcases_in_use)):
+        violations.append(MESSAGES[ident] % (tc_fname, ""))
 
     return violations
 
-def tplans_format(ident, args):
+
+def tplans_format(ident, roots, fnames):
     """
     @returns list of violation messages for this check
     """
 
-    violations = []
-    tplans = _index(args.testplans_root, "TPLAN")
-
-    for tp_fname in tplans:
-        tp_fpath = os.sep.join([args.testplans_root, tp_fname])
-
-        try:
-            with open(tp_fpath) as tp_fd:
-                content = yaml.load(tp_fd)
-
-        except IOError as exc:
-            violations.append(MESSAGES[ident] % tp_fname)
-        except Exception as exc:
-            violations.append(MESSAGES[ident] % tp_fname)
+    _, violations = _load_tplans(ident, roots, fnames)
 
     return violations
 
-def tplans_content(ident, args):
+
+def tplans_content(ident, roots, fnames):
     """
     @returns list of violations messages for this check
     """
+
+    violations = []
 
     struct = {
         "root": [
@@ -118,30 +131,13 @@ def tplans_content(ident, args):
             ("hooks", False),
             ("hooks_pr_tcase", False),
             ("evars", False),
-            ("evars_pr_tcase", False)
+            ("evars_pr_tcase", False),
+            ("testcases", False),
         ]
     }
 
-    violations = []
-
-
-    tplans = _index(args.testplans_root, "TPLAN")
-
-    for tp_fname in tplans:
-        tp_fpath = os.sep.join([args.testplans_root, tp_fname])
-
-        suites = []
-        hooks = []
-
-        tplan = None
-        try:
-            with open(tp_fpath) as tp_fd:
-                tplan = yaml.load(tp_fd)
-
-        except IOError as exc:
-            continue
-        except Exception as exc:
-            continue
+    tplans, _ = _load_tplans(ident, roots, fnames)
+    for tp_fname, tplan in tplans.items():
 
         for k in list(set(tplan.keys()) - set([k for k, _ in struct["root"]])):
             violations.append(MESSAGES[ident] % (
@@ -156,8 +152,7 @@ def tplans_content(ident, args):
                     "missing required key: %r" % k
                 ))
 
-        hooks += tplan["hooks"] if "hooks" in tplan else []
-        suites += []
+        hooks = tplan.get("hooks", [])
 
         if "testsuites" not in tplan:
             violations.append(MESSAGES[ident] % (
@@ -180,45 +175,25 @@ def tplans_content(ident, args):
                         "missing required key: %r" % k
                     ))
 
-            if "name" in suite:
-                suites.append(suite["name"])
+            hooks.extend(suite.get("hooks", []))
+            hooks.extend(suite.get("hooks_pr_tcase", []))
 
-            if "hooks" in suite:
-                hooks += suite["hooks"]
-
-            if "hooks_pr_tcase" in suite:
-                hooks += suite["hooks_pr_tcase"]
-
-        # Check for existence of suites
-        suites = list(set(suites))
-        for suite_name in suites:
-            suite_fpath = os.sep.join([
-                args.testsuites_root,
-                "%s.suite" % suite_name
-            ])
-
-            if not os.path.exists(suite_fpath):
+            # A file is only required when 'testcases' are not defined inline
+            if "testcases" not in suite and \
+                "%s.suite" % suite.get("name", "jank") not in fnames["TSUITES"]:
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
-                    "testsuite: %r, does not exist" % suite_fpath
+                    "testsuite: no testcases defined" % suite["name"]
                 ))
 
-        # Check for existence of hooks
-        hooks = list(set(hooks))
-        for hook_name in hooks:
-
-            exists = []
-            for tmpl in ["%s.sh", "%s_enter.sh", "%s_exit.sh"]:
-                hook_fpath = os.sep.join([
-                    args.hooks_root,
-                    tmpl % hook_name
-                ])
-                exists.append(os.path.exists(hook_fpath))
-
-            if not sum(exists):
+        hooks = list(set(hooks))        # Check for existence of hooks
+        for hname in hooks:
+            if not sum(tmpl % hname in fnames["HOOKS"] for tmpl in [
+                    "%s.sh", "%s_enter.sh", "%s_exit.sh"
+                ]):
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
-                    "hook: %r, does not exist" % hook_name
+                    "hook: %r, does not exist" % hname
                 ))
 
     return violations
@@ -226,14 +201,14 @@ def tplans_content(ident, args):
 
 MESSAGES = {
     "E0100": "Use of non-existent testcase(%s) in testsuite(%s)",
-    "E0200": "Invalid testplan(%s) file or format",
+    "E0200": "Invalid testplan(%s) msg: %r",
     "E0210": "Invalid testplan(%s) content: %r",
-    "W0100": "Unused testcase(%s)",
+    "W0100": "Unused testcase(%s) msg: %r",
 
 }
 
 CHECKERS = {
-    "E0100": tsuite_testcases_exists,
+    "E0100": tsuitefile_testcases_exists,
     "E0200": tplans_format,
     "E0210": tplans_content,
     "W0100": testcase_unused
@@ -241,12 +216,14 @@ CHECKERS = {
 
 IDENTS = sorted(CHECKERS.keys())
 
-def main(args):
+def main(roots):
     """."""
+
+    fnames = {ext: cij.index(roots[ext], ext) for ext in cij.EXTS}
 
     report = []
     for ident in IDENTS:
-        res = CHECKERS[ident](ident, args)
+        res = CHECKERS[ident](ident, roots, fnames)
         report += zip([ident] * len(res), res)
 
     errors = 0
@@ -278,9 +255,11 @@ if __name__ == "__main__":
     )
     ARGS = PRSR.parse_args()
 
-    ARGS.testplans_root = os.sep.join([CIJ_ROOT, "testplans"])
-    ARGS.testsuites_root = os.sep.join([CIJ_ROOT, "testsuites"])
-    ARGS.testcases_root = os.sep.join([CIJ_ROOT, "testcases"])
-    ARGS.hooks_root = os.sep.join([CIJ_ROOT, "hooks"])
+    ROOTS = {
+        "TPLANS": os.sep.join([CIJ_ROOT, "testplans"]),
+        "TSUITES": os.sep.join([CIJ_ROOT, "testsuites"]),
+        "TCASES": os.sep.join([CIJ_ROOT, "testcases"]),
+        "HOOKS": os.sep.join([CIJ_ROOT, "hooks"])
+    }
 
-    sys.exit(main(ARGS))
+    sys.exit(main(ROOTS))

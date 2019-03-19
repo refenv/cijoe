@@ -9,41 +9,102 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-import cij.testcases
+import cij.reporter
 import cij.test
 import cij
 
-if __name__ == "__main__":
+def construct_dset(evars):
+    """
+    Create a dataset = { "group_names": [ testcase, .. , testcase ] }
+    """
 
-    EVARS = cij.env_to_dict(
-        "CIJ",
-        ["TESTCASES", "TESTSUITES", "TESTPLANS", "TEMPLATES"]
+    dset = {
+        "group_names": [],
+    }
+
+    for fname in cij.index(evars["TESTCASES"], "TCASES"):
+        group = fname.split("_")[0]
+        if group not in dset:
+            dset[group] = []
+            dset["group_names"].append(group)
+
+        fpath = os.sep.join([evars["TESTCASES"], fname])
+
+        tcase = {
+            "fpath": fpath,
+            "name": fname,
+            "fname": fname,
+            "descr": "",
+            "descr_long": "",
+            "src_content": open(fpath, "r").read()
+        }
+
+        descr, descr_long = cij.reporter.tcase_parse_descr(tcase)
+
+        tcase["descr"] = descr
+        tcase["descr_long"] = descr_long
+
+        dset[group].append(tcase)
+
+    dset["group_names"].sort()
+
+    return dset
+
+def parse_args():
+    """Parse command-line arguments and evars for cij_testcases"""
+
+    evars = cij.paths_from_env("CIJ", ["TEMPLATES", "TESTCASES"])
+    for key, val in evars.iteritems():
+        if val is None:
+            cij.err(
+                "rprtr: failed parsing environment variable 'CIJ_%s'" %
+                key
+            )
+            return None, None
+
+    prsr = argparse.ArgumentParser(
+        description='cij_testcases - Creates a report containing all testcases'
     )
 
-    PRSR = argparse.ArgumentParser(
-        description='cij_testcases - Print testcasesFetches file from reservoir'
-    )
-
-    PRSR.add_argument(
+    prsr.add_argument(
         '--template',
         help="Path to template",
-        default=os.sep.join([EVARS["TEMPLATES"], "testcases.html"])
+        default=os.sep.join([evars["TEMPLATES"], "testcases.html"])
     )
-    PRSR.add_argument(
+    prsr.add_argument(
         '--output',
         help="Path to store testcase report",
         default=os.getcwd()
     )
 
-    ARGS = PRSR.parse_args()
+    args = prsr.parse_args()
 
     # Expand and construct template paths
-    ARGS.tmpl_fpath = ARGS.template
-    ARGS.tmpl_fname = os.path.basename(ARGS.tmpl_fpath)
-    ARGS.tmpl_name = os.path.splitext(ARGS.tmpl_fname)[0]
+    args.tmpl_fpath = args.template
+    args.tmpl_fname = os.path.basename(args.tmpl_fpath)
+    args.tmpl_name = os.path.splitext(args.tmpl_fname)[0]
 
-    RCODE = cij.testcases.main(ARGS, EVARS)
-    if RCODE:
-        cij.err("RCODE: %r, error while creating report" % RCODE)
+    return args, evars
 
-    sys.exit(RCODE)
+def main(args, evars):
+    """Main entry point"""
+
+    html_fpath = os.sep.join([args.output, "testcases.html"])
+
+    cij.emph("html_fpath: %r" % html_fpath)
+
+    dset = construct_dset(evars)
+
+    with open(html_fpath, 'w') as html_fd:
+        html = cij.reporter.dset_to_html(dset, args.tmpl_fpath)
+        html_fd.write(html)
+
+    return 0
+
+if __name__ == "__main__":
+    ARGS, EVARS = parse_args()
+
+    if None in [ARGS, EVARS]:
+        sys.exit(1)
+
+    sys.exit(main(ARGS, EVARS))

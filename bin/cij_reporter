@@ -11,8 +11,17 @@ import cij.runner
 import cij.util
 import cij
 
-def parse_args(cij_conf):
+def parse_args():
     """Parse command-line arguments for cij_reporter"""
+
+    cij_evars = cij.paths_from_env("CIJ", ["TEMPLATES"])
+    for key, val in cij_evars.iteritems():
+        if val is None:
+            cij.err(
+                "rprtr:rprtr: failed parsing environment variable 'CIJ_%s'" %
+                key
+            )
+            return None
 
     # Parse the Command-Line
     prsr = argparse.ArgumentParser(
@@ -27,7 +36,7 @@ def parse_args(cij_conf):
     prsr.add_argument(
         '--template',
         help="Path to report template",
-        default=os.sep.join([cij_conf["TEMPLATES"], "report.html"])
+        default=os.sep.join([cij_evars["TEMPLATES"], "report.html"])
     )
     prsr.add_argument(
         '--force',
@@ -38,17 +47,17 @@ def parse_args(cij_conf):
 
     args.output = cij.util.expand_path(args.output)
     if not os.path.exists(args.output):
-        cij.err("output: %r, does not exist" % args.output)
+        cij.err("rprtr:output: %r, does not exist" % args.output)
         return None
 
     args.trun_fpath = cij.runner.yml_fpath(args.output)
     if not os.path.exists(args.trun_fpath):
-        cij.err("trun_fpath: %r" % args.trun_fpath)
+        cij.err("rprtr:trun_fpath: %r" % args.trun_fpath)
         return None
 
     args.template = cij.util.expand_path(args.template)
     if not os.path.exists(args.template):
-        cij.err("template: %r, does not exist" % args.template)
+        cij.err("rprtr:template: %r, does not exist" % args.template)
         return None
 
     # Expand and construct template paths
@@ -64,20 +73,12 @@ def main():
     configuration for which to invoke the reporter
     """
 
-    cij_conf = cij.paths_from_env("CIJ", [
-        "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
-        "HOOKS", "TEMPLATES"
-    ])
-    if None in [val for _, val in cij_conf.iteritems()]:
-        cij.err("rprtr: failed parsing CIJOE config from environment variables")
-        return 1
-
-    args = parse_args(cij_conf)
+    args = parse_args()
     if args is None:
         cij.err("rprtr: failed parsing command-line args")
         return 1
 
-    rcode = cij.reporter.main(args, cij_conf)
+    rcode = cij.reporter.main(args)
     if rcode:
         cij.err("rprtr: rcode: %r, error while creating report" % rcode)
 

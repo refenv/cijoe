@@ -8,7 +8,6 @@ import cij.board
 import cij.block
 import cij.lnvm
 import cij.util
-import cij.nvm
 import cij.ssh
 import cij
 
@@ -110,8 +109,8 @@ def command(cmd, ssh=True, shell=True, echo=True):
 
     if ssh:
         return cij.ssh.command(cmd, shell, echo)
-    else:
-        return cij.util.execute(cmd, shell, echo)
+
+    return cij.util.execute(cmd, shell, echo)
 
 
 def command_to_struct(cmd):
@@ -126,13 +125,16 @@ def command_to_struct(cmd):
     rcode, stdout, stderr = command(cmd)
 
     try:
-        lines = stdout.splitlines()
+        lines = []
 
-        for line_number, line in enumerate(lines):
+        for line in stdout.splitlines():
             if line.strip().startswith("#"):
-                break
-        struct = yaml.load("\n".join(lines[line_number:]))
-    except Exception as exc:
+                continue
+
+            lines.append(line)
+
+        struct = yaml.safe_load("\n".join(lines))
+    except yaml.YAMLError, exc:
         cij.err("could not parse stdout as yaml, exc: %r" % exc)
 
     return rcode, stdout, stderr, struct

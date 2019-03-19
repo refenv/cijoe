@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
 #
-# utils.sh - Miscelanous helper functions
+# cij.sh - Miscellaneous helper functions
 #
 # cij::info   - Prints an information message to stdout
-# cij::emph   - Prints an emphasized message to stdout
+# cij::good   - Prints an 'good'/'success' message to stdout
 # cij::warn   - Print a warning message to stdout
 # cij::err    - Prints an error message to stderr
+# cij::emph   - Prints an emphasized message to stdout
 #
-# cij::throttle  - Equivalent of `sleep` except it emits "." each second
+# cij::throttle - Equivalent of `sleep` except it emits "." each second
 #
-# cij::watchf    - Tails a path indefinately
-# cij::watchf_for  - Tails a file until it contains a "$1"
+# cij::watchf           - Tails a path indefinitely
+# cij::watchf_for       - Tails a file until it contains a "$1"
+#
+# cij::repeat   - Repeat the given command the given number of times
+#
+# cij::get_fib_range    - get fibonacci-range
+# cij::get_exp_2_range  - get power-of-two-range
+#
+# cij::isint    - Determine whether given input is an integer
 #
 
 PR_EMPH_CC='\033[0;36m'
@@ -19,9 +27,8 @@ PR_WARN_CC='\033[0;33m'
 PR_ERR_CC='\033[0;31m'
 PR_NC='\033[0m'
 
-if [[ -z "$CIJ_ECHO_TIME_STAMP" ]]; then
-  export CIJ_ECHO_TIME_STAMP=1
-fi
+: "${CIJ_ECHO_TIME_STAMP:=1}"
+export CIJ_ECHO_TIME_STAMP
 
 cij::info() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
@@ -66,66 +73,68 @@ cij::emph() {
 }
 
 cij::throttle() {
-  local REMAINING="$1"
+  local remaining="$1"
 
-  if [[ "$REMAINING" -gt 0 ]]; then
-    echo -n "Throttling($REMAINING)"
-    while [[ "$REMAINING" -gt 0 ]]; do
+  if [[ "$remaining" -gt 0 ]]; then
+    echo -n "Throttling($remaining)"
+    while [[ "$remaining" -gt 0 ]]; do
       echo -n "."
       sleep 1
-      REMAINING=$(( "$REMAINING" - 1))
+      remaining=$(( "$remaining" - 1))
     done
     echo "!"
   fi
 }
 
 cij::watchf() {
-  local WATCHF_FILE="$1"
+  local watchf_file="$1"
 
-  if [[ -z "$WATCHF_FILE" || ! -f "$WATCHF_FILE" ]]; then
+  if [[ -z "$watchf_file" || ! -f "$watchf_file" ]]; then
     cij::err "cij::watchf: Invalid file."
     return 0
   fi
 
-  tail -f --follow=name --retry "$WATCHF_FILE"
+  tail -f --follow=name --retry "$watchf_file"
 }
 
+#
+# Watch a file until a message appear or timing out
+#
+# cij::watchf_for /tmp/jazz "foo" 10
+#
 cij::watchf_for() {
-  local WATCHF_FILE=$1
-  local WATCHF_MSG=$2
-  local WATCHF_TIMEOUT=$3
+  local watchf_file=$1
+  local watchf_msg=$2
+  local watchf_timeout=$3
+  local watchf_elapsed=0
+  local nlines
 
-  local WATCHF_ELAPSED=0
-
-  if [[ -z "$WATCHF_FILE" || ! -f "$WATCHF_FILE" ]]; then
-    cij::err "cij::watchf_for: Invalid file"
+  if [[ -z "$watchf_file" || ! -f "$watchf_file" ]]; then
+    cij::err "cij::watchf_for: Invalid file: '$watchf_file'"
     return 0
   fi
-
-  if [ -z "$WATCHF_MSG" ]; then
+  if [[ -z "$watchf_msg" ]]; then
     cij::err "cij::watchf_for: No message provided"
     return 0
   fi
-
-  if [ -z "$WATCHF_TIMEOUT" ]; then
-    WATCHF_TIMEOUT=60
-  fi
+  : "${watchf_timeout:=60}"
 
   sync
-  NLINES=$(wc -l < "$WATCHF_FILE") # Watch for "additions" to file
+  nlines=$(wc -l < "$watchf_file") # Watch for "additions" to file
 
-  echo -n "Watching($WATCHF_FILE) for($WATCHF_MSG) timeout($WATCHF_TIMEOUT)"
-  while [[ "$WATCHF_ELAPSED" -lt "$WATCHF_TIMEOUT" ]]; do
+  echo -n "Watching($watchf_file) for($watchf_msg) timeout($watchf_timeout)"
+  while [[ "$watchf_elapsed" -lt "$watchf_timeout" ]]; do
     echo -n "."
-    if tail -n+"$NLINES" "$WATCHF_FILE" | grep -q "$WATCHF_MSG" ; then
+    if tail -n+"$nlines" "$watchf_file" | grep -q "$watchf_msg" ; then
       echo ""
       return 1
     fi
     sleep 1
-    WATCHF_ELAPSED=$(( "$WATCHF_ELAPSED" + 1 ))
+    watchf_elapsed=$(( "$watchf_elapsed" + 1 ))
   done
 
-  cij::err "cij::watchf_for: timeout($WATCHF_TIMEOUT) exceeded."
+  echo ""
+  cij::err "cij::watchf_for: timeout($watchf_timeout) exceeded."
   return 0
 }
 
@@ -203,15 +212,17 @@ cij::get_exp_2_range() {
   export range
 }
 
+# Determine whether given input is an integer
+#
 # returncode 0 when input is an integer, 1 when it is not
 cij::isint() {
-  local VAR="$1"
+  local var="$1"
 
-  if [[ -z "$VAR" ]]; then
+  if [[ -z "$var" ]]; then
     cij::err "no input given"
     return 0
   fi
 
-  [[ "$VAR" =~ ^[0-9]+$ ]]
+  [[ "$var" =~ ^[0-9]+$ ]]
   return $?;
 }

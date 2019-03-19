@@ -43,7 +43,7 @@ def parse_args():
     args = prsr.parse_args()
     dargs = vars(args)
 
-    return { k.upper(): dargs[k] for k in dargs }
+    return {k.upper(): dargs[k] for k in dargs}
 
 def main():
     """
