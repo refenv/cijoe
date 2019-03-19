@@ -6,7 +6,6 @@ import os
 import yaml
 import cij.board
 import cij.block
-import cij.nvme
 import cij.lnvm
 import cij.util
 import cij.nvm
