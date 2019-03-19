@@ -14,7 +14,7 @@ setup(
         "xlsxwriter", "matplotlib"
     ],
     zip_safe=False,
-    packages=["cij", "cij.struct"],
+    packages=["cij"],
     package_dir={"": "modules"},
     data_files=[
          ("bin", glob.glob("bin/*")),
