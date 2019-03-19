@@ -10,6 +10,15 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.13
+
+* A myriad of cleanup and fixes
+
+* Deprecated Python Libraries
+  - nvm.py incomplete Python interface for liblightnvm using CLI
+  - spdk.py testcases implemented for liblightnvm in Python, this is handled
+    better by the liblightnvm testcases themselves, hence deprecated
+
 ## v0.0.12
 
 * Bumped version number
