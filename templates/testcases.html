@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Template for the tool 'cij_testcases' -->
 <!-- Required meta tags -->
 <meta charset="utf-8">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -94,10 +95,8 @@
 <div class="card mb-3">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
-      {% set count = 0 %}
       {% for group_name in dset.group_names %}
-      {% set css = "" if count else "active show" %}
-      {% set count = count + 1 %}
+      {% set css = "active show" if loop.first else "" %}
       <li class="nav-item">
         <a class="nav-link {{ css }}" href="#GROUPS_{{ group_name }}" data-toggle="tab">
           <b>{{ group_name }}</b>
@@ -108,10 +107,8 @@
   </div>
 
   <div class="tab-content">
-  {% set count = 0 %}
   {% for group_name in dset.group_names %}
-  {% set css = "" if count else "active show" %}
-  {% set count = count + 1 %}
+  {% set css = "active show" if loop.first else "" %}
 
     <div class="tab-pane {{ css }}" id="GROUPS_{{ group_name }}">
       <ul class="list-group list-testcases">
