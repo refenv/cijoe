@@ -54,7 +54,7 @@ jobs:
     script: true
     deploy:
       provider: pypi
-      user: safl@safl.dk
+      user: safl
       password:
         secure: O5PE3/TnbKpKjqj3mvEsBdooX65L+14GLcScanabLQh+HN4KmzZO/VuvQpQPCqH+rarskgH1pRtq0H7EoqxOfa4I7iw6ujcwhPhL4zhbUV23IwnJpigk47n6srptDuyDK0N5FwWROYPefnR4nMuM/Jcs1/hBQxpR2Sh5DDMe/b/H4C1ur5tInChgfMeohmZU2NPWYWwqV+GNDd4Ivp3sMquNw6RhL1eaRZV2mn++E6Br6SYBsbGN5P3zZ3VaDYKpdzm/Mgnz+1D5Q0ZE78KTtMNtYEjOKs9g6KRQFRwEemjSfh6GtEvCpRxlcJs7iv5TXeHFw/6MYNLEX+WAyPbaBnx8UqAy0OWxqUrK78A/q7jDMZo0C1FT4PKzkwjFWf3nMJqO4G30Y1RUrfmCOjkp+ebi0LuFXy//mK0f5bRkYQ3ScwQlte2WV7nfn13guHfZRN/e1ENDBQdf4+rKWRMzmQIhAOQ8LsPXBktc0UKms/Ox+9hq+l/bAHM7QUHVYWCCtgyqGNhrJJiNmsjIKnC5Uedud622j1ZO2X8p9fxbm5WDcy+fAc5uPGEfi03+xCmKjCKL2p0xZqI7s5iVlsV3h8nj8W8dUdwtS1uGTgrymU1KYPS96N9HcIie0xTRoq7XUEzYgO8/LMvkgrigLg+KFNllhQedpF49XlF8nl/VSBI=
       on:
