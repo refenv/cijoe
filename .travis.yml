@@ -3,24 +3,20 @@ stages:
 - build
 - check
 - deploy
-
 branches:
   except:
   - gh-pages
-
 addons:
   apt:
     packages:
     - graphviz
     - shellcheck
     - python-pip
-
 before_install:
 - pip install -U pip
 - pip install pylint
 install:
 - make install
-
 jobs:
   include:
   - stage: build
@@ -29,9 +25,8 @@ jobs:
     script:
     - make release-build
     - make install
-
   - stage: check
-    name: "Lint / Style check (bin)"
+    name: Lint / Style check (bin)
     script:
     - pylint bin/cij_fetch
     - pylint bin/cij_reporter
@@ -43,28 +38,24 @@ jobs:
     - shellcheck bin/cijoe modules/*.sh
     - shellcheck bin/cij_root
     - shellcheck bin/nvm_prep
-
   - stage: check
-    name: "Lint / Style check (SHELL modules)"
+    name: Lint / Style check (SHELL modules)
     script:
-      - shellcheck modules/*.sh
-
+    - shellcheck modules/*.sh
   - stage: check
-    name: "Lint / Style check (Python modules)"
+    name: Lint / Style check (Python modules)
     script:
-      - pylint modules/cij
-
+    - pylint modules/cij
   - stage: check
-    name: "Lint / Style check (built-in testcase, testsuite, and testplans)"
+    name: Lint / Style check (built-in testcase, testsuite, and testplans)
     script:
-      - CIJ_ROOT=$(cij_root) cij_tlint
-
+    - CIJ_ROOT=$(cij_root) cij_tlint
   - stage: deploy
     script: true
     deploy:
       provider: pypi
       user: safl@safl.dk
       password:
-        secure: "fVHtFCrbO0kWcdrXxTr52ObmEAF/Cxp2tqGWOw0XCSZOX0m7sekfQT++9264vS/HKE9FjOdP8/CnLhqodl5D7sJ9iQmYr/+iA4c+RBZRbdBUi52CXR3dmxaQVWF3ZGkgF2/Z5LituHuedaiO+UMC/Ahwnrt42rIdHdBS/SJpArPNYqOG7u+2FSTL7Ar2aiWVxV0UDOSv/jfav3VN7denZ+QgWX100+zgvyy8fYn3iAyVQNP0vHyFJZzo78v5nKPCS2bPFtHxmDeNIv8XKq1U7KxR3Jz3XzJUd02zLAAhoZyf21VPQtidNQUUqjF1OdzDXaoz2SD0KH2s5naeiW8k06UdHlElDyK0RlgphCZDtI1/ppcAujh0CzNzbnfvm96BUIAQxdlUJazUUpyV8JAhPwgXZCc6PsKFMlL+Dlrqs/5ViJ8C3+VK0t8kfK6i2PcT7IlxKSquBrxn3b1GMxoZrwRfadvXW5aaJjj+BgI7f3LlZLwsp9bHS6uQ1btFpZcxgdh5mBM+4Gm5wvE8e8W68/wE00CwMqbgvvinL66o6OEinhB+Gouy9zHo8ud9Bpbn2kuE1X1afJmSd6X86rxorOE5L8ffQraZ6cT+g2J4VHkodXqU75px2qRl8EWgiotN+XdmUqeQo8yqDjIhQ22nRZJkSOdmK5rC2yWvlHGoNHQ="
+        secure: O5PE3/TnbKpKjqj3mvEsBdooX65L+14GLcScanabLQh+HN4KmzZO/VuvQpQPCqH+rarskgH1pRtq0H7EoqxOfa4I7iw6ujcwhPhL4zhbUV23IwnJpigk47n6srptDuyDK0N5FwWROYPefnR4nMuM/Jcs1/hBQxpR2Sh5DDMe/b/H4C1ur5tInChgfMeohmZU2NPWYWwqV+GNDd4Ivp3sMquNw6RhL1eaRZV2mn++E6Br6SYBsbGN5P3zZ3VaDYKpdzm/Mgnz+1D5Q0ZE78KTtMNtYEjOKs9g6KRQFRwEemjSfh6GtEvCpRxlcJs7iv5TXeHFw/6MYNLEX+WAyPbaBnx8UqAy0OWxqUrK78A/q7jDMZo0C1FT4PKzkwjFWf3nMJqO4G30Y1RUrfmCOjkp+ebi0LuFXy//mK0f5bRkYQ3ScwQlte2WV7nfn13guHfZRN/e1ENDBQdf4+rKWRMzmQIhAOQ8LsPXBktc0UKms/Ox+9hq+l/bAHM7QUHVYWCCtgyqGNhrJJiNmsjIKnC5Uedud622j1ZO2X8p9fxbm5WDcy+fAc5uPGEfi03+xCmKjCKL2p0xZqI7s5iVlsV3h8nj8W8dUdwtS1uGTgrymU1KYPS96N9HcIie0xTRoq7XUEzYgO8/LMvkgrigLg+KFNllhQedpF49XlF8nl/VSBI=
       on:
         tags: true
