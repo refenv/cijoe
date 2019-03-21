@@ -10,6 +10,11 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.14
+
+* `cij_reporter`: fixed rendering of elapsed wall-clock
+* Updated qemu module to match new 'qemu' with OCSSD support in 'qemu-img'
+
 ## v0.0.13
 
 * A myriad of cleanup and fixes
