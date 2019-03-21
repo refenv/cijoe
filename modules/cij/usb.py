@@ -12,6 +12,7 @@ Require:
     USB_RELAY_POWER_OFF - USB-RELAY port of 230v power off
     USB_RELAY_POWER_BTN - USB-RELAY port of target's power button
 """
+# pylint: disable=E0012,R0205
 import os
 import time
 from collections import OrderedDict

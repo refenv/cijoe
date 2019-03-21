@@ -134,7 +134,7 @@ def command_to_struct(cmd):
             lines.append(line)
 
         struct = yaml.safe_load("\n".join(lines))
-    except yaml.YAMLError, exc:
+    except (yaml.YAMLError) as exc:
         cij.err("could not parse stdout as yaml, exc: %r" % exc)
 
     return rcode, stdout, stderr, struct

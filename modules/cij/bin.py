@@ -9,7 +9,9 @@ Classes:
     Buffer.read()       - Read buffer from file
     Buffer.dump()       - Dump buffer item to console
     Buffer.compare()    - Compare two buffers
+
 """
+# pylint: disable=E0012,R0205
 from ctypes import c_uint8, memmove, sizeof, cast, POINTER, Structure, Union, Array
 import cij
 

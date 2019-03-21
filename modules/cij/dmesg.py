@@ -1,6 +1,7 @@
 """
-    Environment for FIO
+    Environment for DMESG
 """
+# pylint: disable=E0012,R0205
 from threading import Thread
 import cij.ssh
 import cij.util

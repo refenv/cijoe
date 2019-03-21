@@ -139,7 +139,7 @@ def tplans_content(ident, roots, fnames):
     tplans, _ = _load_tplans(ident, roots, fnames)
     for tp_fname, tplan in tplans.items():
 
-        for k in list(set(tplan.keys()) - set([k for k, _ in struct["root"]])):
+        for k in set(tplan.keys()) - set(k for k, _ in struct["root"]):
             violations.append(MESSAGES[ident] % (
                 tp_fname,
                 "invalid key: %r" % k
@@ -162,7 +162,7 @@ def tplans_content(ident, roots, fnames):
             continue
 
         for suite in tplan["testsuites"]:
-            for k in list(set(suite.keys()) - set([k for k, _ in struct["suites"]])):
+            for k in set(suite.keys()) - set(k for k, _ in struct["suites"]):
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
                     "invalid key: %r" % k
@@ -186,8 +186,7 @@ def tplans_content(ident, roots, fnames):
                     "testsuite: no testcases defined" % suite["name"]
                 ))
 
-        hooks = list(set(hooks))        # Check for existence of hooks
-        for hname in hooks:
+        for hname in set(hooks):        # Check for existence of hooks
             if not sum(tmpl % hname in fnames["HOOKS"] for tmpl in [
                     "%s.sh", "%s_enter.sh", "%s_exit.sh"
                 ]):

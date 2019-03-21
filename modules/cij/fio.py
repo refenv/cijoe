@@ -13,6 +13,7 @@ Classes:
 Require:
     cij.ssh.env()
 """
+# pylint: disable=E0012,R0205
 from collections import OrderedDict
 from threading import Thread
 import cij.ssh

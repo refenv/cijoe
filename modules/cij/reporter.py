@@ -70,7 +70,7 @@ def tcase_parse_descr(tcase):
 
     try:
         comment = tcase_comment(tcase)
-    except (IOError, OSError, ValueError), exc:
+    except (IOError, OSError, ValueError) as exc:
         comment = []
         cij.err("tcase_parse_descr: failed: %r, tcase: %r" % (exc, tcase))
 
@@ -289,7 +289,7 @@ def main(args):
     try:                                    # Create and store HTML report
         with open(html_fpath, 'w') as html_file:
             html_file.write(dset_to_html(trun, args.tmpl_fpath))
-    except (IOError, OSError, ValueError), exc:
+    except (IOError, OSError, ValueError) as exc:
         import traceback
         traceback.print_exc()
         cij.err("rprtr:main: exc: %s" % exc)
