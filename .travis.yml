@@ -1,61 +1,60 @@
 language: python
+
+dist: xenial
+
+python:
+- "2.7"
+- "3.6"
+- "3.7"
+
 stages:
 - build
-- check
+- test
 - deploy
+
 branches:
   except:
   - gh-pages
+
 addons:
   apt:
     packages:
     - graphviz
     - shellcheck
     - python-pip
+
 before_install:
 - pip install -U pip
 - pip install pylint
+
 install:
+- make release-build
 - make install
-jobs:
-  include:
-  - stage: build
-    name: Build Python Package
-    install: true
-    script:
-    - make release-build
-    - make install
-  - stage: check
-    name: Lint / Style check (bin)
-    script:
-    - pylint bin/cij_fetch
-    - pylint bin/cij_reporter
-    - pylint bin/cij_runner
-    - pylint bin/cij_tlint
-    - pylint bin/config_add_opts
-    - pylint bin/fio_plot
-    - pylint bin/rand_str
-    - shellcheck bin/cijoe modules/*.sh
-    - shellcheck bin/cij_root
-    - shellcheck bin/nvm_prep
-  - stage: check
-    name: Lint / Style check (SHELL modules)
-    script:
-    - shellcheck modules/*.sh
-  - stage: check
-    name: Lint / Style check (Python modules)
-    script:
-    - pylint modules/cij
-  - stage: check
-    name: Lint / Style check (built-in testcase, testsuite, and testplans)
-    script:
-    - CIJ_ROOT=$(cij_root) cij_tlint
-  - stage: deploy
-    script: true
-    deploy:
-      provider: pypi
-      user: safl
-      password:
-        secure: O5PE3/TnbKpKjqj3mvEsBdooX65L+14GLcScanabLQh+HN4KmzZO/VuvQpQPCqH+rarskgH1pRtq0H7EoqxOfa4I7iw6ujcwhPhL4zhbUV23IwnJpigk47n6srptDuyDK0N5FwWROYPefnR4nMuM/Jcs1/hBQxpR2Sh5DDMe/b/H4C1ur5tInChgfMeohmZU2NPWYWwqV+GNDd4Ivp3sMquNw6RhL1eaRZV2mn++E6Br6SYBsbGN5P3zZ3VaDYKpdzm/Mgnz+1D5Q0ZE78KTtMNtYEjOKs9g6KRQFRwEemjSfh6GtEvCpRxlcJs7iv5TXeHFw/6MYNLEX+WAyPbaBnx8UqAy0OWxqUrK78A/q7jDMZo0C1FT4PKzkwjFWf3nMJqO4G30Y1RUrfmCOjkp+ebi0LuFXy//mK0f5bRkYQ3ScwQlte2WV7nfn13guHfZRN/e1ENDBQdf4+rKWRMzmQIhAOQ8LsPXBktc0UKms/Ox+9hq+l/bAHM7QUHVYWCCtgyqGNhrJJiNmsjIKnC5Uedud622j1ZO2X8p9fxbm5WDcy+fAc5uPGEfi03+xCmKjCKL2p0xZqI7s5iVlsV3h8nj8W8dUdwtS1uGTgrymU1KYPS96N9HcIie0xTRoq7XUEzYgO8/LMvkgrigLg+KFNllhQedpF49XlF8nl/VSBI=
-      on:
-        tags: true
+
+script:
+- pylint
+  bin/cij_fetch
+  bin/cij_reporter
+  bin/cij_runner
+  bin/cij_tlint
+  bin/config_add_opts
+  bin/fio_plot
+  bin/rand_str
+  modules/cij
+  testcases/*.py
+- shellcheck
+  bin/cij_root
+  bin/cijoe
+  bin/nvm_prep
+  modules/*.sh
+  hooks/*.sh
+  testcases/*.sh
+- CIJ_ROOT=$(cij_root) cij_tlint
+
+deploy:
+  provider: pypi
+  user: safl
+  password:
+    secure: O5PE3/TnbKpKjqj3mvEsBdooX65L+14GLcScanabLQh+HN4KmzZO/VuvQpQPCqH+rarskgH1pRtq0H7EoqxOfa4I7iw6ujcwhPhL4zhbUV23IwnJpigk47n6srptDuyDK0N5FwWROYPefnR4nMuM/Jcs1/hBQxpR2Sh5DDMe/b/H4C1ur5tInChgfMeohmZU2NPWYWwqV+GNDd4Ivp3sMquNw6RhL1eaRZV2mn++E6Br6SYBsbGN5P3zZ3VaDYKpdzm/Mgnz+1D5Q0ZE78KTtMNtYEjOKs9g6KRQFRwEemjSfh6GtEvCpRxlcJs7iv5TXeHFw/6MYNLEX+WAyPbaBnx8UqAy0OWxqUrK78A/q7jDMZo0C1FT4PKzkwjFWf3nMJqO4G30Y1RUrfmCOjkp+ebi0LuFXy//mK0f5bRkYQ3ScwQlte2WV7nfn13guHfZRN/e1ENDBQdf4+rKWRMzmQIhAOQ8LsPXBktc0UKms/Ox+9hq+l/bAHM7QUHVYWCCtgyqGNhrJJiNmsjIKnC5Uedud622j1ZO2X8p9fxbm5WDcy+fAc5uPGEfi03+xCmKjCKL2p0xZqI7s5iVlsV3h8nj8W8dUdwtS1uGTgrymU1KYPS96N9HcIie0xTRoq7XUEzYgO8/LMvkgrigLg+KFNllhQedpF49XlF8nl/VSBI=
+  on:
+    tags: true
