@@ -343,11 +343,16 @@
             <span style="font-family: monospace; font-weight: bold;"> {{ tcase.name }}</span>
           </button>
           <div class="btn-group float-right" role="group">
+
+            {% if tcase.wallc %}
             <button class="btn btn-info" type="button" disabled="disabled">
               <span style="font-family: monospace;"
                     title="Elapsed Wall-Clock time in seconds"
-                    data-original-title="Tooltip on right">{{ tcase.wallc | round }} sec</span>
+                    data-original-title="Tooltip on right">
+                {{ tcase.wallc | round }} sec
+              </span>
             </button>
+            {% endif %}
 
             <button class="btn btn-primary" type="button" data-toggle="collapse"
                                                           data-target="#DESCR_{{ ident }}"
