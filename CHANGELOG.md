@@ -10,6 +10,11 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.15
+
+* Bunch of Python 3 and style fixes
+* Deprecated pblk-hooks for specific params
+
 ## v0.0.14
 
 * `cij_reporter`: fixed rendering of elapsed wall-clock
