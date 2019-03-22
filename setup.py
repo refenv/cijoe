@@ -1,5 +1,8 @@
-from setuptools import setup
+"""
+    Definition for distribution of CIJOE
+"""
 import glob
+from setuptools import setup
 
 setup(
     name="cijoe",
@@ -17,16 +20,17 @@ setup(
     packages=["cij"],
     package_dir={"": "modules"},
     data_files=[
-         ("bin", glob.glob("bin/*")),
-         ("share/cijoe/hooks", glob.glob("hooks/*")),
-         ("share/cijoe/modules", glob.glob("modules/*.sh")),
-         ("share/cijoe/templates", glob.glob("templates/*")),
+        ("bin", glob.glob("bin/*")),
+        ("share/cijoe/hooks", glob.glob("hooks/*")),
+        ("share/cijoe/modules", glob.glob("modules/*.sh")),
+        ("share/cijoe/templates", glob.glob("templates/*")),
 
-         ("share/cijoe/envs", glob.glob("envs/*")),
+        ("share/cijoe/envs", glob.glob("envs/*")),
 
-         ("share/cijoe/testfiles", glob.glob("testfiles/*")),
-         ("share/cijoe/testcases", glob.glob("testcases/*")),
-         ("share/cijoe/testsuites", glob.glob("testsuites/*")),
-         ("share/cijoe/testplans", glob.glob("testplans/*"))
-    ]
+        ("share/cijoe/testfiles", glob.glob("testfiles/*")),
+        ("share/cijoe/testcases", glob.glob("testcases/*")),
+        ("share/cijoe/testsuites", glob.glob("testsuites/*")),
+        ("share/cijoe/testplans", glob.glob("testplans/*"))
+    ],
+    options={'bdist_wheel':{'universal':True}}
 )
