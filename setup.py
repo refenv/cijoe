@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="cijoe",
-    version="0.0.15",
+    version="0.0.16",
     description="Tools for for development and testing",
     author="Simon A. F. Lund",
     author_email="slund@cnexlabs.com",
