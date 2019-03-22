@@ -61,6 +61,5 @@ expect this to change.
 
 ## cij_runner
 
-One instructs the `cij_runner` to use a hook at the different points using the
-command-line arguments: `--hook-pr-trun`, `--hook-pr-tsuite`, and
-`--hook-pr-tcase`.
+One instructs the `cij_runner` to use a hook at the different points by defining
+the usage in a testplan (.plan) file.

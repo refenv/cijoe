@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 #
-# Removes a PBLK device
+# hook: removes a PBLK device and re-creates it with recovery
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+# NOTE: hans / javier? Does this still make sense?
+#
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::require ssh
 test::enter
 
-function hook::pblk_recov_all_exit {
-  lnvm::remove
-  if [[ $? -ne 0 ]]; then
+hook::pblk_recov_all_exit() {
+  if ! lnvm::remove; then
     cij:err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
     return 1
   fi
 
-  lnvm::recover
-  if [[ $? -ne 0 ]]; then
+  if ! lnvm::recover; then
     cij:err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
     return 1
   fi

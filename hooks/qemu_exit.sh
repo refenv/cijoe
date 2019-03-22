@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 #
-# Stops a running QEMU machine
+# Starts and stops a qemu instance
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
+test::require ssh
 test::enter
 
-function hook::qemu_exit {
-  
-  qemu::poweroff
-  if [[ $? -ne 0 ]]; then
+hook::qemu_exit() {
+
+  if ! qemu::poweroff; then
     cij::warn "hook::qemu_exit: error when stopping QEMU"
     return 1;
   fi

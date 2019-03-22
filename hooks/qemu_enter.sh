@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
 #
-# Sets up and starts a QEMU machine
+# Starts and stops a qemu instance
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::require ssh
 test::enter
 
-function hook::qemu_enter {
+hook::qemu_enter() {
 
-  qemu::guest_nvme_create
-  if [[ $? -ne 0 ]]; then
+  if ! qemu::guest_nvme_create; then
     cij::warn "hook::qemu_enter: FAILED to create test drive"
     return 1
   fi
 
-  qemu::run
-  if [[ $? -ne 0 ]]; then
+  if ! qemu::run; then
     cij::warn "hook::qemu_enter: FAILED starting QEMU"
     return 1
   fi
 
-  SSH_CMD_TIMEOUT=5 
+  # Wait for it to boot up
+  SSH_CMD_TIMEOUT=5
   while :
   do
       sleep 10
-      ssh::cmd 'exit' 2&> /dev/null
-      if [[ $? == 0 ]]; then
-	break
+      if ssh::cmd 'exit' 2&> /dev/null; then
+        break;
       fi
   done
 

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 #
-# Rebinds NVMe devices from driver "nvme" to "uio_pci_generic" for use with SPDK
-# And attempt to rebind again after
+# Detaches / Re-attached NVMe devices from kernel to SPDK and configures HUGEMEM
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
+# on-enter: de-attach from kernel NVMe driver
+# on-exit: re-attach to kernel NVMe driver
+#
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
 test::require pci
 test::enter

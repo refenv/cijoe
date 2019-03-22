@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 #
-# Detaches NVMe devices from kernel NVMe driver to uio_generic or vfio-pci and
-# configures HUGEMEM
+# Detaches / Re-attached NVMe devices from kernel to SPDK and configures HUGEMEM
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
+# on-enter: de-attach from kernel NVMe driver
+# on-exit: re-attach to kernel NVMe driver
+#
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
+test::require ssh
 test::enter
 
-function hook::spdk_enter {
+hook::spdk_enter() {
   SPDK_CMD="$SPDK_HOME/scripts/setup.sh"
   if [[ ! -z "$HUGEMEM" ]]; then
     SPDK_CMD="HUGEMEM=$HUGEMEM $SPDK_CMD"

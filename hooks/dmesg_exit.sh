@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #
-# kills the dmesg log process spawned by the dmesg_enter hook
+# Logs dmesg to file $CIJ_TEST_RES_ROOT/hook_dmesg.log
+#
+# on-enter: start 'dmesg -w' process on TRGT and pipe to file on CTRL
+# on-exit: kill the dmesg process on TRGT
 #
 CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME

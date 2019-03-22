@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 #
-# Removes a PBLK device
+# Create and remove a PBLK instance
 #
-CIJ_TEST_NAME=$(basename $BASH_SOURCE)
-source $CIJ_ROOT/modules/cijoe.sh
+# hook-enter: create the PBLK instance
+# hook-exit: remove the PBLK instance
+#
+CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
+export CIJ_TEST_NAME
+# shellcheck source=modules/cijoe.sh
+source "$CIJ_ROOT/modules/cijoe.sh"
 test::require ssh
 test::enter
 
-function hook::pblk_exit {
-  lnvm::remove
-  if [[ $? -ne 0 ]]; then
+hook::pblk_exit() {
+  if ! lnvm::remove; then
     cij:err "hook::pblk_exit: lnvm::remove FAILED"
     return 1
   fi
