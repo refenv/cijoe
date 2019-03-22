@@ -89,11 +89,11 @@ ssh::cmd() {
   fi
 
   SSH_CMD_ARGS=""                                       # SSH KEY
-  if [[ ! -z "$SSH_KEY" ]]; then
+  if [[ -n "$SSH_KEY" ]]; then
     SSH_CMD_ARGS="$SSH_CMD_ARGS -i $SSH_KEY"
   fi
 
-  if [[ ! -z "$SSH_PORT" ]]; then                       # SSH PORT
+  if [[ -n "$SSH_PORT" ]]; then                       # SSH PORT
     SSH_CMD_ARGS="$SSH_CMD_ARGS -p $SSH_PORT"
   fi
 
@@ -126,7 +126,7 @@ ssh::shell() {
   SSH_SHELL_ARGS="$SSH_SHELL_ARGS -p $SSH_PORT"
   SSH_SHELL_ARGS="$SSH_SHELL_ARGS $SSH_USER@$SSH_HOST"
 
-  if [[ ! -z "$SSH_KEY" ]]; then
+  if [[ -n "$SSH_KEY" ]]; then
     SSH_SHELL_ARGS="$SSH_SHELL_ARGS -i $SSH_KEY"
   fi
 
@@ -173,10 +173,10 @@ ssh::push() {
   fi
 
   SCP_CMD_ARGS=""
-  if [[ ! -z "$SSH_PORT" ]]; then
+  if [[ -n "$SSH_PORT" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
   fi
-  if [[ ! -z "$SSH_KEY" ]]; then
+  if [[ -n "$SSH_KEY" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
@@ -204,10 +204,10 @@ ssh::pull() {
   fi
 
   SCP_CMD_ARGS="-r"
-  if [[ ! -z "$SSH_PORT" ]]; then
+  if [[ -n "$SSH_PORT" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
   fi
-  if [[ ! -z "$SSH_KEY" ]]; then
+  if [[ -n "$SSH_KEY" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
