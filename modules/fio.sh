@@ -86,89 +86,89 @@ fio::run() {
 
   FIO_ARGS="$FIO_ARGS --filename=$FIO_FILENAME"
 
-  if [[ ! -z "$FIO_LOG_AVG_MSEC" ]]; then
+  if [[ -n "$FIO_LOG_AVG_MSEC" ]]; then
     FIO_ARGS="$FIO_ARGS --log_avg_msec=${FIO_LOG_AVG_MSEC}"
   fi
-  if [[ ! -z "$FIO_WRITE_BW_LOG" ]]; then
+  if [[ -n "$FIO_WRITE_BW_LOG" ]]; then
     FIO_ARGS="$FIO_ARGS --write_bw_log=${FIO_WRITE_BW_LOG}"
   fi
-  if [[ ! -z "$FIO_WRITE_LAT_LOG" ]]; then
+  if [[ -n "$FIO_WRITE_LAT_LOG" ]]; then
     FIO_ARGS="$FIO_ARGS --write_lat_log=${FIO_WRITE_LAT_LOG}"
   fi
-  if [[ ! -z "$FIO_WRITE_IOPS_LOG" ]]; then
+  if [[ -n "$FIO_WRITE_IOPS_LOG" ]]; then
     FIO_ARGS="$FIO_ARGS --write_iops_log=${FIO_WRITE_IOPS_LOG}"
   fi
-  #if [[ ! -z "$FIO_WRITE_HIST_LOG" ]]; then
+  #if [[ -n "$FIO_WRITE_HIST_LOG" ]]; then
   #  FIO_ARGS="$FIO_ARGS --write_hist_log=${FIO_WRITE_HIST_LOG}"
   #fi
 
-  if [[ ! -z "$FIO_READWRITE" ]]; then
+  if [[ -n "$FIO_READWRITE" ]]; then
     FIO_ARGS="$FIO_ARGS --readwrite=$FIO_READWRITE"
   fi
-  if [[ ! -z "$FIO_BLOCKSIZE" ]]; then
+  if [[ -n "$FIO_BLOCKSIZE" ]]; then
     FIO_ARGS="$FIO_ARGS --blocksize=$FIO_BLOCKSIZE"
   fi
-  if [[ ! -z "$FIO_BLOCKSIZE_RANGE" ]]; then
+  if [[ -n "$FIO_BLOCKSIZE_RANGE" ]]; then
     FIO_ARGS="$FIO_ARGS --blocksize_range=$FIO_BLOCKSIZE_RANGE"
   fi
-  if [[ ! -z "$FIO_IODEPTH" ]]; then
+  if [[ -n "$FIO_IODEPTH" ]]; then
     FIO_ARGS="$FIO_ARGS --iodepth=$FIO_IODEPTH"
   fi
-  if [[ ! -z "$FIO_NAME" ]]; then
+  if [[ -n "$FIO_NAME" ]]; then
     FIO_ARGS="$FIO_ARGS --name=$FIO_NAME"
   fi
-  if [[ ! -z "$FIO_RAMP_TIME" ]]; then
+  if [[ -n "$FIO_RAMP_TIME" ]]; then
     FIO_ARGS="$FIO_ARGS --ramp_time=$FIO_RAMP_TIME"
   fi
-  if [[ ! -z "$FIO_RUNTIME" ]]; then
+  if [[ -n "$FIO_RUNTIME" ]]; then
     FIO_ARGS="$FIO_ARGS --time_based --runtime=$FIO_RUNTIME"
   fi
-  if [[ ! -z "$FIO_SIZE" ]]; then
+  if [[ -n "$FIO_SIZE" ]]; then
     FIO_ARGS="$FIO_ARGS --size=$FIO_SIZE"
   fi
-  if [[ ! -z "$FIO_OFFSET" ]]; then
+  if [[ -n "$FIO_OFFSET" ]]; then
     FIO_ARGS="$FIO_ARGS --offset=$FIO_OFFSET"
   fi
-  if [[ ! -z "$FIO_NUMJOBS" ]]; then
+  if [[ -n "$FIO_NUMJOBS" ]]; then
     FIO_ARGS="$FIO_ARGS --numjobs=$FIO_NUMJOBS"
   fi
-  if [[ ! -z "$FIO_DO_VERIFY" ]]; then
+  if [[ -n "$FIO_DO_VERIFY" ]]; then
     FIO_ARGS="$FIO_ARGS --do_verify=$FIO_DO_VERIFY"
   fi
-  if [[ ! -z "$FIO_VERIFY" ]]; then
+  if [[ -n "$FIO_VERIFY" ]]; then
     FIO_ARGS="$FIO_ARGS --verify=$FIO_VERIFY"
   fi
-  if [[ ! -z "$FIO_VERIFY_FATAL" ]]; then
+  if [[ -n "$FIO_VERIFY_FATAL" ]]; then
     FIO_ARGS="$FIO_ARGS --verify_fatal=$FIO_VERIFY_FATAL"
   fi
-  if [[ ! -z "$FIO_VERIFY_INTERVAL" ]]; then
+  if [[ -n "$FIO_VERIFY_INTERVAL" ]]; then
     FIO_ARGS="$FIO_ARGS --verify_interval=$FIO_VERIFY_INTERVAL"
   fi
-  if [[ ! -z "$FIO_VERIFY_PATTERN" ]]; then
+  if [[ -n "$FIO_VERIFY_PATTERN" ]]; then
     FIO_ARGS="$FIO_ARGS --verify_pattern=$FIO_VERIFY_PATTERN"
   fi
-  if [[ ! -z "$FIO_VERIFY_BACKLOG" ]]; then
+  if [[ -n "$FIO_VERIFY_BACKLOG" ]]; then
     FIO_ARGS="$FIO_ARGS --verify_backlog=$FIO_VERIFY_BACKLOG"
   fi
-  if [[ ! -z "$FIO_DIRECT" ]]; then
+  if [[ -n "$FIO_DIRECT" ]]; then
     FIO_ARGS="$FIO_ARGS --direct=$FIO_DIRECT"
   fi
-  if [[ ! -z "$FIO_IOENGINE" ]]; then
+  if [[ -n "$FIO_IOENGINE" ]]; then
     FIO_ARGS="$FIO_ARGS --ioengine=$FIO_IOENGINE"
   fi
-  if [[ ! -z "$FIO_RWMIXREAD" ]]; then
+  if [[ -n "$FIO_RWMIXREAD" ]]; then
     FIO_ARGS="$FIO_ARGS --rwmixread=$FIO_RWMIXREAD"
   fi
-  if [[ ! -z "$FIO_OUTPUT" ]]; then
+  if [[ -n "$FIO_OUTPUT" ]]; then
     FIO_ARGS="$FIO_ARGS --output=$FIO_OUTPUT"
   fi
-  if [[ ! -z "$FIO_FSYNC" ]]; then
+  if [[ -n "$FIO_FSYNC" ]]; then
     FIO_ARGS="$FIO_ARGS --fsync=$FIO_SYNC"
   fi
-  if [[ ! -z "$FIO_END_FSYNC" ]]; then
+  if [[ -n "$FIO_END_FSYNC" ]]; then
     FIO_ARGS="$FIO_ARGS --end_fsync=$FIO_END_FSYNC"
   fi
-  if [[ ! -z "$FIO_ARGS_EXTRA" ]]; then
+  if [[ -n "$FIO_ARGS_EXTRA" ]]; then
     FIO_ARGS="$FIO_ARGS $FIO_ARGS_EXTRA"
   fi
 
