@@ -14,13 +14,13 @@ test::enter
 
 hook::spdk_enter() {
   SPDK_CMD="$SPDK_HOME/scripts/setup.sh"
-  if [[ ! -z "$HUGEMEM" ]]; then
+  if [[ -n "$HUGEMEM" ]]; then
     SPDK_CMD="HUGEMEM=$HUGEMEM $SPDK_CMD"
   fi
-  if [[ ! -z "$NRHUGE" ]]; then
+  if [[ -n "$NRHUGE" ]]; then
     SPDK_CMD="NRHUGE=$NRHUGE $SPDK_CMD"
   fi
-  if [[ ! -z "$HUGENODE" ]]; then
+  if [[ -n "$HUGENODE" ]]; then
     SPDK_CMD="HUGENODE=$HUGENODE $SPDK_CMD"
   fi
 

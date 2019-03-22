@@ -32,7 +32,7 @@ cij::good "Example of outputting an annotated 'good' message"
 cij::warn "Example of outputting an annotated 'warning' message"
 cij::err "Example of outputting an annotated 'error' message"
 
-if [[ ! -z "$FOO" ]]; then
+if [[ -n "$FOO" ]]; then
   cij::emph "Looks like the variable FOO is set, have a look FOO: '$FOO'"
 fi
 
