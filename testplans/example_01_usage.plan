@@ -12,10 +12,10 @@ descr_long: |
 evars: { FOO: 42 }
 hooks: [ sysinf ]
 testsuites:
-  - name: EXTS_01
-  - name: EXTS_01
+  - name: exts_01
+  - name: exts_01
     evars: { FOO: 24 }
     hooks: [ dmesg ]
-  - name: EXTS_01
+  - name: exts_01
     evars: { FOO: 3 }
     hooks_pr_tcase: [ dmesg ]

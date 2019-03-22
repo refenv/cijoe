@@ -6,5 +6,5 @@ descr_long: |
   and not a block device containing your data or operating system.
 hooks: [ sysinf, dmesg ]
 testsuites:
-  - name: EXTS_01
-  - name: EXTS_02_refenv
+  - name: exts_01
+  - name: exts_02_refenv
