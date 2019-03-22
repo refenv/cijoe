@@ -15,9 +15,6 @@
 #
 # cij::repeat   - Repeat the given command the given number of times
 #
-# cij::get_fib_range    - get fibonacci-range
-# cij::get_exp_2_range  - get power-of-two-range
-#
 # cij::isint    - Determine whether given input is an integer
 #
 
@@ -149,67 +146,6 @@ cij::repeat() {
   for _ in $(seq "$number"); do
     "$@"
   done
-}
-
-# get fibonacci-range, between(and including) <start> and <stop>
-#
-# cij::get_fib_range 1 20; printf '%s\n' "${range[@]}"
-#
-cij::get_fib_range() {
-  local start_val="$1"
-  local stop_val="$2"
-  unset range
-
-  if [[ "$start_val" == "$stop_val" ]]; then
-    range[0]=$start_val
-  else
-    a=1
-    b=1
-    c=2
-    let "n = $a + $start_val"
-    range[0]=$start_val
-    index=1
-    while [[ "$n" -lt "$stop_val" ]]; do
-      range[$index]=$b
-      a=$b
-      b=$c
-      let "c = $a + $b"
-      let "n = $b + $start_val"
-      let "index = $index + 1"
-    done
-    range[$index]=$stop_val
-  fi
-
-  export range
-}
-
-#
-# get power-of-two-range, between(and including) <start> and <stop>
-#
-# cij::get_exp_2_range 1 20; printf '%s\n' "${range[@]}"
-#
-cij::get_exp_2_range() {
-  local start_val="$1"
-  local stop_val="$2"
-  unset range
-
-  if [[ "$start_val" == "$stop_val" ]]; then
-    range[0]=$start_val
-  else
-    a=1
-    let "n = $a + $start_val"
-    range[0]=$start_val
-    index=1
-    while [[ "$n" -lt "$stop_val" ]]; do
-      range[$index]=$n
-      let "a = $a * 2"
-      let "n = $a + $start_val"
-      let "index = $index + 1"
-    done
-    range[$index]=$stop_val
-  fi
-
-  export range
 }
 
 # Determine whether given input is an integer
