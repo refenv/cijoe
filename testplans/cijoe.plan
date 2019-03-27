@@ -1,0 +1,9 @@
+descr: Verification of CIJOE itself
+descr_long: |
+  Using Linters and checkers
+testsuites:
+  - name: Linters
+    testcases:
+      - cijoe_pylint.sh
+      - cijoe_shellcheck.sh
+      - cijoe_tlint.sh
