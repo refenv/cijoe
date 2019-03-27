@@ -9,7 +9,7 @@ from __future__ import print_function
 import argparse
 import sys
 import os
-import cij.reporter
+from cij.reporter import tcase_parse_descr, dset_to_html
 import cij.test
 import cij
 
@@ -39,12 +39,13 @@ def construct_dset(evars):
             "src_content": open(fpath, "r").read()
         }
 
-        descr, descr_long = cij.reporter.tcase_parse_descr(tcase)
+        descr, descr_long = tcase_parse_descr(tcase)
 
         tcase["descr"] = descr
         tcase["descr_long"] = descr_long
 
         dset[group].append(tcase)
+        dset[group].sort()
 
     dset["group_names"].sort()
 
@@ -95,9 +96,15 @@ def main(args, evars):
 
     dset = construct_dset(evars)
 
-    with open(html_fpath, 'w') as html_fd:
-        html = cij.reporter.dset_to_html(dset, args.tmpl_fpath)
-        html_fd.write(html)
+    try:
+
+        with open(html_fpath, 'w') as html_fd:
+            html = dset_to_html(dset, args.tmpl_fpath)
+            html_fd.write(html)
+
+    except (IOError) as exc:
+        cij.err("Failed writing report to file, err: '%r'" % exc)
+        return 1
 
     return 0
 
