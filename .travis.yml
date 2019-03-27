@@ -29,25 +29,10 @@ install:
 - make install
 
 script:
-- pylint
-  bin/cij_fetch
-  bin/cij_reporter
-  bin/cij_runner
-  bin/cij_tlint
-  bin/config_add_opts
-  bin/fio_plot
-  bin/rand_str
-  modules/cij
-  testcases/*.py
-  setup.py
-- shellcheck
-  bin/cij_root
-  bin/cijoe
-  bin/nvm_prep
-  modules/*.sh
-  hooks/*.sh
-  testcases/*.sh
-- CIJ_ROOT=$(cij_root) cij_tlint
+- make selftest
+
+after_script:
+- find selftest_results -name "*.log" -exec cat {} \;
 
 deploy:
   provider: pypi
