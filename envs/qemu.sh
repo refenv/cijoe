@@ -59,11 +59,3 @@ export QEMU_NVME_MW_CUNITS=24
 if [[ -z "$NVME_DEV_NAME" ]]; then
   export NVME_DEV_NAME="nvme0n1"
 fi
-
-export LNVM_BGN=0
-export LNVM_END=$(( $QEMU_NVME_NUM_PU - 1 ))
-
-export PBLK_DEV_NAME="nvme0n1b000e00"$LNVM_END
-if [[ -z "$BLOCK_DEV_NAME" ]]; then
-  export BLOCK_DEV_NAME="nvme0n1b000e00"$LNVM_END
-fi
