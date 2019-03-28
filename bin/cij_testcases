@@ -45,9 +45,11 @@ def construct_dset(evars):
         tcase["descr_long"] = descr_long
 
         dset[group].append(tcase)
-        dset[group].sort()
 
     dset["group_names"].sort()
+
+    for group in dset["group_names"]:
+        dset[group] = sorted(dset[group], key=lambda k: k.get("name", ""))
 
     return dset
 
