@@ -55,7 +55,7 @@ def parse_args():
     """Parse command-line arguments and evars for cij_testcases"""
 
     evars = cij.paths_from_env("CIJ", ["TEMPLATES", "TESTCASES"])
-    for key, val in evars.iteritems():
+    for key, val in evars.items():
         if val is None:
             cij.err(
                 "rprtr: failed parsing environment variable 'CIJ_%s'" %
