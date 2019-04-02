@@ -49,17 +49,6 @@ release-upload:
 release: clean release-build release-upload
 	@echo -n "# rel: "; date
 
-.PHONY: docs-view
-docs-view:
-	xdg-open $(DOC_BUILD_DIR)/docs/sphinx/html/index.html
-
-# Produce the sphinx stuff
-.PHONY: docs
-docs:
-	@mkdir -p $(DOC_BUILD_DIR)/docs/sphinx/html
-	@mkdir -p $(DOC_BUILD_DIR)/docs/sphinx/pdf
-	sphinx-build -b html -E docs $(DOC_BUILD_DIR)/docs/sphinx/html
-
 .PHONY: selftest
 selftest:
 	@rm -r selftest_results || true
