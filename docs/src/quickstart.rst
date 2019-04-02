@@ -14,7 +14,7 @@ Or install it user-level:
 
 .. code-block:: bash
 
-  pip install cijoe
+  pip install --user cijoe
 
 .. note:: When doing user-level install, then include the :code:`pip` binary
   install path in your :code:`PATH` definition. For example

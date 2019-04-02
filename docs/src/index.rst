@@ -1,5 +1,5 @@
 ==================================================
- cijoe: Tools for systems development and testing
+ cijoe: tools for systems development and testing
 ==================================================
 
 ...
