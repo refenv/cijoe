@@ -10,6 +10,11 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+
+## v0.0.18
+
+* Nothing but the version number
+
 ## v0.0.17
 
 * Yet another bunch of fixes
