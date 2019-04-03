@@ -27,7 +27,7 @@ main() {
 
   cij_setup
 
-  pkg_sefltest="$1"
+  pkg_selftest="$1"
   open_reports="$2"
   res_dpath="$3"
 
@@ -37,6 +37,10 @@ main() {
   : "${tplan_fpath:=$CIJ_TESTPLANS/cijoe.plan}"
   rmdir "$res_dpath" || true
   mkdir "$res_dpath"
+
+  cij::info "# pkg_selftest: '$pkg_selftest'"
+  cij::info "# open_reports: '$open_reports'"
+  cij::info "# res_dpath: '$res_dpath'"
 
   cij::info "# res_dpath: '$res_dpath'"
   cij::info "# tplan_fpath: '$tplan_fpath'"

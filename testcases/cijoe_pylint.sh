@@ -14,6 +14,8 @@ export CIJ_TEST_NAME
 source "$CIJ_ROOT/modules/cijoe.sh"
 test::enter
 
+cij::info "CIJ_PKG_REPOS: 'CIJ_PKG_REPOS'"
+
 if [[ -z "$CIJ_PKG_REPOS" ]]; then
   test::fail "Please set 'CIJ_PKG_REPOS'"
 fi
