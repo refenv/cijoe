@@ -10,6 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.20
+
+* Selftest fix
+
 ## v0.0.19
 
 * Refined selftesting for reuse by cijoe packages
