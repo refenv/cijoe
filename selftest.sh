@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# selftest: running tests of CIJOE using CIJOE
+# selftest: running tests of CIJOE and CIJOE packages using CIJOE
 #
 # * Sources in CIJOE
 # * Creates local environment definition $res_dpath/selftest_env.sh
@@ -27,8 +27,9 @@ main() {
 
   cij_setup
 
-  open="$1"
-  res_dpath="$2"
+  pkg_sefltest="$1"
+  open_reports="$2"
+  res_dpath="$3"
 
   # Create directory to store results
   : "${res_dpath:=$(mktemp -d trun.XXXXXX -p /tmp)}"
@@ -43,7 +44,10 @@ main() {
 
   # Create the environment
   cat "$CIJ_ENVS/localhost.sh" > "$env_fpath"
-  echo "export CIJ_REPOS=\"$PWD\"" >> "$env_fpath"
+  echo "export CIJ_PKG_REPOS=\"$PWD\"" >> "$env_fpath"
+  if [[ $pkg_selftest -gt 0 ]]; then
+    echo "export SHELLCHECK_OPTS='--exclude=SC1091'" >> "$env_fpath"
+  fi
 
   # Start the runner
   if ! cij_runner "$tplan_fpath" "$env_fpath" --output "$res_dpath" -vvv; then
@@ -63,7 +67,7 @@ main() {
     res=$(( res + 1 ))
   fi
 
-  if [[ $open -gt 0 ]]; then
+  if [[ $open_reports -gt 0 ]]; then
     xdg-open "$res_dpath/testcases.html" &
     xdg-open "$res_dpath/report.html" &
   fi

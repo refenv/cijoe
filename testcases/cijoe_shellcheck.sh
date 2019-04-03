@@ -1,6 +1,9 @@
 #!/bin/bash
 #
-# Run shellcheck on CIJOE executable
+# Run shellcheck on shell scripts found in $CIJ_PKG_REPOS
+#
+# This testcase runs the 'shellcheck' tool on all shell script it can find in
+# $CIJ_PKG_REPOS. The intent is to use this on CIJOE as well as CIJOE packages.
 #
 # shellcheck disable=SC2119
 #
@@ -10,9 +13,10 @@ export CIJ_TEST_NAME
 source "$CIJ_ROOT/modules/cijoe.sh"
 test::enter
 
-: "${CIJ_REPOS:=./}"
-
-pushd "$CIJ_REPOS" || test::fail
+if [[ -z "$CIJ_PKG_REPOS" ]]; then
+  test::fail "Please set 'CIJ_PKG_REPOS'"
+fi
+pushd "$CIJ_PKG_REPOS" || test::fail "Invalid 'CIJ_PKG_REPOS'"
 
 paths=""
 for path in {bin,envs,hooks,testcases,modules}/*; do
@@ -24,6 +28,12 @@ for path in {bin,envs,hooks,testcases,modules}/*; do
     paths="$paths $path"
   fi
 done
+
+if [[ -z "$paths" ]]; then
+  cij::warn "No Python source to check"
+  popd || true
+  test::pass
+fi
 
 # shellcheck disable=SC2086
 if ! shellcheck $paths ; then

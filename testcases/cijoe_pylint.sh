@@ -1,6 +1,10 @@
 #!/bin/bash
 #
-# Run shellcheck on CIJOE executable
+# Run pylint on Python source code found in $CIJ_PKG_REPOS
+#
+# This testcase runs the Python language integrity on all the Python code it can
+# find it $CIJ_PKG_REPOS. The intent is to use this on CIJOE as well as CIJOE
+# packages.
 #
 # shellcheck disable=SC2119
 #
@@ -10,13 +14,13 @@ export CIJ_TEST_NAME
 source "$CIJ_ROOT/modules/cijoe.sh"
 test::enter
 
-: "${CIJ_REPOS:=./}"
+if [[ -z "$CIJ_PKG_REPOS" ]]; then
+  test::fail "Please set 'CIJ_PKG_REPOS'"
+fi
+pushd "$CIJ_PKG_REPOS" || test::fail "Invalid 'CIJ_PKG_REPOS'"
 
-pushd "$CIJ_REPOS" || test::fail
-
-paths="$CIJ_REPOS/modules/cij"
-paths="$paths $CIJ_REPOS/setup.py"
-for path in {bin,hooks,testcases}/*; do
+paths=""
+for path in {bin,hooks,testcases}/* "$CIJ_PKG_REPOS/modules/cij" "$CIJ_PKG_REPOS/setup.py"; do
   if [[ -d "$path" ]]; then
     continue
   fi
@@ -25,6 +29,12 @@ for path in {bin,hooks,testcases}/*; do
     paths="$paths $path"
   fi
 done
+
+if [[ -z "$paths" ]]; then
+  cij::warn "No Python source to check"
+  popd || true
+  test::pass
+fi
 
 # shellcheck disable=SC2086
 if ! pylint $paths ; then

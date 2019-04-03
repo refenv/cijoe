@@ -52,9 +52,9 @@ release: clean release-build release-upload
 .PHONY: selftest
 selftest:
 	@rm -r selftest_results || true
-	./selftest.sh 0 selftest_results
+	./selftest.sh 0 0 selftest_results
 
 .PHONY: selftest-view
 selftest-view:
 	@rm -r selftest_results || true
-	./selftest.sh 1 selftest_results
+	./selftest.sh 0 1 selftest_results
