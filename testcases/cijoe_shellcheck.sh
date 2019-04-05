@@ -33,7 +33,7 @@ for path in {bin,envs,hooks,testcases,modules}/*; do
 done
 
 if [[ -z "$paths" ]]; then
-  cij::warn "No Python source to check"
+  cij::warn "No SHELL source code to check"
   popd || true
   test::pass
 fi
