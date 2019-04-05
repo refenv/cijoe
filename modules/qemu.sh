@@ -65,6 +65,7 @@
 #
 # QEMU_NVME_ID          - Name of drive to simulate
 #                         Defaults to nvme0
+# QEMU_NVME_IMAGE_FPATH - Absolute path to the NVMe drive image
 # QEMU_NVME_MDTS        - Maximum Data Transfer Size. In units of the minimum
 #                         memory page size. Specified as 2**n.
 #                         DEFAULT: 7
@@ -168,6 +169,9 @@ qemu::env() {
   QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_sec$QEMU_NVME_NUM_SEC"
   QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_lbads$QEMU_NVME_LBADS"
   QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_ms$QEMU_NVME_MS"
+
+  QEMU_NVME_IMAGE_FPATH="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
+  export QEMU_NVME_IMAGE_FPATH
 
   return 0
 }
@@ -337,7 +341,7 @@ qemu::guest_nvme_exists() {
     return 1
   fi
 
-  qemu::hostcmd "[[ -f "$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img" ]]"
+  qemu::hostcmd "[[ -f $QEMU_NVME_IMAGE_FPATH ]]"
   return $?
 }
 
@@ -347,7 +351,6 @@ qemu::guest_nvme_create() {
     return 1
   fi
 
-  local name="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
   local opts="num_ns=1"
   opts="$opts,num_grp=$QEMU_NVME_NUM_GRP"
   opts="$opts,num_pu=$QEMU_NVME_NUM_PU"
@@ -360,7 +363,7 @@ qemu::guest_nvme_create() {
   opts="$opts,mw_cunits=$QEMU_NVME_MW_CUNITS"
 
   cij::info "Creating ocssd backing file"
-  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f ocssd -o $opts $name"; then
+  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f ocssd -o $opts $QEMU_NVME_IMAGE_FPATH"; then
     cij::err "qemu::guest_nvme_create: failed"
     return 1
   fi
@@ -380,11 +383,18 @@ qemu::guest_nvme_config() {
     return 1
   fi
 
-  local ocssd_img="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
+  QEMU_ARGS_NVME=""
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -blockdev ocssd"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,node-name=drive_$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,discard=unmap"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,detect-zeroes=unmap"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.driver=file"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.filename=$QEMU_NVME_IMAGE_FPATH"
 
-  QEMU_ARGS_NVME=
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -blockdev ocssd,node-name=drive_$QEMU_NVME_ID,discard=unmap,detect-zeroes=unmap,file.driver=file,file.filename=$ocssd_img"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme,drive=drive_$QEMU_NVME_ID,serial=deadbeef,id=$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,drive=drive_$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,serial=deadbeef"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,id=$QEMU_NVME_ID"
 
   : "${QEMU_NVME_MDTS:=}"
   : "${QEMU_NVME_MS:=}"
