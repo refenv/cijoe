@@ -10,6 +10,12 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.21
+
+* selftest: fixed warning-message
+* mod/qemu: fixed return of 'qemu::is_running' and added 'qemu::wait'
+* mod/qemu: exported path to NVMe/OCSSD device via QEMU_NVME_IMAGE_FPATH
+
 ## v0.0.20
 
 * Selftest fix
