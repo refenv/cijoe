@@ -18,6 +18,7 @@
 # qemu::host_push               - ?
 # qemu::provision_kernel        - ?
 # qemu::is_running              - ?
+# qemu::is_wait                 - Wait for QEMU to stop running
 # qemu::guest_nvme_dev_del      - ?
 # qemu::guest_nvme_exists       - ?
 # qemu::guest_nvme_create       - ?
@@ -260,7 +261,7 @@ qemu::is_running() {
 
   if ! qemu::hostcmd "[[ -f \"$QEMU_GUEST_PIDFILE\" ]]"; then
     cij::info "qemu::is_running: no pidfile, assuming it is not running"
-    return 0
+    return 1
   fi
 
   PID=""
@@ -271,16 +272,37 @@ qemu::is_running() {
 
   if [[ -z "$PID" ]]; then
     cij::info "qemu::is_running: no qemu/pid($PID), probably not running"
-    return 0
+    return 1
   fi
 
   if qemu::hostcmd "ps -p \"$PID\" > /dev/null"; then
     cij::info "qemu::is_running: qemu/pid($PID) seems to be running"
-    return 1
+    return 0
   else
     cij::info "qemu::is_running: qemu/pid($PID) does not seem to be running"
-    return 0
+    return 1
   fi
+}
+
+# Wait for qemu to stop running, or fail trying...
+qemu::wait() {
+  if ! qemu::env; then
+    cij::err "qemu::wait: env failed"
+    return 1
+  fi
+
+  local timeout=$1
+  local count=0
+
+  while qemu::is_running; do
+    sleep 1
+    count=$(( count + 1))
+    if [[ -n "$timeout" && "$count" -gt "$timeout" ]]; then
+      break
+    fi
+  done
+
+  return 0
 }
 
 qemu::poweroff() {
@@ -458,7 +480,7 @@ qemu::run() {
     return 1
   fi
 
-  if ! qemu::is_running; then
+  if qemu::is_running; then
     cij::err "qemu::run: looks like qemu is already running"
     return 1
   fi
