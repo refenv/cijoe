@@ -10,6 +10,12 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.23
+
+* `bin/cij_runner`: added primitive interrupt handler
+* hooks: fixed invalid error-messaging
+* testcases/tlint: fixed description
+
 ## v0.0.22
 
 * mod/fio: fixed showcmd for remote fio
