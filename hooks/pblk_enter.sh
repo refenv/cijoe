@@ -2,6 +2,8 @@
 #
 # Create and remove a PBLK instance
 #
+# Requires that the environment satisfies the nvme module
+#
 # hook-enter: create the PBLK instance
 # hook-exit: remove the PBLK instance
 #
