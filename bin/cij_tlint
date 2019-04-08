@@ -110,6 +110,23 @@ def tplans_format(ident, roots, fnames):
     return violations
 
 
+def tplan_testcases_exists(tp_fname, ident, fnames, tcase_fnames):
+    """
+    @returns list of violation messages for this check
+    """
+
+    violations = []
+
+    for tcase_fname in tcase_fnames:
+        if tcase_fname not in fnames["TCASES"]:
+            violations.append(MESSAGES[ident] % (
+                tp_fname,
+                "use of non-extent testcase(%s)" % tcase_fname
+            ))
+
+    return violations
+
+
 def tplans_content(ident, roots, fnames):
     """
     @returns list of violations messages for this check
@@ -185,6 +202,10 @@ def tplans_content(ident, roots, fnames):
                     tp_fname,
                     "testsuite: no testcases defined" % suite["name"]
                 ))
+
+            violations += tplan_testcases_exists(
+                tp_fname, ident, fnames, suite.get("testcases", [])
+            )
 
         for hname in set(hooks):        # Check for existence of hooks
             if not sum(tmpl % hname in fnames["HOOKS"] for tmpl in [
