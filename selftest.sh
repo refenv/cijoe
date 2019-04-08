@@ -35,7 +35,7 @@ main() {
   : "${res_dpath:=$(mktemp -d trun.XXXXXX -p /tmp)}"
   : "${env_fpath:=$res_dpath/selftest_env.sh}"
   : "${tplan_fpath:=$CIJ_TESTPLANS/cijoe.plan}"
-  rmdir "$res_dpath" || true
+  rmdir "$res_dpath" || echo "Cannot remove => That is OK"
   mkdir "$res_dpath"
 
   cij::info "# pkg_selftest: '$pkg_selftest'"
