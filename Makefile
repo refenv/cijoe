@@ -19,7 +19,7 @@ install:
 
 .PHONY: uninstall
 uninstall:
-	pip uninstall ${PROJECT_NAME} --yes || true
+	pip uninstall ${PROJECT_NAME} --yes || echo "Cannot uninstall => That is OK"
 
 .PHONY: dev
 dev: uninstall install selftest-view
@@ -33,8 +33,9 @@ bump:
 
 .PHONY: clean
 clean:
-	@rm -r build || true
-	@rm -r dist || true
+	@rm -r build || echo "Cannot remove => That is OK"
+	@rm -r dist || echo "Cannot remove => That is OK"
+	@rm -r selftest_results || echo "Cannot remove => That is OK"
 
 .PHONY: release-build
 release-build:
@@ -51,10 +52,10 @@ release: clean release-build release-upload
 
 .PHONY: selftest
 selftest:
-	@rm -r selftest_results || true
+	@rm -r selftest_results || echo "Cannot remove => That is OK"
 	./selftest.sh 0 0 selftest_results
 
 .PHONY: selftest-view
 selftest-view:
-	@rm -r selftest_results || true
+	@rm -r selftest_results || echo "Cannot remove => That is OK"
 	./selftest.sh 0 1 selftest_results
