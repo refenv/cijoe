@@ -25,7 +25,7 @@ hook::spdk_enter() {
   fi
 
   if ! ssh::cmd "$SPDK_CMD"; then
-    cij:err "hook::spdk_enter: FAILED: setting up SPDK devices"
+    cij::err "hook::spdk_enter: FAILED: setting up SPDK devices"
     return 1
   fi
 

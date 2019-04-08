@@ -13,12 +13,12 @@ test::enter
 
 hook::pblk_trace_enter() {
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
-    cij:err "hook::pblk_trace_enter: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
+    cij::err "hook::pblk_trace_enter: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     return 1
   fi
 
   if ! pblk::trace_all; then
-    cij.warn "hook::pblk_trace_enter: FAILED err: '$?'"
+    cij::warn "hook::pblk_trace_enter: FAILED err: '$?'"
     return 1
   fi
 

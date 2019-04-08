@@ -19,7 +19,7 @@ test::enter
 hook::sysinf_enter() {
 
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
-    cij:err "hook::sysinf: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
+    cij::err "hook::sysinf: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     return 1
   fi
 
@@ -28,37 +28,37 @@ hook::sysinf_enter() {
   ssh::cmd_output "cat /proc/cpuinfo" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_cpu.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_enter: FAILED: getting CPU info."
+    cij::err "hook::sysinf_enter: FAILED: getting CPU info."
   fi
 
   ssh::cmd_output "free -m" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_mem.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_enter: FAILED: getting MEM. info."
+    cij::err "hook::sysinf_enter: FAILED: getting MEM. info."
   fi
 
   ssh::cmd_output "lshw" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_hw.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_enter: FAILED: getting HW info."
+    cij::err "hook::sysinf_enter: FAILED: getting HW info."
   fi
 
   ssh::cmd_output "uname -a" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_uname.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_enter: FAILED: getting kernel info."
+    cij::err "hook::sysinf_enter: FAILED: getting kernel info."
   fi
 
   ssh::cmd_output "cat /etc/lsb-release" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_os.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_enter: FAILED: getting kernel info."
+    cij::err "hook::sysinf_enter: FAILED: getting kernel info."
   fi
 
   ssh::cmd_output "( set -o posix ; set )" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_env.txt"
   HOOK_RES=$(( HOOK_RES + $? ))
   if [[ $HOOK_RES -ne 0 ]]; then
-    cij:err "hook::sysinf_env: FAILED: getting kernel info."
+    cij::err "hook::sysinf_env: FAILED: getting kernel info."
   fi
 
   return $HOOK_RES

@@ -14,7 +14,7 @@ test::enter
 
 hook::dmesg_enter() {
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
-    cij:err "hook::dmesg_enter: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
+    cij::err "hook::dmesg_enter: FAILED: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     return 1
   fi
 

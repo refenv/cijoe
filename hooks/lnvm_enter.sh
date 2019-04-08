@@ -14,7 +14,7 @@ test::enter
 
 hook::lnvm_enter () {
   if ! lnvm::create; then
-    cij:err "hook::lnvm_enter: FAILED: lnvm::create"
+    cij::err "hook::lnvm_enter: FAILED: lnvm::create"
     return 1
   fi
 

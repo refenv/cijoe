@@ -18,7 +18,7 @@ hook::pblk_enter() {
   export LNVM_DEV_TYPE="pblk"
 
   if ! lnvm::create; then
-    cij:err "hook::pblk_enter: lnvm::create: FAILED"
+    cij::err "hook::pblk_enter: lnvm::create: FAILED"
     return 1
   fi
 

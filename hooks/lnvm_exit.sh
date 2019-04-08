@@ -14,7 +14,7 @@ test::enter
 
 hook::lnvm_exit () {
   if ! lnvm::remove; then
-    cij:err "hook::lnvm_exit: lnvm::remove FAILED"
+    cij::err "hook::lnvm_exit: lnvm::remove FAILED"
     return 1
   fi
 

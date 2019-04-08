@@ -15,7 +15,7 @@ test::enter
 hook::spdk_exit() {
 
   if ! ssh::cmd "$SPDK_HOME/scripts/setup.sh reset"; then
-    cij:err "hook::spdk_enter: FAILED: setting up SPDK devices"
+    cij::err "hook::spdk_enter: FAILED: setting up SPDK devices"
     return 1
   fi
 

@@ -13,12 +13,12 @@ test::enter
 
 hook::pblk_recov_all_exit() {
   if ! lnvm::remove; then
-    cij:err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
+    cij::err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
     return 1
   fi
 
   if ! lnvm::recover; then
-    cij:err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
+    cij::err "hook::pblk_recov_all_exit: lnvm::remove FAILED"
     return 1
   fi
 

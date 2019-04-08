@@ -14,7 +14,7 @@ test::enter
 
 hook::pblk_exit() {
   if ! lnvm::remove; then
-    cij:err "hook::pblk_exit: lnvm::remove FAILED"
+    cij::err "hook::pblk_exit: lnvm::remove FAILED"
     return 1
   fi
 
