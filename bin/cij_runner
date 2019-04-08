@@ -98,4 +98,9 @@ def main():
     return rcode
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except (KeyboardInterrupt) as exc:
+        cij.err("rnr: unclean exit; killed by keyboard-interrupt e.g. Ctrl+C")
+        cij.warn("rnr: Reboot the target before running again")
+        cij.warn("rnr: Remove the CIJOE_LOCK before running again")
