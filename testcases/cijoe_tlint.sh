@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Run shellcheck on CIJOE executable
+# Run `cij_tlint` to verify testplans
 #
 # shellcheck disable=SC2119
 #
