@@ -10,6 +10,15 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## v0.0.22
+
+* mod/fio: fixed showcmd for remote fio
+* hooks/pblk: added comment on requirements
+* docs: added placeholder for descr. of packages
+* selftest: changed messaging on error to reduce confusion
+* build: changed messaging on error to reduce confusion
+* `bin/cij_tlint`: fixed missing use-of-nonexistant check
+
 ## v0.0.21
 
 * selftest: fixed warning-message
