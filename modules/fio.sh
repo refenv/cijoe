@@ -198,21 +198,32 @@ fio::run_jobfile() {
     return 1
   fi
 
-  SHOWCMD=$($FIO_BIN --showcmd "$FIO_JOBFILE")    # Grab arguments from file
-  SHOWCMD=${SHOWCMD#*fio}                       # Remove "fio" from cmd-string
+  local fio_jobfile_fname
+  fio_jobfile_fname=$(basename "$FIO_JOBFILE")
+
+  cij::emph "fio_jobfile_fname: '$fio_jobfile_fname'"
+
+  local show_cmd=""                                     # Grab args. from file
+  if [[ $FIO_SSH -eq 1 ]]; then
+    local remote_fname
+
+    remote_fname=$(ssh::cmd_output tempfile)
+    cij::emph "remote_fname: '$remote_fname'"
+    ssh::push "$FIO_JOBFILE" "$remote_fname"
+    show_cmd=$(ssh::cmd_output "$FIO_BIN --showcmd $remote_fname")
+  else
+    show_cmd=$("$FIO_BIN --showcmd $FIO_JOBFILE")
+  fi
+  show_cmd=${show_cmd#*fio}                             # Remove "fio" from cmd
 
   FIO_ADRGS_EXTRA_BU="$FIO_ARGS_EXTRA"
-
-  FIO_ARGS_EXTRA="$FIO_ARGS_EXTRA $SHOWCMD"
-
-  FIO_JOBFILE_NAME=$(basename "$FIO_JOBFILE")
-  cij::emph "FIO_JOBFILE_NAME: '$FIO_JOBFILE_NAME'"
+  FIO_ARGS_EXTRA="$FIO_ARGS_EXTRA $show_cmd"
 
   fio::run
-  RCODE="$?"
+  local rcode="$?"
 
   FIO_ARGS_EXTRA="$FIO_ADRGS_EXTRA_BU"
 
-  return $RCODE
+  return $rcode
 }
 
