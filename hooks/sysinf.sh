@@ -23,45 +23,50 @@ hook::sysinf_enter() {
     return 1
   fi
 
-  HOOK_RES=0
+  local res=0
 
-  ssh::cmd_output "cat /proc/cpuinfo" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_cpu.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "cat /proc/cpuinfo" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_cpu.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_enter: FAILED: getting CPU info."
   fi
 
-  ssh::cmd_output "free -m" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_mem.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "free -m" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_mem.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_enter: FAILED: getting MEM. info."
   fi
 
-  ssh::cmd_output "lshw" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_hw.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "lshw" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_hw.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_enter: FAILED: getting HW info."
   fi
 
-  ssh::cmd_output "uname -a" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_uname.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "uname -a" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_uname.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_enter: FAILED: getting kernel info."
   fi
 
-  ssh::cmd_output "cat /etc/lsb-release" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_os.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "cat /etc/lsb-release" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_os.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_enter: FAILED: getting kernel info."
   fi
 
-  ssh::cmd_output "( set -o posix ; set )" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_env.txt"
-  HOOK_RES=$(( HOOK_RES + $? ))
-  if [[ $HOOK_RES -ne 0 ]]; then
+  if ! ssh::cmd_output "( set -o posix ; set )" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_env.txt"; then
+    res=$(( res + 1 ))
     cij::err "hook::sysinf_env: FAILED: getting kernel info."
   fi
 
-  return $HOOK_RES
+  if ! ssh::cmd_output "[[ -r '/proc/config.gz' ]] && zcat /proc/config.gz || echo 'MISSING: CONFIG_IKCONFIG=y'" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_kiconfig.txt"; then
+    res=$(( res + 1 ))
+    cij::err "hook::sysinf_env: FAILED: getting /proc/config.gz"
+  fi
+
+  uname=$(ssh::cmd_output "uname -r")
+  if ! ssh::cmd_output "[[ -r /boot/config-$uname ]] && cat /boot/config-$uname || echo 'MISSING: /boot/config-*'" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_kbconfig.txt"; then
+    res=$(( res + 1 ))
+    cij:: "hook::sysinf_env: FAILED: getting /boot/config-*"
+  fi
+
+  return $res
 }
 
 hook::sysinf_enter
