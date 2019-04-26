@@ -3,7 +3,7 @@
 # QEMU environment skeleton
 #
 # The SSH configuration is overwritten such that everything using the "ssh::"
-# module will be targeted towards the QEMU guest and to access the QEMU host and
+# module will be targeted towards the QEMU guest. To access the QEMU host an
 # explicit "QEMU_HOST" and utility functions are provided by the "qemu::" module
 #
 
@@ -20,7 +20,7 @@
 # QEMU definitions
 #
 
-qemu_bin_root="/opt/qemu-nvme/bin"
+qemu_bin_root="/opt/qemu/bin"
 export QEMU_BIN="$qemu_bin_root/qemu-system-x86_64"
 export QEMU_IMG_BIN="$qemu_bin_root/qemu-img"
 export QEMU_GUESTS="/opt/qemu-guests"
@@ -34,27 +34,33 @@ export QEMU_GUEST_MEM="4G"
 #export QEMU_GUEST_KERNEL="$QEMU_GUEST_PATH/bzImage"
 #export QEMU_GUEST_APPEND="net.ifnames=0 biosdevname=0"
 
-# OCSSD: Define a virtual Open-Channel SSD
-export QEMU_NVME_ID="cij_nvme"
+# Define id
+export QEMU_DEV_ID="cij_nvme"
+
+# NVME: Image file size
+export QEMU_NVME_IMAGE_SIZE="8G"
+
+# OCSSD: Set to enable OCSSD
+#export QEMU_OCSSD=1
 
 # OCSSD: Geometry
-export QEMU_NVME_NUM_GRP=2
-export QEMU_NVME_NUM_PU=4
-export QEMU_NVME_NUM_CHK=60
-export QEMU_NVME_NUM_SEC=4096
-export QEMU_NVME_LBADS=4096
-export QEMU_NVME_MS=16
+export QEMU_OCSSD_NUM_GRP=2
+export QEMU_OCSSD_NUM_PU=4
+export QEMU_OCSSD_NUM_CHK=60
+export QEMU_OCSSD_NUM_SEC=4096
+export QEMU_OCSSD_LBADS=4096
+export QEMU_OCSSD_MS=16
 #export QEMU_NVME_MDTS=7
 
 # OCSSD: constraints
-export QEMU_NVME_WS_MIN=4
-export QEMU_NVME_WS_OPT=8
-export QEMU_NVME_MW_CUNITS=24
+export QEMU_OCSSD_WS_MIN=4
+export QEMU_OCSSD_WS_OPT=8
+export QEMU_OCSSD_MW_CUNITS=24
 
 # OCSSD: error-injection
-#export QEMU_NVME_CHUNKTABLE="$CIJ_ROOT/testfiles/qemu/chunktable.qemu"
-#export QEMU_NVME_RESETFAIL="$CIJ_ROOT/testfiles/qemu/resetfail.qemu"
-#export QEMU_NVME_WRITEFAIL="$CIJ_ROOT/testfiles/qemu/writefail.qemu"
+#export QEMU_OCSSD_CHUNKTABLE="$CIJ_ROOT/testfiles/qemu/chunktable.qemu"
+#export QEMU_OCSSD_RESETFAIL="$CIJ_ROOT/testfiles/qemu/resetfail.qemu"
+#export QEMU_OCSSD_WRITEFAIL="$CIJ_ROOT/testfiles/qemu/writefail.qemu"
 
 if [[ -z "$NVME_DEV_NAME" ]]; then
   export NVME_DEV_NAME="nvme0n1"

@@ -11,7 +11,6 @@
 # qemu::env                     - Sets default vars for qemu wrapping
 # qemu::console                 - Displays guest console monitor
 # qemu::monitor                 - ?
-# qemu::guest_nvme_create       - Create a block-device for LightNVM
 #
 # qemu::hostcmd                 - ?
 # qemu::hostcmd_output          - ?
@@ -19,10 +18,8 @@
 # qemu::provision_kernel        - ?
 # qemu::is_running              - ?
 # qemu::is_wait                 - Wait for QEMU to stop running
-# qemu::guest_nvme_dev_del      - ?
-# qemu::guest_nvme_exists       - ?
-# qemu::guest_nvme_create       - ?
-# qemu::guest_nvme_config       - ?
+# qemu::guest_nvme_create       - Create a block-device for nvme emulation
+# qemu::guest_ocssd_create      - Create a block-device for ocssd emulation
 #
 # Guest configuration and QEMU arguments are managed via variables. Define them
 # as exported environment variables or make sure they are in scope.
@@ -60,37 +57,81 @@
 #   "file": Console output piped to file "QEMU_GUEST_PATH/console.out"
 #   "foo":  The SDL interface pops up.
 #
-# The QEMU_NVME_* environment variables defines the Open-Channel SSD device to
-# emulate. The drive will be backed by files storing data, various
-# error-injection files, and monitor.
+# The QEMU_DEV_* environment variables are common to nvme and ocssd devices.
 #
-# QEMU_NVME_ID          - Name of drive to simulate
+# The QEMU_NVME_* environment variables are used exclusively for nvme
+# emulation.
+#
+# The QEMU_OCSSD_* environment variables are used exclusively for ocssd
+# emulation.
+#
+# QEMU_DEV_ID           - Name of drive to simulate
 #                         Defaults to nvme0
-# QEMU_NVME_IMAGE_FPATH - Absolute path to the NVMe drive image
-# QEMU_NVME_MDTS        - Maximum Data Transfer Size. In units of the minimum
+# QEMU_DEV_IMAGE_FPATH  - Absolute path to the NVMe drive image
+# QEMU_DEV_MDTS         - Maximum Data Transfer Size. In units of the minimum
 #                         memory page size. Specified as 2**n.
 #                         DEFAULT: 7
-# QEMU_NVME_NUM_GRP     - Number of groups
+#
+# QEMU_NVME_IMAGE_SIZE  - Size of NVMe drive image
+#                         Default: "8G"
+#
+# QEMU_OCSSD_NUM_GRP    - Number of groups
 #                         DEFAULT: 2
-# QEMU_NVME_NUM_PU      - Number of parallel units per group
+# QEMU_OCSSD_NUM_PU     - Number of parallel units per group
 #                         DEFAULT: 4
-# QEMU_NVME_NUM_CHK     - Number of chunks per parallel unit
+# QEMU_OCSSD_NUM_CHK    - Number of chunks per parallel unit
 #                         DEFAULT: 60
-# QEMU_NVME_NUM_SEC     - Number of sectors per chunk
+# QEMU_OCSSD_NUM_SEC    - Number of sectors per chunk
 #                         DEFAULT: 4096
-# QEMU_NVME_LBADS       - LBA data size (LBADS)
+# QEMU_OCSSD_LBADS      - LBA data size (LBADS)
 #                         DEFAULT: 4096
-# QEMU_NVME_MS          - Meta-data size (MS)
-#                       - DEFAULT: 16
-# QEMU_NVME_WS_MIN      - Minimum write size, in sectors
+# QEMU_OCSSD_MS         - Meta-data size (MS)
+#                         DEFAULT: 16
+# QEMU_OCSSD_WS_MIN     - Minimum write size, in sectors
 #                         DEFAULT: 4
-# QEMU_NVME_WS_OPT      - Optimal write size
+# QEMU_OCSSD_WS_OPT     - Optimal write size
 #                         DEFAULT: 8
-# QEMU_NVME_MW_CUNITS   - Cache minimum write size units
+# QEMU_OCSSD_MW_CUNITS  - Cache minimum write size units
 #                         DEFAULT: 24
-# QEMU_NVME_CHUNKTABLE  - Chunk status table file
-# QEMU_NVME_RESETFAIL   - Reset fail configuration file
-# QEMU_NVME_WRITEFAIL   - Write fail configuration file
+# QEMU_OCSSD_CHUNKINFO  - Chunk info configuration file
+# QEMU_OCSSD_RESETFAIL  - Reset fail configuration file
+# QEMU_OCSSD_WRITEFAIL  - Write fail configuration file
+
+qemu::env_ocssd() {
+  : "${QEMU_OCSSD_NUM_GRP:=2}"
+  : "${QEMU_OCSSD_NUM_CHK:=60}"
+  : "${QEMU_OCSSD_NUM_PU:=4}"
+  : "${QEMU_OCSSD_NUM_SEC:=4096}"
+  : "${QEMU_OCSSD_LBADS:=4096}"
+  : "${QEMU_OCSSD_MS:=16}"
+  : "${QEMU_OCSSD_WS_MIN:=4}"
+  : "${QEMU_OCSSD_WS_OPT:=8}"
+  : "${QEMU_OCSSD_CUNITS:=24}"
+
+  if [[ -n "$QEMU_OCSSD_CHUNKINFO" && ! -f "$QEMU_OCSSD_CHUNKINFO" ]]; then
+    cij::err "qemu::env: QEMU_OCSSD_CHUNKINFO is set but file does not exist"
+    return 1
+  fi
+  if [[ -n "$QEMU_OCSSD_RESETFAIL" && ! -f "$QEMU_OCSSD_RESETFAIL" ]]; then
+    cij::err "qemu::env: QEMU_OCSSD_RESETFAIL is set but file does not exist"
+    return 1
+  fi
+  if [[ -n "$QEMU_OCSSD_WRITEFAIL" && ! -f "$QEMU_OCSSD_WRITEFAIL" ]]; then
+    cij::err "qemu::env: QEMU_OCSSD_WRITEFAIL is set but file does not exist"
+    return 1
+  fi
+
+  local qemu_ocssd_image="$QEMU_DEV_ID"
+  qemu_ocssd_image="$qemu_ocssd_image""_grp$QEMU_OCSSD_NUM_GRP"
+  qemu_ocssd_image="$qemu_ocssd_image""_pu$QEMU_OCSSD_NUM_PU"
+  qemu_ocssd_image="$qemu_ocssd_image""_chk$QEMU_OCSSD_NUM_CHK"
+  qemu_ocssd_image="$qemu_ocssd_image""_sec$QEMU_OCSSD_NUM_SEC"
+  qemu_ocssd_image="$qemu_ocssd_image""_lbads$QEMU_OCSSD_LBADS"
+  qemu_ocssd_image="$qemu_ocssd_image""_ms$QEMU_OCSSD_MS"
+
+  QEMU_DEV_IMAGE_FPATH="$QEMU_GUEST_PATH/$qemu_ocssd_image.img"
+  export QEMU_DEV_IMAGE_FPATH
+}
 
 qemu::env() {
   if [[ -z "$QEMU_HOST" ]]; then
@@ -138,41 +179,15 @@ qemu::env() {
     QEMU_GUEST_CONSOLE_FILE="$QEMU_GUEST_PATH/console.out"
   fi
 
-  # set nvme defaults
-  : "${QEMU_NVME_ID:=cij_nvme}"
-  : "${QEMU_NVME_NUM_GRP:=2}"
-  : "${QEMU_NVME_NUM_CHK:=60}"
-  : "${QEMU_NVME_NUM_PU:=4}"
-  : "${QEMU_NVME_NUM_SEC:=4096}"
-  : "${QEMU_NVME_LBADS:=4096}"
-  : "${QEMU_NVME_MS:=16}"
-  : "${QEMU_NVME_WS_MIN:=4}"
-  : "${QEMU_NVME_WS_OPT:=8}"
-  : "${QEMU_NVME_CUNITS:=24}"
+  # set defaults
+  : "${QEMU_DEV_ID:=cij_nvme}"
 
-  if [[ -n "$QEMU_NVME_CHUNKTABLE" && ! -f "$QEMU_NVME_CHUNKTABLE" ]]; then
-    cij::err "qemu::env: QEMU_NVME_CHUNKTABLE is set but file does not exist"
-    return 1
+  if [[ -v QEMU_OCSSD ]]; then
+    qemu::env_ocssd
+  else
+    QEMU_DEV_IMAGE_FPATH="$QEMU_GUEST_PATH/${QEMU_DEV_ID}_sz${QEMU_NVME_IMAGE_SIZE}.img"
+    export QEMU_DEV_IMAGE_FPATH
   fi
-  if [[ -n "$QEMU_NVME_RESETFAIL" && ! -f "$QEMU_NVME_RESETFAIL" ]]; then
-    cij::err "qemu::env: QEMU_NVME_RESETFAIL is set but file does not exist"
-    return 1
-  fi
-  if [[ -n "$QEMU_NVME_WRITEFAIL" && ! -f "$QEMU_NVME_WRITEFAIL" ]]; then
-    cij::err "qemu::env: QEMU_NVME_WRITEFAIL is set but file does not exist"
-    return 1
-  fi
-
-  QEMU_NVME_IMAGE="$QEMU_NVME_ID"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_grp$QEMU_NVME_NUM_GRP"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_pu$QEMU_NVME_NUM_PU"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_chk$QEMU_NVME_NUM_CHK"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_sec$QEMU_NVME_NUM_SEC"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_lbads$QEMU_NVME_LBADS"
-  QEMU_NVME_IMAGE="$QEMU_NVME_IMAGE""_ms$QEMU_NVME_MS"
-
-  QEMU_NVME_IMAGE_FPATH="$QEMU_GUEST_PATH/$QEMU_NVME_IMAGE.img"
-  export QEMU_NVME_IMAGE_FPATH
 
   return 0
 }
@@ -315,16 +330,6 @@ qemu::poweroff() {
   return $?
 }
 
-qemu::guest_nvme_dev_del() {
-  if ! qemu::env; then
-    cij::err "qemu::guest_nvme_dev_del: env failed"
-    return 1
-  fi
-
-  qemu::hostcmd "echo device_del lnvm | socat - UNIX-CONNECT:$QEMU_GUEST_MONITOR"
-  return $?
-}
-
 qemu::reset() {
   if ! qemu::env; then
     cij::err "qemu::reset: env failed"
@@ -357,14 +362,45 @@ qemu::console() {
   return $?
 }
 
-qemu::guest_nvme_exists() {
+qemu::guest_dev_exists() {
   if ! qemu::env; then
-    cij::err "qemu::guest_nvme_exists: failed"
+    cij::err "qemu::guest_dev_exists: failed"
     return 1
   fi
 
-  qemu::hostcmd "[[ -f $QEMU_NVME_IMAGE_FPATH ]]"
+  qemu::hostcmd "[[ -f $QEMU_DEV_IMAGE_FPATH ]]"
   return $?
+}
+
+qemu::guest_ocssd_create() {
+  if ! qemu::env; then
+    cij::err "qemu::guest_ocssd_create: failed"
+    return 1
+  fi
+
+  local opts="num_ns=1"
+  opts="$opts,num_grp=$QEMU_OCSSD_NUM_GRP"
+  opts="$opts,num_pu=$QEMU_OCSSD_NUM_PU"
+  opts="$opts,num_chk=$QEMU_OCSSD_NUM_CHK"
+  opts="$opts,num_sec=$QEMU_OCSSD_NUM_SEC"
+  opts="$opts,sec_size=$QEMU_OCSSD_LBADS"
+  opts="$opts,md_size=$QEMU_OCSSD_MS"
+  opts="$opts,ws_min=$QEMU_OCSSD_WS_MIN"
+  opts="$opts,ws_opt=$QEMU_OCSSD_WS_OPT"
+  opts="$opts,mw_cunits=$QEMU_OCSSD_MW_CUNITS"
+
+  cij::info "Creating ocssd backing file"
+  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f ocssd -o $opts $QEMU_DEV_IMAGE_FPATH"; then
+    cij::err "qemu::guest_ocssd_create: failed"
+    return 1
+  fi
+
+  if ! qemu::hostcmd "sync"; then
+    cij::err "qemu::guest_ocssd_create: failed"
+    return 1
+  fi
+
+  return 0
 }
 
 qemu::guest_nvme_create() {
@@ -373,19 +409,8 @@ qemu::guest_nvme_create() {
     return 1
   fi
 
-  local opts="num_ns=1"
-  opts="$opts,num_grp=$QEMU_NVME_NUM_GRP"
-  opts="$opts,num_pu=$QEMU_NVME_NUM_PU"
-  opts="$opts,num_chk=$QEMU_NVME_NUM_CHK"
-  opts="$opts,num_sec=$QEMU_NVME_NUM_SEC"
-  opts="$opts,sec_size=$QEMU_NVME_LBADS"
-  opts="$opts,md_size=$QEMU_NVME_MS"
-  opts="$opts,ws_min=$QEMU_NVME_WS_MIN"
-  opts="$opts,ws_opt=$QEMU_NVME_WS_OPT"
-  opts="$opts,mw_cunits=$QEMU_NVME_MW_CUNITS"
-
-  cij::info "Creating ocssd backing file"
-  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f ocssd -o $opts $QEMU_NVME_IMAGE_FPATH"; then
+  cij::info "Creating nvme backing file"
+  if ! qemu::hostcmd "$QEMU_IMG_BIN create -f raw $QEMU_DEV_IMAGE_FPATH $QEMU_NVME_IMAGE_SIZE"; then
     cij::err "qemu::guest_nvme_create: failed"
     return 1
   fi
@@ -398,8 +423,21 @@ qemu::guest_nvme_create() {
   return 0
 }
 
+qemu::guest_dev_create() {
+  if ! qemu::env; then
+    cij::err "qemu::guest_dev_create: failed"
+    return 1
+  fi
+
+  if [[ -v QEMU_OCSSD ]]; then
+    qemu::guest_ocssd_create
+  else
+    qemu::guest_nvme_create
+  fi
+}
+
 # Configure a virtual OCSSD 2.0 device
-qemu::guest_nvme_config() {
+qemu::guest_ocssd_config() {
   if ! qemu::env; then
     cij::err "qemu::env: failed"
     return 1
@@ -407,71 +445,102 @@ qemu::guest_nvme_config() {
 
   QEMU_ARGS_NVME=""
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME -blockdev ocssd"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,node-name=drive_$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,node-name=drive_$QEMU_DEV_ID"
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME,discard=unmap"
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME,detect-zeroes=unmap"
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.driver=file"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.filename=$QEMU_NVME_IMAGE_FPATH"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.filename=$QEMU_DEV_IMAGE_FPATH"
 
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,drive=drive_$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device ocssd"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,drive=drive_$QEMU_DEV_ID"
   QEMU_ARGS_NVME="$QEMU_ARGS_NVME,serial=deadbeef"
-  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,id=$QEMU_NVME_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,id=$QEMU_DEV_ID"
 
-  : "${QEMU_NVME_MDTS:=}"
+  : "${QEMU_DEV_MDTS:=}"
   : "${QEMU_NVME_MS:=}"
 
-  if [[ -n "$QEMU_NVME_MDTS" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mdts=$QEMU_NVME_MDTS"
+  if [[ -n "$QEMU_DEV_MDTS" ]]; then
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mdts=$QEMU_DEV_MDTS"
   fi
 
-  if [[ -n "$QEMU_NVME_DEBUG" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ldebug=$QEMU_NVME_DEBUG"
+  if [[ -n "$QEMU_OCSSD_WS_MIN" ]]; then
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ws_min=$QEMU_OCSSD_WS_MIN"
   fi
 
-  if [[ -n "$QEMU_NVME_WS_MIN" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lws_min=$QEMU_NVME_WS_MIN"
+  if [[ -n "$QEMU_OCSSD_WS_OPT" ]]; then
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ws_opt=$QEMU_OCSSD_WS_OPT"
   fi
 
-  if [[ -n "$QEMU_NVME_WS_OPT" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lws_opt=$QEMU_NVME_WS_OPT"
+  if [[ -n "$QEMU_OCSSD_WS_CUNITS" ]]; then
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mw_cunits=$QEMU_OCSSD_MW_CUNITS"
   fi
 
-  if [[ -n "$QEMU_NVME_WS_CUNITS" ]]; then
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lmw_cunits=$QEMU_NVME_MW_CUNITS"
-  fi
-
-  if [[ -n "$QEMU_NVME_CHUNKTABLE" ]]; then
-    QEMU_GUEST_CHUNKTABLE="$QEMU_GUEST_PATH/chunktable.txt"
-    qemu::hostcmd "[[ -f \"$QEMU_GUEST_CHUNKTABLE\" ]] && rm \"$QEMU_GUEST_CHUNKTABLE\""
-    if ! qemu::host_push "$QEMU_NVME_CHUNKTABLE" "$QEMU_GUEST_PATH/chunktable.txt"; then
-      cij::err "qemu::config_guest_nvme failed"
+  if [[ -n "$QEMU_OCSSD_CHUNKINFO" ]]; then
+    local qemu_guest_chunkinfo="$QEMU_GUEST_PATH/chunkinfo"
+    qemu::hostcmd "rm -f $qemu_guest_chunkinfo"
+    if ! qemu::host_push "$QEMU_OCSSD_CHUNKINFO" "$QEMU_GUEST_PATH/chunkinfo"; then
+      cij::err "qemu::guest_ocssd_config failed"
       return 1
     fi
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lchunkstate=$QEMU_GUEST_CHUNKTABLE"
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,chunkinfo=$qemu_guest_chunkinfo"
   fi
 
-  if [[ -n "$QEMU_NVME_RESETFAIL" ]]; then
-    QEMU_GUEST_RESETFAIL="$QEMU_GUEST_PATH/resetfail.txt"
-    qemu::hostcmd "rm $QEMU_GUEST_RESETFAIL"
-    if ! qemu::host_push "$QEMU_NVME_RESETFAIL" "$QEMU_GUEST_RESETFAIL"; then
-      cij::err "qemu::config_guest_nvme failed"
+  if [[ -n "$QEMU_OCSSD_RESETFAIL" ]]; then
+    local qemu_guest_resetfail="$QEMU_GUEST_PATH/resetfail"
+    qemu::hostcmd "rm -f $qemu_guest_resetfail"
+    if ! qemu::host_push "$QEMU_OCSSD_RESETFAIL" "$qemu_guest_resetfail"; then
+      cij::err "qemu::guest_ocssd_config failed"
       return 1
     fi
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lresetfail=$QEMU_GUEST_RESETFAIL"
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,resetfail=$qemu_guest_resetfail"
   fi
 
-  if [[ -n "$QEMU_NVME_WRITEFAIL" ]]; then
-    QEMU_GUEST_RESETFAIL="$QEMU_GUEST_PATH/writefail.txt"
-    qemu::hostcmd "rm $QEMU_GUEST_WRITEFAIL"
-    if ! qemu::host_push "$QEMU_NVME_WRITEFAIL" "$QEMU_GUEST_WRITEFAIL"; then
-      cij::err "qemu::config_guest_nvme failed"
+  if [[ -n "$QEMU_OCSSD_WRITEFAIL" ]]; then
+    local qemu_guest_writefail="$QEMU_GUEST_PATH/writefail"
+    qemu::hostcmd "rm -f $qemu_guest_writefail"
+    if ! qemu::host_push "$QEMU_OCSSD_WRITEFAIL" "$qemu_guest_writefail"; then
+      cij::err "qemu::guest_ocssd_config failed"
       return 1
     fi
-    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,lwritefail=$QEMU_GUEST_WRITEFAIL"
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,writefail=$qemu_guest_writefail"
   fi
 
   return 0;
+}
+
+qemu::guest_nvme_config() {
+  if ! qemu::env; then
+    cij::err "qemu::env: failed"
+    return 1
+  fi
+
+  QEMU_ARGS_NVME=""
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -blockdev raw"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,node-name=drive_$QEMU_DEV_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,discard=unmap"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,detect-zeroes=unmap"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.driver=file"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,file.filename=$QEMU_DEV_IMAGE_FPATH"
+
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME -device nvme"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,drive=drive_$QEMU_DEV_ID"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,serial=deadbeef"
+  QEMU_ARGS_NVME="$QEMU_ARGS_NVME,id=$QEMU_DEV_ID"
+
+  return 0;
+}
+
+qemu::guest_dev_config() {
+  if ! qemu::env; then
+    cij::err "qemu::guest_dev_config: failed"
+    return 1
+  fi
+
+  if [[ -v QEMU_OCSSD ]]; then
+    qemu::guest_ocssd_config
+  else
+    qemu::guest_nvme_config
+  fi
 }
 
 qemu::run() {
@@ -491,14 +560,14 @@ qemu::run() {
     return 1
   fi
 
-  if [[ -n "$QEMU_NVME_ID" ]]; then
-    if ! qemu::guest_nvme_config; then
-      cij:err "qemu::run: failed: guest_nvme_config"
+  if [[ -n "$QEMU_DEV_ID" ]]; then
+    if ! qemu::guest_dev_config; then
+      cij:err "qemu::run: failed: guest_dev_config"
       return 1
     fi
-    if ! qemu::guest_nvme_exists; then
-      if ! qemu::guest_nvme_create; then
-        cij:err "qemu::run: failed: guest_nvme_create"
+    if ! qemu::guest_dev_exists; then
+      if ! qemu::guest_dev_create; then
+        cij:err "qemu::run: failed: guest_dev_create"
         return 1;
       fi
     fi
