@@ -14,7 +14,6 @@ Contents:
    envs.rst
    refenvs.rst
    qemu.rst
-   packages.rst
 
 Indices and tables
 ==================
