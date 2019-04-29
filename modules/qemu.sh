@@ -562,12 +562,12 @@ qemu::run() {
 
   if [[ -n "$QEMU_DEV_ID" ]]; then
     if ! qemu::guest_dev_config; then
-      cij:err "qemu::run: failed: guest_dev_config"
+      cij::err "qemu::run: failed: guest_dev_config"
       return 1
     fi
     if ! qemu::guest_dev_exists; then
       if ! qemu::guest_dev_create; then
-        cij:err "qemu::run: failed: guest_dev_create"
+        cij::err "qemu::run: failed: guest_dev_create"
         return 1;
       fi
     fi

@@ -42,7 +42,7 @@ nvme::env() {
   NVME_LNVM=1
 
   if ! NVME_LNVM_VERSION=$(ssh::cmd_output "cat $LNVM_SYSFS/version"); then
-    cij:err "nvme:env: FAILED - could not read sysfs version"
+    cij::err "nvme:env: FAILED - could not read sysfs version"
     return 1
   fi
 

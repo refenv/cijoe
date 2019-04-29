@@ -67,13 +67,13 @@ xfstests::prepare() {
   fi
 
   if ! fs::mount; then
-     cij:err "xfstests::prepare - Error mounting file system"
+     cij::err "xfstests::prepare - Error mounting file system"
      return 1
   fi
 
   if [[ -n "$XFSTESTS_SCRATCH_DIR" ]]; then
     if ! ssh::cmd "mkdir -p $XFSTESTS_SCRATCH_DIR"; then
-       cij:err "xfstests::prepare - failed to create scratch directory"
+       cij::err "xfstests::prepare - failed to create scratch directory"
        return 1
     fi
   fi
@@ -100,7 +100,7 @@ xfstests::cleanup() {
 
   if [[ -n "$XFSTESTS_SCRATCH_DIR" ]]; then
     if ! ssh::cmd "rmdir $XFSTESTS_SCRATCH_DIR"; then
-       cij:err "xfstests::cleanup: failed to remove scratch directory"
+       cij::err "xfstests::cleanup: failed to remove scratch directory"
        return 1
     fi
   fi
