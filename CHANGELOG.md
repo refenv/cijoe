@@ -10,6 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.25
+
+* mod/qemu: re-done to align with the NVMe/OCSSD support in `refenv/qemu`
+
 ## 0.0.24
 
 * hooks/sysinf: added collection of kernel config
