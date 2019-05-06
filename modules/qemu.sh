@@ -471,7 +471,7 @@ qemu::guest_ocssd_config() {
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,ws_opt=$QEMU_OCSSD_WS_OPT"
   fi
 
-  if [[ -n "$QEMU_OCSSD_WS_CUNITS" ]]; then
+  if [[ -n "$QEMU_OCSSD_MW_CUNITS" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mw_cunits=$QEMU_OCSSD_MW_CUNITS"
   fi
 
