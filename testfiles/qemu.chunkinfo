@@ -1,0 +1,14 @@
+# mark all chunks free
+ns=1 group=* punit=* chunk=* state=FREE type=SEQ pe_cycles=0
+
+# first chunk on all luns has type random
+ns=1 group=* punit=* chunk=0 type=RANDOM
+
+# add an open chunk
+ns=1 group=* punit=* chunk=1 state=OPEN type=SEQ wp=0x800
+
+# add a closed chunk
+ns=1 group=* punit=* chunk=2 state=CLOSED type=SEQ wp=0x1000
+
+# add an offline chunk
+ns=1 group=* punit=* chunk=3 state=OFFLINE type=SEQ

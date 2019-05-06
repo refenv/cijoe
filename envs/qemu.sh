@@ -57,10 +57,15 @@ export QEMU_OCSSD_WS_MIN=4
 export QEMU_OCSSD_WS_OPT=8
 export QEMU_OCSSD_MW_CUNITS=24
 
+# OCSSD: disallow early-reset
+export QEMU_OCSSD_EARLY_RESET=0
+
+# OCSSD: device state
+export QEMU_OCSSD_CHUNKINFO="$CIJ_TESTFILES/qemu.chunkinfo"
+
 # OCSSD: error-injection
-#export QEMU_OCSSD_CHUNKTABLE="$CIJ_ROOT/testfiles/qemu/chunktable.qemu"
-#export QEMU_OCSSD_RESETFAIL="$CIJ_ROOT/testfiles/qemu/resetfail.qemu"
-#export QEMU_OCSSD_WRITEFAIL="$CIJ_ROOT/testfiles/qemu/writefail.qemu"
+#export QEMU_OCSSD_RESETFAIL="$CIJ_TESTFILES/qemu.resetfail"
+#export QEMU_OCSSD_WRITEFAIL="$CIJ_TESTFILES/qemu.writefail"
 
 if [[ -z "$NVME_DEV_NAME" ]]; then
   export NVME_DEV_NAME="nvme0n1"

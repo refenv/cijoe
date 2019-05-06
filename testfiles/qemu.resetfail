@@ -1,0 +1,2 @@
+# Always fail resets for this chunk
+# ns=1 group=0 punit=3 chunk=0 prob=100

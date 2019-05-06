@@ -1,0 +1,2 @@
+# Always fail writes for this sector
+# ns=1 group=0 punit=3 chunk=0 sectr=53 prob=100
