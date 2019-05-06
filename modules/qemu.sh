@@ -93,6 +93,8 @@
 #                         DEFAULT: 8
 # QEMU_OCSSD_MW_CUNITS  - Cache minimum write size units
 #                         DEFAULT: 24
+# QEMU_OCSSD_EARLY_RESET- Allow reset of chunks in state "OPEN"
+#                         DEFAULT: true
 # QEMU_OCSSD_CHUNKINFO  - Chunk info configuration file
 # QEMU_OCSSD_RESETFAIL  - Reset fail configuration file
 # QEMU_OCSSD_WRITEFAIL  - Write fail configuration file
@@ -107,6 +109,7 @@ qemu::env_ocssd() {
   : "${QEMU_OCSSD_WS_MIN:=4}"
   : "${QEMU_OCSSD_WS_OPT:=8}"
   : "${QEMU_OCSSD_CUNITS:=24}"
+  : "${QEMU_OCSSD_EARLY_RESET:=true}"
 
   if [[ -n "$QEMU_OCSSD_CHUNKINFO" && ! -f "$QEMU_OCSSD_CHUNKINFO" ]]; then
     cij::err "qemu::env: QEMU_OCSSD_CHUNKINFO is set but file does not exist"
@@ -473,6 +476,10 @@ qemu::guest_ocssd_config() {
 
   if [[ -n "$QEMU_OCSSD_MW_CUNITS" ]]; then
     QEMU_ARGS_NVME="$QEMU_ARGS_NVME,mw_cunits=$QEMU_OCSSD_MW_CUNITS"
+  fi
+
+  if [[ -n "$QEMU_OCSSD_EARLY_RESET" ]]; then
+    QEMU_ARGS_NVME="$QEMU_ARGS_NVME,early_reset=$QEMU_OCSSD_EARLY_RESET"
   fi
 
   if [[ -n "$QEMU_OCSSD_CHUNKINFO" ]]; then
