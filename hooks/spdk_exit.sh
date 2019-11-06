@@ -13,9 +13,13 @@ test::require pci
 test::enter
 
 hook::spdk_exit() {
+  if [[ ! -v SPDK_HOME ]]; then
+    cij::err "hook::spdk_exit: FAILED: SPDK_HOME is not set"
+    return 1
+  fi
 
   if ! ssh::cmd "$SPDK_HOME/scripts/setup.sh reset"; then
-    cij::err "hook::spdk_enter: FAILED: setting up SPDK devices"
+    cij::err "hook::spdk_exit: FAILED: setting up SPDK devices"
     return 1
   fi
 

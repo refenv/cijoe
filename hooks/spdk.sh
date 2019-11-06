@@ -13,14 +13,19 @@ test::require ssh
 test::enter
 
 hook::spdk_enter() {
+  if [[ ! -v SPDK_HOME ]]; then
+    cij::err "hook::spdk_enter: FAILED: SPDK_HOME is unset"
+    return 1
+  fi
+
   SPDK_CMD="$SPDK_HOME/scripts/setup.sh"
-  if [[ -n "$HUGEMEM" ]]; then
+  if [[ -v HUGEMEM ]]; then
     SPDK_CMD="HUGEMEM=$HUGEMEM $SPDK_CMD"
   fi
-  if [[ -n "$NRHUGE" ]]; then
+  if [[ -v NRHUGE ]]; then
     SPDK_CMD="NRHUGE=$NRHUGE $SPDK_CMD"
   fi
-  if [[ -n "$HUGENODE" ]]; then
+  if [[ -v HUGENODE ]]; then
     SPDK_CMD="HUGENODE=$HUGENODE $SPDK_CMD"
   fi
 
