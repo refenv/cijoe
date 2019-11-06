@@ -27,20 +27,20 @@ test::usage() {
 }
 
 test::require() {
-  REQ=$1
-
-  if [[ -z "$REQ" ]]; then
-    test::exit 1 "test::require: invalid requirement '$REQ'"
+  if [[ -z ${1+x} ]]; then
+    test::exit 1 "test::require: missing argument"
   fi
 
-  if [[ -z "$CIJ_TEST_REQS" ]]; then
-    CIJ_TEST_REQS="$REQ"
-  else
-    CIJ_TEST_REQS="$CIJ_TEST_REQS $REQ"
-  fi
+  : "${CIJ_TEST_REQS:=ssh}"
+
+  CIJ_TEST_REQS="$CIJ_TEST_REQS $1"
+
+  export $CIJ_TEST_REQS
 }
 
 test::enter() {
+  test::require ssh
+
   if ! ssh::env; then
     test::usage
     test::fail "invalid SSH environment"
@@ -88,7 +88,7 @@ test::enter() {
   fi
 
   # If the testcase is not set, one is created
-  if [[ -z "$CIJ_TEST_ARB" ]]; then
+  if [[ ! -v CIJ_TEST_ARB || -z "$CIJ_TEST_ARB" ]]; then
     CIJ_TEST_ARB=$( rand_str )
   fi
   export CIJ_TEST_ARB
