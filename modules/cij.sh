@@ -18,6 +18,12 @@
 # cij::isint    - Determine whether given input is an integer
 #
 
+#
+# Uncomment below for strict-mode, note, this is not yet possible since CIJOE
+# was originally not implemented using the 'unofficial strict-mode'
+#
+#set -euo pipefail
+
 PR_EMPH_CC='\033[0;36m'
 PR_GOOD_CC='\033[0;32m'
 PR_WARN_CC='\033[0;33m'
@@ -26,6 +32,9 @@ PR_NC='\033[0m'
 
 : "${CIJ_ECHO_TIME_STAMP:=1}"
 export CIJ_ECHO_TIME_STAMP
+
+: "${CIJ_EMPH_DEFAULT:=}"
+export CIJ_EMPH_DEFAULT
 
 cij::info() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
