@@ -6,7 +6,7 @@
 # _aux/hook_sysinf_mem.txt      (free -m)
 # _aux/hook_sysinf_uname.txt    (uname -a)
 # _aux/hook_sysinf_hw.txt       (lshw)
-# _aux/hook_sysinf_os.txt       (/etc/lsb-release)
+# _aux/hook_sysinf_os.txt       (/etc/os-release)
 # _aux/hook_sysinf_env.txt      (shell variables)
 #
 CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
@@ -45,14 +45,14 @@ hook::sysinf_enter() {
     cij::err "hook::sysinf_enter: FAILED: getting kernel info."
   fi
 
-  if ! ssh::cmd_output "cat /etc/lsb-release" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_os.txt"; then
+  if ! ssh::cmd_output "cat /etc/os-release" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_os.txt"; then
     res=$(( res + 1 ))
-    cij::err "hook::sysinf_enter: FAILED: getting kernel info."
+    cij::err "hook::sysinf_enter: FAILED: getting OS release info."
   fi
 
   if ! ssh::cmd_output "( set -o posix ; set )" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_env.txt"; then
     res=$(( res + 1 ))
-    cij::err "hook::sysinf_env: FAILED: getting kernel info."
+    cij::err "hook::sysinf_env: FAILED: getting env.var. info."
   fi
 
   if ! ssh::cmd_output "[[ -r '/proc/config.gz' ]] && zcat /proc/config.gz || echo 'MISSING: CONFIG_IKCONFIG=y'" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_kiconfig.txt"; then
