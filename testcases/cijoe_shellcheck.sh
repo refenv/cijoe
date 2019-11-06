@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Run shellcheck on shell scripts found in $CIJ_PKG_REPOS
 #

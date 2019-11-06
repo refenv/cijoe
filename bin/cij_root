@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Outputs the best guess at CIJ_ROOT
 #
+set -euo pipefail
 
 CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")" || true; pwd)")
 

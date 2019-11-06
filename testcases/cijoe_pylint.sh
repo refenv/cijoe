@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Run pylint on Python source code found in $CIJ_PKG_REPOS
 #

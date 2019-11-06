@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 CIJ_TYPE=unknown
 CIJ_ROOT=$(dirname "$(cd "$(dirname "${0}")" || true; pwd)")
