@@ -112,7 +112,7 @@ source "$CIJ_MODULES/pblk.sh"
 # shellcheck source=modules/tftp.sh
 source "$CIJ_MODULES/tftp.sh"
 
-if [[ "$CIJ_TYPE" == "reposrun" ]]; then
+if [[ -v CIJ_TYPE ]] && [[ "$CIJ_TYPE" == "reposrun" ]]; then
   PATH=$PATH:$CIJ_ROOT/bin
   export PYTHONPATH=$PYTHONPATH:$CIJ_MODULES
 fi
