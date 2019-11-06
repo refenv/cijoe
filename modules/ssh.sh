@@ -32,34 +32,23 @@
 #                         * SSH_CMD_ECHO=0
 
 ssh::env() {
-  if [[ -n "$SSH_KEY" && ! -f "$SSH_KEY" ]]; then
+  if [[ -v SSH_KEY && -n "$SSH_KEY" && ! -f "$SSH_KEY" ]]; then
     cij::err "ssh::env: Invalid SSH_KEY($SSH_KEY)"
     return 1
   fi
 
-  # shellcheck disable=2153
-  if [[ -z "$SSH_HOST" ]]; then
-    cij::err "ssh::env: SSH_HOST is not set"
+  if [[ ! -v SSH_HOST || -z "$SSH_HOST" ]]; then
+    cij::err "ssh::env: SSH_HOST is not set or is empty"
     return 1
   fi
 
-  if [[ -z "$SSH_USER" ]]; then
-    SSH_USER=root
-  fi
-  if [[ -z "$SSH_PORT" ]]; then
-    SSH_PORT=22
-  fi
-  if [[ -z "$SSH_CMD_ECHO" ]]; then
-    SSH_CMD_ECHO=1
-  fi
-  if [[ -z "$SSH_CMD_TIME" ]]; then
-    SSH_CMD_TIME=1
-  fi
-  if [[ -z "$SSH_CMD_TIMEOUT" ]]; then
-    SSH_CMD_TIMEOUT=0
-  fi
+  : "${SSH_USER:=root}"
+  : "${SSH_PORT:=22}"
+  : "${SSH_CMD_ECHO:=1}"
+  : "${SSH_CMD_TIME:=1}"
+  : "${SSH_CMD_TIMEOUT:=0}"
 
-  if [[ $SSH_CMD_QUIET -eq 1 ]]; then
+  if [[ -v SSH_CMD_QUIET && $SSH_CMD_QUIET -eq 1 ]]; then
     SSH_CMD_ECHO=0
     SSH_CMD_TIME=0
   fi
@@ -89,19 +78,25 @@ ssh::cmd() {
   fi
 
   SSH_CMD_ARGS=""                                       # SSH KEY
-  if [[ -n "$SSH_KEY" ]]; then
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then
     SSH_CMD_ARGS="$SSH_CMD_ARGS -i $SSH_KEY"
   fi
 
-  if [[ -n "$SSH_PORT" ]]; then                       # SSH PORT
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then           # SSH PORT
     SSH_CMD_ARGS="$SSH_CMD_ARGS -p $SSH_PORT"
   fi
 
   SSH_CMD_ARGS="$SSH_CMD_ARGS $SSH_USER@$SSH_HOST"      # SSH USER and HOST
 
-  SSH_CMD="$SSH_BIN $SSH_EXTRA_ARGS $SSH_CMD_ARGS '$1'" # SSH command
+  # Construct ssh-command
+  SSH_CMD="$SSH_BIN"
+  if [[ -v SSH_EXTRA_ARGS ]]; then
+    SSH_CMD="$SSH_CMD $SSH_EXTRA_ARGS"
+  fi
+  SSH_CMD="$SSH_CMD $SSH_CMD_ARGS"
+  SSH_CMD="$SSH_CMD '$1'"
 
-  if [[ $SSH_CMD_ECHO -eq 1 ]]; then                    # SSH print CMD
+  if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then # SSH print CMD
     cij::emph "ssh:cmd: $SSH_CMD"
   fi
 
@@ -173,10 +168,10 @@ ssh::push() {
   fi
 
   SCP_CMD_ARGS=""
-  if [[ -n "$SSH_PORT" ]]; then
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
   fi
-  if [[ -n "$SSH_KEY" ]]; then
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
