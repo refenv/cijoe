@@ -60,7 +60,7 @@ cij::err() {
 }
 
 cij::emph() {
-  if [[ -z "$2" ]]; then
+  if [[ -z ${2+x} ]]; then
     cij::info "$1"
   elif [[ $2 -eq 0 ]]; then
     cij::good "$1"
@@ -84,6 +84,11 @@ cij::throttle() {
 }
 
 cij::watchf() {
+  if [[ -z ${1+x} ]]; then
+    cij::err "cij::watchf: missing first argument"
+    return 0
+  fi
+
   local watchf_file="$1"
 
   if [[ -z "$watchf_file" || ! -f "$watchf_file" ]]; then
@@ -140,6 +145,16 @@ cij::watchf_for() {
 # cij::repeat 10 echo "Hello There"
 #
 cij::repeat() {
+  if [[ -z ${1+x} ]]; then
+    cij::err "cij::repeat: missing first argument"
+    return 0
+  fi
+
+  if [[ -z ${2+x} ]]; then
+    cij::err "cij::repeat: missing command argument"
+    return 0
+  fi
+
   local number="$1"
   shift
 
@@ -152,13 +167,11 @@ cij::repeat() {
 #
 # returncode 0 when input is an integer, 1 when it is not
 cij::isint() {
-  local var="$1"
-
-  if [[ -z "$var" ]]; then
+  if [[ -z ${1+x} ]]; then
     cij::err "no input given"
     return 0
   fi
 
-  [[ "$var" =~ ^[0-9]+$ ]]
-  return $?;
+  [[ "$1" =~ ^[0-9]+$ ]]
+  return $?
 }
