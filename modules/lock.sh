@@ -60,12 +60,12 @@ lock::enter_qemu() {
 }
 
 lock::enter() {
-  if [[ -n "$QEMU_HOST" ]]; then
+  if [[ -v QEMU_HOST && -n "$QEMU_HOST" ]]; then
     lock::enter_qemu;
     return $?;
   fi
 
-  if [[ "$SSH_HOST" == "localhost" ]]; then
+  if [[ -v SSH_HOST && "$SSH_HOST" == "localhost" ]]; then
     lock::enter_localhost;
     return $?;
   else
