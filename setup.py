@@ -22,7 +22,7 @@ setup(
     description="Tools for systems development and testing",
     long_description=read('README.rst'),
     author="Simon A. F. Lund",
-    author_email="slund@cnexlabs.com",
+    author_email="os@safl.dk",
     url="https://github.com/refenv/cijoe",
     license="Apache License 2.0",
     install_requires=[
