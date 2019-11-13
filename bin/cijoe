@@ -28,7 +28,7 @@ source modules/cijoe.sh
 
 # Provide sourcing in a default or user-provided environment definition
 ENV_FPATH=default.sh
-if [[ ! -z ${1+x} ]]; then
+if [[ -n ${1+x} ]]; then
 	ENV_FPATH=$1
 fi
 ENV_FNAME=${ENV_FPATH##*/}
