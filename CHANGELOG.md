@@ -10,6 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.28
+
+* Fixes...
+
 ## 0.0.27
 
 * mod/qemu: added EARLY RESET and examples of device state and error-injection
