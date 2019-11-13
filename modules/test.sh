@@ -34,8 +34,7 @@ test::require() {
   : "${CIJ_TEST_REQS:=ssh}"
 
   CIJ_TEST_REQS="$CIJ_TEST_REQS $1"
-
-  export $CIJ_TEST_REQS
+  export CIJ_TEST_REQS
 }
 
 test::enter() {
