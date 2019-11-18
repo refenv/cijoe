@@ -39,7 +39,7 @@ if [[ -z "$paths" ]]; then
 fi
 
 # shellcheck disable=SC2086
-if ! pylint $paths ; then
+if ! pylint $paths --disable=duplicate-code ; then
   popd || true
   test::fail
 fi
