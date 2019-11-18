@@ -3,6 +3,7 @@
 """
 from __future__ import print_function
 from subprocess import Popen, STDOUT
+from xml.dom import minidom
 import shutil
 import copy
 import time
@@ -110,6 +111,10 @@ def yml_fpath(output_path):
 
     return os.sep.join([output_path, "trun.yml"])
 
+def junit_fpath(output_path):
+    """Returns the path to the jUNIT XML-file"""
+
+    return os.sep.join([output_path, "trun.xml"])
 
 def script_run(trun, script):
     """Execute a script or testcase"""
@@ -238,6 +243,91 @@ def trun_to_file(trun, fpath=None):
     with open(fpath, 'w') as yml_file:
         data = yaml.dump(trun, explicit_start=True, default_flow_style=False)
         yml_file.write(data)
+
+def trun_to_junitfile(trun, fpath=None):
+    """Generate jUNIT XML from testrun YML"""
+
+    try:
+        if fpath is None:
+            fpath = junit_fpath(trun["conf"]["OUTPUT"])
+
+        doc = minidom.Document()
+
+        doc_testsuites = doc.createElement('testsuites')
+
+        duration = 0
+        stamp = trun.get("stamp", None)
+        if stamp:
+            stamp_begin = stamp.get("begin", None)
+            if not stamp_begin:
+                stamp_begin = time.time()
+
+            stamp_end = stamp.get("end", None)
+            if not stamp_end:
+                stamp_end = time.time()
+
+            if stamp_end > stamp_begin:
+                duration = stamp_end - stamp_begin
+
+        doc_testsuites.setAttribute("duration", str(duration))
+
+        doc.appendChild(doc_testsuites)
+
+        for ts_id, tsuite in enumerate(trun.get("testsuites", [])):
+
+            doc_tsuite = doc.createElement("testsuite")
+            doc_tsuite.setAttribute("name", tsuite.get("name", "UNNAMED"))
+            doc_tsuite.setAttribute("package", tsuite.get("ident", "UNDEFINED"))
+            doc_tsuite.setAttribute(
+                "tests",
+                str(len(tsuite.get("testcases", [])))
+            )
+
+            nfailures = 0
+            wallc_total = 0.0
+
+            for tcase in tsuite["testcases"]:
+                rcode = tcase.get("rcode", None)
+                if not rcode:
+                    rcode = 0
+
+                wallc = tcase.get("wallc", None)
+                if not wallc:
+                    wallc = 0.0
+
+                wallc_total += wallc
+                nfailures += rcode
+
+                doc_tcase = doc.createElement("testcase")
+                doc_tcase.setAttribute(
+                    "name", str(tcase.get("name", "UNNAMED"))
+                )
+                doc_tcase.setAttribute(
+                    "classname", str(tcase.get("ident", "UNDEFINED"))
+                )
+                doc_tcase.setAttribute("time", "%0.3f" % wallc)
+
+                if rcode:
+                    doc_failure = doc.createElement("failure")
+                    doc_failure.setAttribute("message", "test failed")
+
+                    doc_tcase.appendChild(doc_failure)
+
+                doc_tsuite.appendChild(doc_tcase)
+
+            doc_tsuite.setAttribute("failures", str(nfailures))
+            doc_tsuite.setAttribute("time", "%0.3f" % wallc_total)
+
+            doc_testsuites.appendChild(doc_tsuite)
+
+        with open(fpath, "w") as f:
+            f.write(doc.toprettyxml(indent="  "))
+
+    except Exception as ex:
+        cij.err("Failed persisting testrun as jUNIT XML, ex(%r)" % ex)
+        return 1
+
+    return 0
 
 
 def trun_from_file(fpath):
@@ -544,6 +634,7 @@ def main(conf):
         return 1
 
     trun_to_file(trun)              # Persist trun
+    trun_to_junitfile(trun)         # Persist as jUNIT XML
     trun_emph(trun)                 # Print trun before run
 
     tr_err = 0
@@ -567,6 +658,7 @@ def main(conf):
             ts_err += tc_err                        # Accumulate errors
 
             trun_to_file(trun)                      # Persist trun
+            trun_to_junitfile(trun)                 # Persist as jUNIT XML
 
         if not ts_ent_err:
             ts_err += tsuite_exit(trun, tsuite)
@@ -586,6 +678,7 @@ def main(conf):
 
     trun["stamp"]["end"] = int(time.time()) + 1         # END STAMP
     trun_to_file(trun)                                  # PERSIST
+    trun_to_junitfile(trun)                             # Persist as jUNIT XML
 
     cij.emph("rnr:main:progress %r" % trun["progress"])
     cij.emph("rnr:main:trun %r" % trun["status"], trun["status"] != "PASS")

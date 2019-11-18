@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+"""
+ CIJOE test run YAML to jUNIT XML for integration
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+import cij.reporter
+import cij.runner
+import cij.util
+import cij
+
+def parse_args():
+    """Parse command-line arguments"""
+
+    # Parse the Command-Line
+    prsr = argparse.ArgumentParser(
+        description='Produces jUNIT XML from a CIJOE Test run',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    prsr.add_argument(
+        'output',
+        help="Path to cij_runner results directory",
+        default=os.getcwd()
+    )
+    args = prsr.parse_args()
+
+    args.output = cij.util.expand_path(args.output)
+    if not os.path.exists(args.output):
+        cij.err("rprtr:output: %r, does not exist" % args.output)
+        return None
+
+    args.trun_fpath = cij.runner.yml_fpath(args.output)
+    if not os.path.exists(args.trun_fpath):
+        cij.err("rprtr:trun_fpath: %r" % args.trun_fpath)
+        return None
+
+    args.junit_fpath = cij.runner.junit_fpath(args.output)
+
+    return args
+
+def main():
+    """
+    Parse environment variables and command-line arguments, then invoke gen.
+    """
+
+    args = parse_args()
+    if args is None:
+        cij.err("rprtr: failed parsing command-line args")
+        return 1
+
+    trun = cij.runner.trun_from_file(args.trun_fpath)
+
+    rcode = cij.runner.trun_to_junitfile(trun, args.junit_fpath)
+    if rcode:
+        cij.err("rprtr:rcode: %r, error while creating jUNIT XML" % rcode)
+
+    return rcode
+
+if __name__ == "__main__":
+    sys.exit(main())
