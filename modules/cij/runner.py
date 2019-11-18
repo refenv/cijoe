@@ -105,9 +105,8 @@ TRUN = {
     "wallc": None,
 }
 
-
 def yml_fpath(output_path):
-    """Returns the path to the trun-file"""
+    """Returns the path to the trun YAML-file"""
 
     return os.sep.join([output_path, "trun.yml"])
 
