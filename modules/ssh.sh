@@ -69,11 +69,13 @@ ssh::cmd() {
 
   SSH_BIN="ssh"
 
-  if [[ $SSH_CMD_TIMEOUT -gt 0 ]]; then                 # TIME maximum
+  # TIME maximum
+  if [[ -v SSH_CMD_TIMEOUT && $SSH_CMD_TIMEOUT -gt 0 ]]; then
     SSH_BIN="timeout $SSH_CMD_TIMEOUT $SSH_BIN"
   fi
 
-  if [[ $SSH_CMD_TIME -eq 1 ]]; then                    # TIME measure
+  # TIME measure
+  if [[ -v SSH_CMD_TIMe && $SSH_CMD_TIME -eq 1 ]]; then
     SSH_BIN="/usr/bin/time $SSH_BIN"
   fi
 
@@ -121,7 +123,7 @@ ssh::shell() {
   SSH_SHELL_ARGS="$SSH_SHELL_ARGS -p $SSH_PORT"
   SSH_SHELL_ARGS="$SSH_SHELL_ARGS $SSH_USER@$SSH_HOST"
 
-  if [[ -n "$SSH_KEY" ]]; then
+  if [[ -v SSH_KEY ]]; then
     SSH_SHELL_ARGS="$SSH_SHELL_ARGS -i $SSH_KEY"
   fi
 
@@ -151,13 +153,13 @@ ssh::check() {
 
 ssh::push() {
   SRC=$1
-  if [[ -z "$SRC" ]]; then
+  if [[ ! -v SRC ]]; then
     cij::err "ssh::copy: local path SRC: '$SRC'"
     return 1
   fi
 
   DST=$2
-  if [[ -z "$DST" ]]; then
+  if [[ ! -v DST ]]; then
     cij::err "ssh::copy: remote path DST: '$DST'"
     return 1
   fi
@@ -182,13 +184,13 @@ ssh::push() {
 
 ssh::pull() {
   SRC=$1
-  if [[ -z "$SRC" ]]; then
+  if [[ ! -v SRC ]]; then
     cij::err "ssh::copy: remote path SRC: '$SRC'"
     return 1
   fi
 
   DST=$2
-  if [[ -z "$DST" ]]; then
+  if [[ ! -v DST ]]; then
     cij::err "ssh::copy: local path DST: '$DST'"
     return 1
   fi
@@ -199,10 +201,10 @@ ssh::pull() {
   fi
 
   SCP_CMD_ARGS="-r"
-  if [[ -n "$SSH_PORT" ]]; then
+  if [[ -v SSH_PORT ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
   fi
-  if [[ -n "$SSH_KEY" ]]; then
+  if [[ -v SSH_KEY ]]; then
     SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
   fi
 
