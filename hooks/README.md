@@ -36,11 +36,11 @@ def cij_runner():
 A hook can have scripts named like this:
 
 ```bash
-	lnvm_enter.sh
+	dmesg_enter.sh
 	lnvm_exit.sh
 ```
 
-When it does, then the name of the hook is `lnvm`, and it has two different
+When it does, then the name of the hook is `dmesg`, and it has two different
 scripts to run, depending of if it used as `enter` or as `exit`.
 
 If it only has a name like:
