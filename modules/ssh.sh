@@ -75,7 +75,7 @@ ssh::cmd() {
   fi
 
   # TIME measure
-  if [[ -v SSH_CMD_TIMe && $SSH_CMD_TIME -eq 1 ]]; then
+  if [[ -v SSH_CMD_TIME && $SSH_CMD_TIME -eq 1 ]]; then
     SSH_BIN="/usr/bin/time $SSH_BIN"
   fi
 
