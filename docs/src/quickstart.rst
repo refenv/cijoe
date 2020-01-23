@@ -4,21 +4,29 @@
  Quick Start
 =============
 
-Install **cijoe** system-wide via the pip:
+First, install pip, in your home directory, to avoid messing with Python and
+Python packages installed via the system package manager.
 
 .. code-block:: bash
 
-  sudo pip install cijoe
+  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  python get-pip.py --user
 
-Or install it user-level:
+Setup your environment to include :code:`PATH="$PATH:$HOME/.local/bin"`. This
+enables running commands such as the ``pip`` installed above, without messing
+with your system.
+
+Then install **cijoe** via pip:
 
 .. code-block:: bash
 
   pip install --user cijoe
 
-.. note:: When doing user-level install, then include the :code:`pip` binary
-  install path in your :code:`PATH` definition. For example
-  :code:`PATH="$PATH:$HOME/.local/bin"`
+Please, always use ``--user`` with pip unless you **really** know what you are
+doing.
+
+ Usage
+=======
 
 Run **cijoe** interactively and define the target environment:
 
