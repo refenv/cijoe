@@ -25,8 +25,8 @@ Then install **cijoe** via pip:
 Please, always use ``--user`` with pip unless you **really** know what you are
 doing.
 
- Usage
-=======
+Usage
+=====
 
 Run **cijoe** interactively and define the target environment:
 
