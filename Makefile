@@ -7,15 +7,13 @@ PROJECT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERS
 NEXT_VERSION_PATCH=$$((${PROJECT_VERSION_PATCH} + 1))
 NEXT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${NEXT_VERSION_PATCH}
 
-INSTALL_OPTS?=
-
-.PHONY: user
-user:
-	$(eval INSTALL_OPTS := --user)
+.PHONY: install-system
+install-system:
+	pip install .
 
 .PHONY: install
 install:
-	pip install . $(INSTALL_OPTS)
+	pip install . --user
 
 .PHONY: uninstall
 uninstall:
