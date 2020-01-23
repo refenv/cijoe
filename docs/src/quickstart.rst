@@ -59,3 +59,16 @@ Invoke the test runner, generate report and inspect the result:
 
   # Inspect the test-report
   xdg-open $RESULTS/report.html
+
+Python Version
+==============
+
+It is recommended that you use **cijoe** with a Python version that is not
+end-of-life. See, the build-status for Python version recommendations.
+
+Why? Well, **cijoe** works with most versions of Python, however, the Travis CI
+which is used for testing **cijoe**, deprecates use of Python as they go
+end-of-life. Consequently, end-of-line versions of Python are not tested.
+
+Additionally, some of the libraries which **cijoe** depend on, explicit does
+not support certain versions of Python.
