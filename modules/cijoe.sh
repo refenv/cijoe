@@ -95,8 +95,6 @@ source "$CIJ_MODULES/fio.sh"
 source "$CIJ_MODULES/pci.sh"
 # shellcheck source=modules/board.sh
 source "$CIJ_MODULES/board.sh"
-# shellcheck source=modules/lnvm.sh
-source "$CIJ_MODULES/lnvm.sh"
 # shellcheck source=modules/rbench.sh
 source "$CIJ_MODULES/rbench.sh"
 # shellcheck source=modules/fs.sh
@@ -107,10 +105,6 @@ source "$CIJ_MODULES/xfstests.sh"
 source "$CIJ_MODULES/vdbench.sh"
 # shellcheck source=modules/blktests.sh
 source "$CIJ_MODULES/blktests.sh"
-# shellcheck source=modules/pblk.sh
-source "$CIJ_MODULES/pblk.sh"
-# shellcheck source=modules/tftp.sh
-source "$CIJ_MODULES/tftp.sh"
 
 if [[ -v CIJ_TYPE ]] && [[ "$CIJ_TYPE" == "reposrun" ]]; then
   PATH=$PATH:$CIJ_ROOT/bin
