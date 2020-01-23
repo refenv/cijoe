@@ -27,7 +27,7 @@ setup(
     license="Apache License 2.0",
     install_requires=[
         "ansi2html (>=1.5.2)", "jinja2 (>=2.0)", "pyyaml (>=3.10)",
-        "xlsxwriter", "matplotlib", "kmdo"
+        "matplotlib", "kmdo"
     ],
     zip_safe=False,
     packages=["cij"],
