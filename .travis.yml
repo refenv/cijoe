@@ -26,7 +26,7 @@ before_install:
 
 install:
 - make release-build
-- make install
+- make install-system
 
 script:
 - make selftest
