@@ -23,6 +23,8 @@ hook::qemu_enter() {
 
   # Wait for it to boot up
   SSH_CMD_TIMEOUT=5
+  export SSH_CMD_TIMEOUT
+
   while :
   do
       sleep 10
