@@ -4,26 +4,27 @@
  Quick Start
 =============
 
-First, install pip, in your home directory, to avoid messing with Python and
-Python packages installed via the system package manager.
+First, install ``pip`` locally using the pip installer.
 
 .. code-block:: bash
 
-  curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  python get-pip.py --user
+    curl https://bootstrap.pypa.io/get-pip.py | python --user
 
-Setup your environment to include :code:`PATH="$PATH:$HOME/.local/bin"`. This
-enables running commands such as the ``pip`` installed above, without messing
-with your system.
+Change your environment to include :code:`PATH="$PATH:$HOME/.local/bin"`. This
+enables your environment to find the local instance of ``pip``.
 
-Then install **cijoe** via pip:
+.. code-block:: bash
+
+    echo "PATH=\"$PATH:$HOME/.local/bin\"" >> ~/.bash_aliases
+
+Install **cijoe** via pip:
 
 .. code-block:: bash
 
   pip install --user cijoe
 
-Please, always use ``--user`` with pip unless you **really** know what you are
-doing.
+The ``--user`` isolates the installation to the current account, instead of
+installing it system wide, which is less secure.
 
 Usage
 =====
@@ -39,7 +40,7 @@ Run **cijoe** interactively and define the target environment:
   cat $CIJ_ENVS/refenv-u1604.sh > target_env.sh
 
   # Open up your favorite editor and modify accordingly
-  vim target_env.sh
+  editor target_env.sh
 
 Invoke the test runner, generate report and inspect the result:
 
@@ -64,11 +65,8 @@ Python Version
 ==============
 
 It is recommended that you use **cijoe** with a Python version that is not
-end-of-life. See, the build-status for Python version recommendations.
-
-Why? Well, **cijoe** works with most versions of Python, however, the Travis CI
-which is used for testing **cijoe**, deprecates use of Python as they go
-end-of-life. Consequently, end-of-line versions of Python are not tested.
+end-of-life, as **cijoe** is only tested on active python versions on Travis CI.
+See, the build-status for Python version recommendations.
 
 Additionally, some of the libraries which **cijoe** depend on, explicit does
 not support certain versions of Python.
