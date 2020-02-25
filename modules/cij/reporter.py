@@ -5,7 +5,6 @@
 import datetime
 import glob
 import os
-import ansi2html
 import jinja2
 import cij.runner
 import cij
@@ -219,20 +218,6 @@ def dset_to_html(dset, tmpl_fpath):
 
         return dtime.strftime(fmt)
 
-    def ansi_to_html(ansi):
-        """Convert the given ANSI text to HTML"""
-
-        conv = ansi2html.Ansi2HTMLConverter(
-            scheme="solarized",
-            inline=True
-        )
-        html = conv.convert(ansi, full=False)
-
-        with open("/tmp/jazz.html", "w") as html_file:
-            html_file.write(html)
-
-        return html
-
     tmpl_dpath = os.path.dirname(tmpl_fpath)
     tmpl_fname = os.path.basename(tmpl_fpath)
 
@@ -242,7 +227,6 @@ def dset_to_html(dset, tmpl_fpath):
     )
     env.filters['stamp_to_datetime'] = stamp_to_datetime
     env.filters['strftime'] = strftime
-    env.filters['ansi_to_html'] = ansi_to_html
 
     tmpl = env.get_template(tmpl_fname)
 

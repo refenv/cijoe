@@ -26,8 +26,7 @@ setup(
     url="https://github.com/refenv/cijoe",
     license="Apache License 2.0",
     install_requires=[
-        "ansi2html (>=1.5.2)", "jinja2 (>=2.0)", "pyyaml (>=3.10)",
-        "matplotlib", "kmdo"
+        "pyyaml (>=3.10)", "jinja2 (>=2.0)", "kmdo"
     ],
     zip_safe=False,
     packages=["cij"],
@@ -37,7 +36,7 @@ setup(
 
         ("share/cijoe/hooks", glob.glob("hooks/*")),
         ("share/cijoe/modules", glob.glob("modules/*.sh")),
-        ("share/cijoe/templates", glob.glob("templates/*")),
+        ("share/cijoe/templates", glob.glob("templates/*html")),
 
         ("share/cijoe/envs", glob.glob("envs/*")),
 
