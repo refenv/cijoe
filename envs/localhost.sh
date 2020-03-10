@@ -4,6 +4,5 @@
 #
 # SSH key-based auth will be used to access "localhost" as the user "root"
 #
-export CIJ_TRGT=localhost
-export SSH_HOST=$CIJ_TRGT
+export SSH_HOST=localhost
 export SSH_USER=root
