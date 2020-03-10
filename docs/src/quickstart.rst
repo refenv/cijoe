@@ -37,10 +37,14 @@ Run **cijoe** interactively and define the target environment:
   cijoe
 
   # Use refence definitions as a template for defining your environment
-  cat $CIJ_ENVS/refenv-u1604.sh > target_env.sh
+  cat $CIJ_ENVS/remote.sh > target_env.sh
 
   # Open up your favorite editor and modify accordingly
   editor target_env.sh
+
+.. note:: Ensure that you have setup key-based SSH authentification matching
+  the ``SSH_HOST`` and ``SSH_USER`` in your environment configuration e.g. in
+  ``target_env.sh``. Have a look at `SshKeys`_ for setting up key-based auth.
 
 Invoke the test runner, generate report and inspect the result:
 
@@ -70,3 +74,5 @@ See, the build-status for Python version recommendations.
 
 Additionally, some of the libraries which **cijoe** depend on, explicit does
 not support certain versions of Python.
+
+.. _SshKeys: https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
