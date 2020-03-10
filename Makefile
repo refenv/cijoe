@@ -7,9 +7,7 @@ PROJECT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERS
 NEXT_VERSION_PATCH=$$((${PROJECT_VERSION_PATCH} + 1))
 NEXT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${NEXT_VERSION_PATCH}
 
-.PHONY: install-system
-install-system:
-	pip install .
+default: uninstall install
 
 .PHONY: install
 install:
@@ -18,6 +16,10 @@ install:
 .PHONY: uninstall
 uninstall:
 	pip uninstall ${PROJECT_NAME} --yes || echo "Cannot uninstall => That is OK"
+
+.PHONY: install-system
+install-system:
+	pip install .
 
 .PHONY: dev
 dev: uninstall install selftest-view
