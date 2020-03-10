@@ -10,39 +10,6 @@
 #
 # ...
 #
-
-lock::enter_localhost() {
-  LOCK_FILE="/tmp/CIJOE_LOCK"
-
-  if [[ -f "$LOCK_FILE" ]]; then
-    cij::err "lock::enter_localhost: failed: LOCK_FILE: '$LOCK_FILE' exists"
-    return 1
-  fi
-
-  if ! touch "$LOCK_FILE"; then
-    cij::err "lock::enter_localhost: failed: creating LOCK_FILE: '$LOCK_FILE'"
-    return 1
-  fi
-
-  return 0
-}
-
-lock::enter_remote() {
-  LOCK_FILE="/opt/CIJOE_LOCK"
-
-  if ssh::cmd "[[ -f \"$LOCK_FILE\" ]]"; then
-    cij::err "lock::enter_remote: failed, LOCK_FILE: '$LOCK_FILE' exists"
-    return 1
-  fi
-
-  if ! ssh::cmd "touch \"$LOCK_FILE\""; then
-    cij::err "lock::enter_remote: failing taking LOCK_FILE: '$LOCK_FILE'"
-    return 1
-  fi
-
-  return 0
-}
-
 lock::enter_qemu() {
   LOCK_FILE="$QEMU_GUESTS/$QEMU_GUEST_NAME/CIJOE_LOCK"
 
@@ -53,43 +20,6 @@ lock::enter_qemu() {
 
   if ! qemu::hostcmd "touch \"$LOCK_FILE\""; then
     cij::err "lock::enter_qemu: failed: creating LOCK_FILE: '$LOCK_FILE'"
-    return 1
-  fi
-
-  return 0
-}
-
-lock::enter() {
-  if [[ -v QEMU_HOST && -n "$QEMU_HOST" ]]; then
-    lock::enter_qemu;
-    return $?;
-  fi
-
-  if [[ -v SSH_HOST && "$SSH_HOST" == "localhost" ]]; then
-    lock::enter_localhost;
-    return $?;
-  else
-    lock::enter_remote;
-    return $?;
-  fi
-}
-
-lock::exit_localhost() {
-  LOCK_FILE="/tmp/CIJOE_LOCK"
-
-  if ! rm "$LOCK_FILE"; then
-    cij::err "lock::exit_localhost: failed releasing LOCK_FILE: '$LOCK_FILE'"
-    return 1
-  fi
-
-  return 0
-}
-
-lock::exit_remote() {
-  LOCK_FILE="/opt/CIJOE_LOCK"
-
-  if ! ssh::cmd "rm \"$LOCK_FILE\""; then
-    cij::err "lock::exit_remote: failed releasing LOCK_FILE: '$LOCK_FILE'"
     return 1
   fi
 
@@ -107,18 +37,39 @@ lock::exit_qemu() {
   return 0
 }
 
+lock::enter() {
+  if [[ -v QEMU_HOST && -n "$QEMU_HOST" ]]; then
+    lock::enter_qemu;
+    return $?;
+  fi
+
+  local lock_file="/tmp/CIJOE_LOCK"
+
+  if [[ -f "$lock_file" ]]; then
+    cij::err "lock::enter_localhost: failed: lock_file: '$lock_file' exists"
+    return 1
+  fi
+
+  if ! touch "$lock_file"; then
+    cij::err "lock::enter_localhost: failed: creating lock_file: '$lock_file'"
+    return 1
+  fi
+
+  return 0
+}
+
 lock::exit() {
   if [[ -n "$QEMU_HOST" ]]; then
     lock::exit_qemu;
     return $?;
   fi
 
-  if [[ "$SSH_HOST" == "localhost" ]]; then
-    lock::exit_localhost;
-    return $?;
-  else
-    lock::exit_remote;
-    return $?;
-  fi
-}
+  local lock_file="/tmp/CIJOE_LOCK"
 
+  if ! rm "$lock_file"; then
+    cij::err "lock::exit_localhost: failed releasing lock_file: '$lock_file'"
+    return 1
+  fi
+
+  return 0;
+}
