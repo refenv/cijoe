@@ -43,6 +43,9 @@ export CIJ_HOOKS
 : "${CIJ_TEMPLATES:="$CIJ_ROOT/templates"}"
 export CIJ_TEMPLATES
 
+: "${CIJ_FILTERS:="$CIJ_ROOT/filters"}"
+export CIJ_FILTERS
+
 #
 # Setup CIJOE package environment variables
 #

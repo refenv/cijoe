@@ -1,0 +1,1 @@
+(?P<id>fio-[0-9]+.[0-9]+).+?[IOPS]=(?P<iops>[0-9]+)(?P<iops_unit>\S*),.+?[BW]=(?P<bw>[0-9]+)(?P<bw_unit>\S*)

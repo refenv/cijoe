@@ -1,0 +1,14 @@
+descr: Example testplan to demonstrate how to write and use testplans
+descr_long: |
+  Testplans should all contain a short and long description. Keep the short
+  descriptions brief and concise. Reserve details for the long description.
+  Feel free to use as much as possible, listing stuff etc.
+
+  * Something
+  * Very useful
+  * Listed here
+
+  Now something else.
+hooks: [ sysinf ]
+testsuites:
+  - name: fio_01

@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+"""
+ CIJOE test processor
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+import cij.processor
+import cij.runner
+import cij.util
+import cij
+
+def parse_args():
+    """Parse command-line arguments for cij_processor"""
+
+    cij_evars = cij.paths_from_env("CIJ", ["FILTERS"])
+    for key, val in cij_evars.items():
+        if val is None:
+            cij.err(
+                "post:post: failed parsing environment variable 'CIJ_%s'" %
+                key
+            )
+            return None
+
+    # Parse the Command-Line
+    prsr = argparse.ArgumentParser(
+        description='cij_processor - CIJOE Test Result Processor',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    prsr.add_argument(
+        'output',
+        help="Path to test output",
+        default=os.getcwd()
+    )
+
+    prsr.add_argument(
+        '--filters',
+        help="Path to filters",
+        default=cij_evars["FILTERS"]
+    )
+
+    args = prsr.parse_args()
+
+    args.output = cij.util.expand_path(args.output)
+    if not os.path.exists(args.output):
+        cij.err("post:post: %r, does not exist" % args.output)
+        return None
+
+    args.filters = cij.util.expand_path(args.filters)
+    if not os.path.exists(args.filters):
+        cij.err("post:fukters: %r, does not exist" % args.filters)
+        return None
+
+    return args
+
+def main():
+    """
+    Parse environment variables and command-line arguments constructing a
+    configuration for which to invoke the reporter
+    """
+
+    args = parse_args()
+    if args is None:
+        cij.err("post: failed parsing command-line args")
+        return 1
+
+    rcode = cij.processor.main(args)
+    if rcode:
+        cij.err("post: rcode: %r, error while parsing" % rcode)
+
+    return rcode
+
+if __name__ == "__main__":
+    sys.exit(main())
