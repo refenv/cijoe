@@ -15,7 +15,7 @@ enables your environment to find the local instance of ``pip``.
 
 .. code-block:: bash
 
-    echo "PATH=\"$PATH:$HOME/.local/bin\"" >> ~/.bash_aliases
+    echo "export PATH=\"$PATH:$(python -m site --user-base)/bin\"" >> ~/.bash_aliases
 
 Install **cijoe** via pip:
 
