@@ -34,6 +34,7 @@ setup(
     data_files=[
         ("bin", glob.glob("bin/*")),
 
+        ("share/cijoe/filters", glob.glob("filters/*")),
         ("share/cijoe/hooks", glob.glob("hooks/*")),
         ("share/cijoe/modules", glob.glob("modules/*.sh")),
         ("share/cijoe/templates", glob.glob("templates/*html")),
