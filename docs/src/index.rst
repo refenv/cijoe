@@ -2,8 +2,6 @@
  cijoe: tools for systems development and testing
 ==================================================
 
-...
-
 Contents:
 
 .. toctree::
@@ -12,8 +10,7 @@ Contents:
 
    quickstart.rst
    envs.rst
-   refenvs.rst
-   qemu.rst
+   packages.rst
 
 Indices and tables
 ==================
