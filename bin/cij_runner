@@ -6,6 +6,8 @@ import argparse
 import uuid
 import sys
 import os
+import glob
+import datetime
 import cij.runner
 import cij.util
 import cij
@@ -63,6 +65,19 @@ def main():
 
     # Setup path to testplan
     conf["TESTPLAN_FPATH"] = cij.util.expand_path(conf["TESTPLAN"])
+
+    if os.path.isdir(conf["TESTPLAN_FPATH"]):
+        conf["OUTPUT"] = \
+        conf["TESTPLAN_FPATH"] + "/reproduce-" + \
+        datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+        conf["TESTPLAN_FPATH"] = glob.glob(conf["TESTPLAN_FPATH"] + "/*.plan")
+        if not conf["TESTPLAN_FPATH"]:
+            cij.err("REPRODUCE: not valid result folder")
+            return 1
+
+        conf["TESTPLAN_FPATH"] = conf["TESTPLAN_FPATH"][0]
+
     if not os.path.exists(conf["TESTPLAN_FPATH"]):
         cij.err("TESTPLAN_FPATH: %r, does not exist" % conf["TESTPLAN_FPATH"])
         return 1

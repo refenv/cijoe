@@ -74,6 +74,17 @@ Invoke the test runner, generate report and inspect the result:
   # Inspect the test-report
   xdg-open $RESULTS/report.html
 
+Reproduce
+=========
+
+After running a testplan, you can reproduce it on a different environment. Just
+pass a result directory instead of a testplan.
+
+.. code-block:: bash
+
+  cij_runner $RESULTS new_target_env.sh
+
+
 Python Version
 ==============
 

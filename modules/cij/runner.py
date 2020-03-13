@@ -611,6 +611,10 @@ def trun_setup(conf):
 
     trun["evars"].update(copy.deepcopy(declr.get("evars", {})))
 
+    shutil.copyfile(
+	conf["TESTPLAN_FPATH"],
+	conf["OUTPUT"] + "/" + conf["TESTPLAN_FNAME"]
+    )
     os.makedirs(trun["aux_root"])
 
     hook_names = declr.get("hooks", [])
