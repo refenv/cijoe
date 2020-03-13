@@ -10,6 +10,18 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.32
+
+* The lock-hook will no longer create lock-files on the test-target, the
+  lock-hook will as such only protect one-self against one-self, e.g. abort when
+  the same environment is being used. When using shared resources your resource
+  manager or CI system should provide mutual exclusion to the test-target.
+
+* The Makefile now defaults to doing user-mode uninstall + install.
+
+* Reporter: CSS and JavaScript are now embedded to avoid requiring
+  network-access to external resources when reading the reports.
+
 ## 0.0.28
 
 * Fixes...
