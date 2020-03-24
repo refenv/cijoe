@@ -47,6 +47,14 @@ if [[ ! -f "$ENV_FPATH" ]]; then
 		exit
 	fi
 fi
+
+# check if we are in docker
+if [ -f /.dockerenv ]; then
+    cp -R /tmp/cijoe/.ssh /root/.ssh
+    chmod 700 /root/.ssh
+    chmod 600 /root/.ssh/*
+fi
+
 # shellcheck disable=SC2016
 bash --rcfile <(echo '[[ -f ~/.bashrc ]] && . ~/.bashrc; source modules/cijoe.sh; cd '"$HERE"'; export PS1="[cijoe:'"$ENV_NAME"'] $PS1"; source '"$ENV_FPATH"'; cij::emph "Welcome to CIJOE ENV_FPATH: '"$ENV_FPATH"'"; ')
 
