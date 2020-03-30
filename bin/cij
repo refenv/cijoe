@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+"""
+    CIJOE Command-Line Interface
+
+    Eventually, then the individual binaries:
+
+    * cij_runner
+    * cij_reporter
+    * cij_tlint
+    * cij_trun_to_junit
+    * etc.
+
+    Will be replaced by this cli, e.g.
+
+    * cij run
+    * cij report
+    * cij linter
+    * cij junit
+    * etc.
+
+    Providing a one-stop-shop for CIJOE commands, with shell-completions.
+    In addition to replacing functionality of existing binaries it adds support
+    for:
+
+    * cij run: Run testplans producing run-results
+      - Similar to the current ``cij_runner``, except ``--output`` argument is
+        now ``--results``. Also, the current ``cij_runner`` takes only a single
+        testplan as input. The new ``run`` must be to able to take multiple
+        testplans as arguments to a single run
+    * cij repeat: Run a finished testrun again
+      - Takes a run-result as input
+      - Moves current run to history
+    * cij reproduce: Reproduce a run-result in a different environment
+      - Takes a run-result, and a target environment file as input
+      - Moves current run to history
+    * cij resume: Resume an interrupted testrun
+      - Takes a run-result as input
+    * cij process: Process a run-result, e.g. extract performance metrics
+      - Takes a run-result as input
+
+    For the expansion of runner-functionality then the run-results will adopt
+    new conventions for directory layout:
+
+    <results>                   # Root as provided to `--results`
+    <results>/run               # Root of the current run
+    <results>/run/trun.yml      # The state of the current run
+    <results>/run/report.html   # Output from 'cij report --results <results>'
+    <results>/run/<enum_tp>_<tplan.ident>
+    <results>/run/<enum_tp>_<tplan.ident>test.plan # Testplan copied verbatim
+    <results>/run/<enum_tp>_<tplan.ident>/_aux
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/_aux
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux          # Auxilary files produced by testcase
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log       # Testcase stdout + stderr
+    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py} # Testcase copied verbatim
+    <results>/history/          # Root for previous runs
+    <results>/history/<run_enum>_run
+
+"""
+import argparse
+import uuid
+import sys
+import os
+import cij.runner
+import cij.util
+import cij
+
+
+def cli_report_func(prsr):
+    """CLI entry function for runner-report"""
+
+    cij.err("rnr: not implemented")
+
+    return 1
+
+
+def cli_report_setup(prsr):
+    """CLI Setup for runner-reproduce"""
+
+    report = prsr.add_parser(
+        'report', help="Produce a report for the given run-results"
+    )
+    report.set_defaults(func=cli_report_func)
+    report.add_argument(
+        "--results",
+        help="Path to results directory",
+        default=os.sep.join([
+            "/tmp",
+            "treport-%s" % str(uuid.uuid4())[:8]
+        ])
+    )
+    report.add_argument(
+        '--template',
+        help="Path to report template",
+        default="report.html"
+    )
+    report.add_argument(
+        '--force',
+        help="Overwrite possibly existing report",
+        action='store_true'
+    )
+
+
+def cli_process_func(prsr):
+    """CLI entry function for runner-process"""
+
+    cij.err("rnr: not implemented")
+
+    return 1
+
+
+def cli_process_setup(prsr):
+    """CLI Setup for runner-reproduce"""
+
+    process = prsr.add_parser('process', help="Process run-results")
+    process.set_defaults(func=cli_process_func)
+    process.add_argument(
+        "--results",
+        help="Path to results directory",
+        default=os.sep.join([
+            "/tmp",
+            "tprocess-%s" % str(uuid.uuid4())[:8]
+        ])
+    )
+    process.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
+
+
+def cli_reproduce_func(prsr):
+    """CLI entry function for runner-reproduce"""
+
+    cij.err("rnr: not implemented")
+
+    return 1
+
+
+def cli_reproduce_setup(prsr):
+    """CLI Setup for runner-reproduce"""
+
+    reproduce = prsr.add_parser(
+        'reproduce',
+        help="Reproduce given run-results in the given environment"
+    )
+    reproduce.set_defaults(func=cli_reproduce_func)
+    reproduce.add_argument(
+        "--results",
+        help="Path to results directory",
+        default=os.sep.join([
+            "/tmp",
+            "treproduce-%s" % str(uuid.uuid4())[:8]
+        ])
+    )
+    reproduce.add_argument(
+        "--env",
+        required=True,
+        help="Path to the target environment definition file",
+    )
+    reproduce.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
+
+
+def cli_resume_func(prsr):
+    """CLI entry function for runner-resume"""
+
+    cij.err("rnr: not implemented")
+
+    return 1
+
+
+def cli_resume_setup(prsr):
+    """CLI Setup for runner-reproduce"""
+
+    resume = prsr.add_parser('resume', help="Resume an interrupted run")
+    resume.set_defaults(func=cli_resume_func)
+    resume.add_argument(
+        "--results",
+        help="Path to results directory",
+        default=os.sep.join([
+            "/tmp",
+            "tresume-%s" % str(uuid.uuid4())[:8]
+        ])
+    )
+    resume.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
+
+
+def main():
+    """Parse CLI arguments"""
+
+    prsr = argparse.ArgumentParser(
+        description="cij - CIJOE Command Line Interface",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    subs = prsr.add_subparsers(help="cmd")
+
+    cij.runner.cli_setup(subs)
+    cli_resume_setup(subs)
+    cli_reproduce_setup(subs)
+    cli_process_setup(subs)
+    cli_report_setup(subs)
+
+    args = prsr.parse_args()
+    dargs = vars(args)
+    conf = {k.upper(): dargs[k] for k in dargs}
+
+    if not hasattr(args, 'func'):
+        prsr.print_help()
+        return 0
+
+    rcode = args.func(conf)
+    if rcode:
+        cij.err("cij: rcode: %r" % rcode)
+
+    return rcode
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (KeyboardInterrupt) as exc:
+        cij.err("cij: unclean exit; killed by keyboard-interrupt e.g. Ctrl+C")
