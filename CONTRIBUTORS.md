@@ -8,6 +8,7 @@ The following people have contributed to the implementation of CIJOE:
 * Hans Holmberg, [CNEX Labs, Inc.]
 * Javier González, [CNEX Labs, Inc.]
 * Weifeng Guo, [CNEX Labs, Inc.]
+* Niclas Hedam, [IT University of Copenhagen]
 
 ---
 
