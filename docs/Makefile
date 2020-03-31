@@ -16,7 +16,7 @@ configure: clean
 
 .PHONY: kmdo
 kmdo:
-	kmdo src
+	kmdo src || exit 0
 
 .PHONY: sphinx
 sphinx:
@@ -30,4 +30,4 @@ doc: clean deps configure kmdo sphinx
 
 .PHONY: doc-view-html
 doc-view-html:
-	xdg-open $(BUILD_DIR)/html/index.html &
+	(xdg-open $(BUILD_DIR)/html/index.html || open $(BUILD_DIR)/html/index.html) &
