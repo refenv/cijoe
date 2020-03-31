@@ -4,7 +4,9 @@
 from __future__ import print_function
 from subprocess import Popen, STDOUT
 from xml.dom import minidom
+import argparse
 import shutil
+import uuid
 import copy
 import time
 import os
@@ -79,10 +81,17 @@ TESTCASE = {
     "wallc": None,
 }
 
+TESTPLAN = {
+    "descr": None,
+    "descr_long": None,
+    "evars": {},
+    "hooks": None,
+    "testsuites": None
+}
+
 TRUN = {
     "ver": None,
     "conf": None,
-    "evars": {},
     "progress": {
         "PASS": 0,
         "FAIL": 0,
@@ -92,6 +101,7 @@ TRUN = {
         "begin": None,
         "end": None
     },
+    "evars": {},
     "hooks": {
         "enter": [],
         "exit": []
@@ -101,6 +111,8 @@ TRUN = {
     "aux_list": [],
 
     "testsuites": [],
+
+    "testplans": [],
 
     "status": "UNKN",
     "wallc": None,
@@ -534,6 +546,7 @@ def tcase_enter(trun, tsuite, tcase):
 
     return rcode
 
+
 def trun_exit(trun):
     """Triggers when exiting the given testrun"""
 
@@ -595,6 +608,7 @@ def trun_setup(conf):
     trun["conf"] = copy.deepcopy(conf)
     trun["res_root"] = conf["OUTPUT"]
     trun["aux_root"] = os.sep.join([trun["res_root"], "_aux"])
+
     trun["evars"].update(copy.deepcopy(declr.get("evars", {})))
 
     os.makedirs(trun["aux_root"])
@@ -684,3 +698,42 @@ def main(conf):
     cij.emph("rnr:main:trun %r" % trun["status"], trun["status"] != "PASS")
 
     return trun["progress"]["UNKN"] + trun["progress"]["FAIL"]
+
+
+def cli_func(conf):
+    """Entry point for command-line interface post setup"""
+
+    cij.err("rnr: not implemented")
+
+    return 1
+
+
+def cli_setup(prsr):
+    """Setup sub-command on the given prsr"""
+
+    run = prsr.add_parser('run', help="Run testplans, producing run-results")
+    run.set_defaults(func=cli_func)
+    run.add_argument(
+        "--testplan",
+        nargs='+',
+        help="Path the testplan(s) to run",
+    )
+    run.add_argument(
+        "--env",
+        required=True,
+        help="Path to the target environment definition file",
+    )
+    run.add_argument(
+        "--results",
+        help="Path to directory in which to store run-results",
+        default=os.sep.join([
+            "/tmp",
+            "trun-%s" % str(uuid.uuid4())[:8]
+        ])
+    )
+    run.add_argument(
+        "-v", "--verbose",
+        help="increase output verbosity, 0 = quiet, 1 = some, 1 > alot",
+        action="count",
+        default=0
+    )
