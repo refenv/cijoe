@@ -48,8 +48,13 @@ if [[ ! -f "$ENV_FPATH" ]]; then
 	fi
 fi
 
-# check if we are in docker
-if [ -f /.dockerenv ]; then
+#
+# TODO: remove this
+#
+# Starting CIJOE interactively should NOT require making system changes
+#
+# Check if we are in docker
+if [[ -f /.dockerenv ]]; then
     cp -R /tmp/cijoe/.ssh /root/.ssh
     chmod 700 /root/.ssh
     chmod 600 /root/.ssh/*
