@@ -72,8 +72,8 @@ main() {
   fi
 
   if [[ $open_reports -gt 0 ]]; then
-    xdg-open "$res_dpath/testcases.html" &
-    xdg-open "$res_dpath/report.html" &
+    (xdg-open "$res_dpath/testcases.html" || open "$res_dpath/testcases.html") &
+    (xdg-open "$res_dpath/report.html" || open "$res_dpath/report.html") &
   fi
 
   cij::info "res: '$res'"
