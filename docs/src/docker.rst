@@ -38,7 +38,7 @@ command.
 .. note:: If you run **cijoe** tests on a remote system, bear in mind that you
   may need to transfer or link the SSH keys to the container. **cijoe** will
   make sure your keys are available in the docker container, if you mount your
-  SSH folder in /tmp/cijoe/.ssh.
+  SSH folder in /root/.ssh.
 
 .. warning:: Linking SSH keys to the container gives any software running in
   the container full read access to the private keys. Do not do this if cijoe is
@@ -50,7 +50,7 @@ command.
   docker run -it \
   -v $(pwd)/target_env.sh:/cijoe/target_env.sh \
   -v $(pwd)/results:/results \
-  -v ~/.ssh:/tmp/cijoe/.ssh:ro \
+  -v ~/.ssh:/root/.ssh:ro \
   cijoe/cijoe
 
 .. _Quickstart: https://cijoe.readthedocs.io/en/latest/quickstart.html#usage
