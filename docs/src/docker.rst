@@ -13,10 +13,12 @@ build it yourself.
 .. code-block:: bash
 
   # Build it yourself
-  docker build . -t cijoe/cijoe
+  docker build . -f ./docker/Dockerfile -t cijoe/cijoe
 
 You can now start the docker container and run a testplan. To make running
-testplans easier, you can link your target environment and results folder.
+testplans easier, you can link your target environment and results folder. If
+you build the docker container with the target_env.sh file, you should not
+mount it afterwards.
 
 .. code-block:: bash
 

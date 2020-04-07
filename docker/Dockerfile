@@ -16,4 +16,4 @@ WORKDIR /cijoe
 # Build cijoe
 RUN make install-system
 
-ENTRYPOINT ["/cijoe/docker_init.sh"]
+ENTRYPOINT ["/cijoe/docker/docker_init.sh"]
