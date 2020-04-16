@@ -56,14 +56,14 @@
     <enum_ts>_<tsuite.ident>
     <enum_ts>_<tsuite.ident>/_aux
     <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
-    
+
     # Auxilary files produced by testcase
     <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux
 
     # Testcase stdout + stderr
     <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log
 
-    # Testcase copied verbatim 
+    # Testcase copied verbatim
     <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py}
 
 """
