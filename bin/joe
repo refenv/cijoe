@@ -46,16 +46,25 @@
     <results>/run/trun.yml      # The state of the current run
     <results>/run/report.html   # Output from 'cij report --results <results>'
     <results>/run/<enum_tp>_<tplan.ident>
-    <results>/run/<enum_tp>_<tplan.ident>test.plan # Testplan copied verbatim
-    <results>/run/<enum_tp>_<tplan.ident>/_aux
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/_aux
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux          # Auxilary files produced by testcase
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log       # Testcase stdout + stderr
-    <results>/run/<enum_tp>_<tplan.ident>/<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py} # Testcase copied verbatim
-    <results>/history/          # Root for previous runs
+    <results>/history/		# Root for previous runs
     <results>/history/<run_enum>_run
+
+    # With content of "<results>/run/<enum_tp>_<tplan.ident>" laid out as
+
+    test.plan # Testplan copied verbatim
+    _aux
+    <enum_ts>_<tsuite.ident>
+    <enum_ts>_<tsuite.ident>/_aux
+    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
+    
+    # Auxilary files produced by testcase
+    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux
+
+    # Testcase stdout + stderr
+    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log
+
+    # Testcase copied verbatim 
+    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py}
 
 """
 import argparse
@@ -71,6 +80,7 @@ def cli_report_func(prsr):
     """CLI entry function for runner-report"""
 
     cij.err("rnr: not implemented")
+    cij.info(prsr)
 
     return 1
 
@@ -106,6 +116,7 @@ def cli_process_func(prsr):
     """CLI entry function for runner-process"""
 
     cij.err("rnr: not implemented")
+    cij.info(prsr)
 
     return 1
 
@@ -135,6 +146,7 @@ def cli_reproduce_func(prsr):
     """CLI entry function for runner-reproduce"""
 
     cij.err("rnr: not implemented")
+    cij.info(prsr)
 
     return 1
 
@@ -172,6 +184,7 @@ def cli_resume_func(prsr):
     """CLI entry function for runner-resume"""
 
     cij.err("rnr: not implemented")
+    cij.info(prsr)
 
     return 1
 
