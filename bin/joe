@@ -31,12 +31,16 @@
       - Takes a run-result as input
       - Moves current run to history
     * cij reproduce: Reproduce a run-result in a different environment
-      - Takes a run-result, and a target environment file as input
+      - Takes a run-result as input
+      - Take an environment file as input
       - Moves current run to history
+      - Execute testrun
     * cij resume: Resume an interrupted testrun
       - Takes a run-result as input
+      - Skip testcases with a rcode
+      - Run testcases with rcode = None
     * cij process: Process a run-result, e.g. extract performance metrics
-      - Takes a run-result as input
+      - Call the post-processor / filter
 
     For the expansion of runner-functionality then the run-results will adopt
     new conventions for directory layout:
