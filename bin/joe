@@ -1,75 +1,74 @@
 #!/usr/bin/env python
 """
-    CIJOE Command-Line Interface
 
-    Eventually, then the individual binaries:
+Implement new features in a revamped command-line interface.
 
-    * cij_runner
-    * cij_reporter
-    * cij_tlint
-    * cij_trun_to_junit
-    * etc.
+Eventually, then the individual binaries:
 
-    Will be replaced by this cli, e.g.
+* cij_runner
+* cij_reporter
+* cij_tlint
+* cij_trun_to_junit
+* etc.
 
-    * cij run
-    * cij report
-    * cij linter
-    * cij junit
-    * etc.
+Will be replaced by this cli, e.g.
 
-    Providing a one-stop-shop for CIJOE commands, with shell-completions.
-    In addition to replacing functionality of existing binaries it adds support
-    for:
+* joe run
+* joe report
+* joe linter
+* joe junit
+* etc.
 
-    * cij run: Run testplans producing run-results
-      - Similar to the current ``cij_runner``, except ``--output`` argument is
-        now ``--results``. Also, the current ``cij_runner`` takes only a single
-        testplan as input. The new ``run`` must be to able to take multiple
-        testplans as arguments to a single run
-    * cij repeat: Run a finished testrun again
-      - Takes a run-result as input
-      - Moves current run to history
-    * cij reproduce: Reproduce a run-result in a different environment
-      - Takes a run-result as input
-      - Take an environment file as input
-      - Moves current run to history
-      - Execute testrun
-    * cij resume: Resume an interrupted testrun
-      - Takes a run-result as input
-      - Skip testcases with a rcode
-      - Run testcases with rcode = None
-    * cij process: Process a run-result, e.g. extract performance metrics
-      - Call the post-processor / filter
+Providing a one-stop-shop for CIJOE commands, with shell-completions. In
+addition to replacing functionality of existing binaries it adds support for:
 
-    For the expansion of runner-functionality then the run-results will adopt
-    new conventions for directory layout:
+* joe run: Run testplans producing run-results
+  - Similar to the current ``cij_runner``, except ``--output`` argument is
+now ``--results``. Also, the current ``cij_runner`` takes only a single
+testplan as input. The new ``run`` must be to able to take multiple
+testplans as arguments to a single run
+* joe repeat: Run a finished testrun again
+  - Takes a run-result as input
+  - Moves current run to history
+* joe reproduce: Reproduce a run-result in a different environment
+  - Takes a run-result as input
+  - Take an environment file as input
+  - Moves current run to history
+  - Execute testrun
+* joe resume: Resume an interrupted testrun
+  - Takes a run-result as input
+  - Skip testcases with a rcode
+  - Run testcases with rcode = None
+* joe process: Process a run-result, e.g. extract performance metrics
+  - Call the post-processor / filter
 
-    <results>                   # Root as provided to `--results`
-    <results>/run               # Root of the current run
-    <results>/run/trun.yml      # The state of the current run
-    <results>/run/report.html   # Output from 'cij report --results <results>'
-    <results>/run/<enum_tp>_<tplan.ident>
-    <results>/history/		# Root for previous runs
-    <results>/history/<run_enum>_run
+For the expansion of runner-functionality then the run-results will adopt new
+conventions for directory layout:
 
-    # With content of "<results>/run/<enum_tp>_<tplan.ident>" laid out as
+<results>                   # Root as provided to `--results`
+<results>/run               # Root of the current run
+<results>/run/trun.yml      # The state of the current run
+<results>/run/report.html   # Output from 'joe report --results <results>'
+<results>/run/<enum_tp>_<tplan.ident>
+<results>/history/          # Root for previous runs
+<results>/history/<run_enum>_run
 
-    test.plan # Testplan copied verbatim
-    _aux
-    <enum_ts>_<tsuite.ident>
-    <enum_ts>_<tsuite.ident>/_aux
-    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
+# With content of "<results>/run/<enum_tp>_<tplan.ident>" laid out as
 
-    # Auxilary files produced by testcase
-    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux
+test.plan # Testplan copied verbatim
+_aux
+<enum_ts>_<tsuite.ident>
+<enum_ts>_<tsuite.ident>/_aux
+<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>
 
-    # Testcase stdout + stderr
-    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log
+# Auxilary files produced by testcase
+<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/_aux
 
-    # Testcase copied verbatim
-    <enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py}
+# Testcase stdout + stderr
+<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/run.log
 
+# Testcase copied verbatim
+<enum_ts>_<tsuite.ident>/<enum_tc>_<tcase.ident>/tcase.{sh|py}
 """
 import argparse
 import uuid
