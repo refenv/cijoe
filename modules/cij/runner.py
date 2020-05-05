@@ -287,16 +287,11 @@ def trun_to_junitfile(trun, fpath=None):
             wallc_total = 0.0
 
             for tcase in tsuite["testcases"]:
-                rcode = tcase.get("rcode", None)
-                if not rcode:
-                    rcode = 0
-
                 wallc = tcase.get("wallc", None)
                 if not wallc:
                     wallc = 0.0
 
                 wallc_total += wallc
-                nfailures += rcode
 
                 doc_tcase = doc.createElement("testcase")
                 doc_tcase.setAttribute(
@@ -307,9 +302,15 @@ def trun_to_junitfile(trun, fpath=None):
                 )
                 doc_tcase.setAttribute("time", "%0.3f" % wallc)
 
-                if rcode:
+                rcode = tcase.get("rcode", None)
+                if rcode != 0:
+                    nfailures += 1
+
                     doc_failure = doc.createElement("failure")
-                    doc_failure.setAttribute("message", "test failed")
+                    doc_failure.setAttribute(
+                        "message",
+                        "not executed" if rcode is None else "test failed"
+                    )
 
                     doc_tcase.appendChild(doc_failure)
 
