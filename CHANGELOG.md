@@ -10,6 +10,11 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.33
+
+* Added Dockerfile for interactive use of CIJOE
+* Fixed junit-representation
+
 ## 0.0.32
 
 * The lock-hook will no longer create lock-files on the test-target, the
