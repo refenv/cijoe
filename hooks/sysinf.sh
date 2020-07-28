@@ -53,7 +53,7 @@ hook::sysinf_enter() {
   uname=$(ssh::cmd_output "uname -r")
   if ! ssh::cmd_output "[[ -r /boot/config-$uname ]] && cat /boot/config-$uname || echo 'MISSING: /boot/config-*'" > "$CIJ_TEST_AUX_ROOT/hook_sysinf_kbconfig.txt"; then
     res=$(( res + 1 ))
-    cij:: "hook::sysinf_env: FAILED: getting /boot/config-*"
+    cij::warn "hook::sysinf_env: FAILED: getting /boot/config-*"
   fi
 
   # platform specific tools that may fail gracefully
