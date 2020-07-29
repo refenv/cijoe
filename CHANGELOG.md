@@ -10,6 +10,12 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.34
+
+* Fixed typo in sysinf hook
+* Removed use of dmesg-hook in `example_01_usage.plan`
+* Added `example_02_usage.plan` using the dmesg-hook
+
 ## 0.0.33
 
 * Added Dockerfile for interactive use of CIJOE
