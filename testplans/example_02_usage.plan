@@ -8,15 +8,14 @@ descr_long: |
   * Very useful
   * Listed here
 
-  Note how the environment variable definitions at the top-level of the testplan
-  can be overwriten by the individual testsuites. Hooks are useful to gather
-  information about the test-target, or, modifying the test-cases prior to
-  execution
+  Now something else.
 evars: { FOO: 42 }
 hooks: [ sysinf ]
 testsuites:
   - name: exts_01
   - name: exts_01
     evars: { FOO: 24 }
+    hooks: [ dmesg ]
   - name: exts_01
     evars: { FOO: 3 }
+    hooks_pr_tcase: [ dmesg ]
