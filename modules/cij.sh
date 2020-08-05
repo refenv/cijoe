@@ -24,11 +24,20 @@
 #
 #set -euo pipefail
 
-PR_EMPH_CC='\033[0;36m'
-PR_GOOD_CC='\033[0;32m'
-PR_WARN_CC='\033[0;33m'
-PR_ERR_CC='\033[0;31m'
-PR_NC='\033[0m'
+: "${CIJ_COLORIZE:=1}"
+if [[ $CIJ_COLORIZE -eq 0 ]]; then
+  PR_EMPH_CC=''
+  PR_GOOD_CC=''
+  PR_WARN_CC=''
+  PR_ERR_CC=''
+  PR_NC=''
+else
+  PR_EMPH_CC='\033[0;36m'
+  PR_GOOD_CC='\033[0;32m'
+  PR_WARN_CC='\033[0;33m'
+  PR_ERR_CC='\033[0;31m'
+  PR_NC='\033[0m'
+fi
 
 : "${CIJ_ECHO_TIME_STAMP:=1}"
 export CIJ_ECHO_TIME_STAMP
