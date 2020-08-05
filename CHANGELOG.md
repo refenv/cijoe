@@ -10,6 +10,12 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.0.35
+
+* Added option tot disable colors in bash-output-helpers
+* Added option to initialize qemu-boot image from cloud-image
+* Cleanup SSH module
+
 ## 0.0.34
 
 * Fixed typo in sysinf hook
