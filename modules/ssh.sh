@@ -27,6 +27,7 @@
 # OPTIONAL variables:
 #
 # SSH_KEY               - Path to private key
+# SSH_NO_CHECKS         - When 1, disable known_hosts and StrictHostKeyChecking
 # SSH_CMD_QUIET         - When 1, do the following
 #                         * SSH_CMD_TIME=0
 #                         * SSH_CMD_ECHO=0
@@ -42,6 +43,8 @@ ssh::env() {
     return 1
   fi
 
+  : "${SSH_BIN:=ssh}"
+  : "${SSH_NO_CHECKS:=0}"
   : "${SSH_USER:=root}"
   : "${SSH_PORT:=22}"
   : "${SSH_CMD_ECHO:=1}"
@@ -61,48 +64,44 @@ ssh::cmd() {
     cij::err "ssh::cmd - No command given."
     return 1
   fi
-
   if ! ssh::env; then
     cij::err "ssh::cmd - Invalid ENV."
     return 1
   fi
 
-  SSH_BIN="ssh"
+  local _prefix="";
+  local _args="";
+  local _cmd="";
 
-  # TIME maximum
-  if [[ -v SSH_CMD_TIMEOUT && $SSH_CMD_TIMEOUT -gt 0 ]]; then
-    SSH_BIN="timeout $SSH_CMD_TIMEOUT $SSH_BIN"
+  if [[ -v SSH_CMD_TIMEOUT && $SSH_CMD_TIMEOUT -gt 0 ]]; then   # TIME maximum
+    _prefix="timeout $SSH_CMD_TIMEOUT $_prefix "
+  fi
+  if [[ -v SSH_CMD_TIME && $SSH_CMD_TIME -eq 1 ]]; then         # TIME measure
+    _prefix="/usr/bin/time $_prefix "
   fi
 
-  # TIME measure
-  if [[ -v SSH_CMD_TIME && $SSH_CMD_TIME -eq 1 ]]; then
-    SSH_BIN="/usr/bin/time $SSH_BIN"
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then                    # KEY
+    _args="$_args -i $SSH_KEY"
   fi
-
-  SSH_CMD_ARGS=""                                       # SSH KEY
-  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then
-    SSH_CMD_ARGS="$SSH_CMD_ARGS -i $SSH_KEY"
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then                  # PORT
+    _args="$_args -p $SSH_PORT"
   fi
-
-  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then           # SSH PORT
-    SSH_CMD_ARGS="$SSH_CMD_ARGS -p $SSH_PORT"
+  if [[ -v SSH_NO_CHECKS && $SSH_NO_CHECKS -eq 1 ]]; then       # NO_CHECK
+    _args="$_args -o UserKnownHostsFile=/dev/null"
+    _args="$_args -o StrictHostKeyChecking=no"
   fi
-
-  SSH_CMD_ARGS="$SSH_CMD_ARGS $SSH_USER@$SSH_HOST"      # SSH USER and HOST
+  if [[ -v SSH_EXTRA_ARGS ]]; then                              # Extras
+    _args="$_args $SSH_EXTRA_ARGS"
+  fi
+  _args="$_args $SSH_USER@$SSH_HOST"                            # USER and HOST
 
   # Construct ssh-command
-  SSH_CMD="$SSH_BIN"
-  if [[ -v SSH_EXTRA_ARGS ]]; then
-    SSH_CMD="$SSH_CMD $SSH_EXTRA_ARGS"
-  fi
-  SSH_CMD="$SSH_CMD $SSH_CMD_ARGS"
-  SSH_CMD="$SSH_CMD '$1'"
-
-  if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then # SSH print CMD
-    cij::emph "ssh:cmd: $SSH_CMD"
+  _cmd="$_prefix $SSH_BIN $_args '$1'"                          # Create CMD
+  if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
+    cij::emph "ssh:cmd: $_cmd"
   fi
 
-  eval "$SSH_CMD"                                       # Execute it
+  eval "$_cmd"                                                  # Execute CMD
 }
 
 ssh::cmd_output() {
@@ -119,31 +118,112 @@ ssh::shell() {
     return 1
   fi
 
-  SSH_SHELL_ARGS=""
-  SSH_SHELL_ARGS="$SSH_SHELL_ARGS -p $SSH_PORT"
-  SSH_SHELL_ARGS="$SSH_SHELL_ARGS $SSH_USER@$SSH_HOST"
+  local _prefix="";
+  local _args="";
+  local _cmd="";
 
-  if [[ -v SSH_KEY ]]; then
-    SSH_SHELL_ARGS="$SSH_SHELL_ARGS -i $SSH_KEY"
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then                    # KEY
+    _args="$_args -i $SSH_KEY"
+  fi
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then                  # PORT
+    _args="$_args -p $SSH_PORT"
+  fi
+  if [[ -v SSH_NO_CHECKS && $SSH_NO_CHECKS -eq 1 ]]; then
+    _args="$_args -o UserKnownHostsFile=/dev/null"
+    _args="$_args -o StrictHostKeyChecking=no"
+  fi
+  _args="$_args $SSH_USER@$SSH_HOST"                            # USER and HOST
+
+  if [[ -v SSH_EXTRA_ARGS ]]; then
+    _args="$_args $SSH_EXTRA_ARGS"
   fi
 
-  SSH_SHELL="ssh $SSH_SHELL_ARGS"
+  _cmd="$_prefix $SSH_BIN $_args"                               # Create CMD
+  if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
+    cij::emph "ssh:cmd: $_cmd"
+  fi
 
-  eval "$SSH_SHELL"
+  eval "$_cmd"                                                  # Execute CMD
 }
 
-ssh::shutdown() {
+ssh::push() {
+  local _src=$1
+  local _dst=$2
+  local _args=""
+  local _cmd=""
+
+  if [[ ! -v _src ]]; then
+    cij::err "ssh::push: local path _src: '$_src'"
+    return 1
+  fi
+  if [[ ! -v _dst ]]; then
+    cij::err "ssh::push: remote path _dst: '$_dst'"
+    return 1
+  fi
   if ! ssh::env; then
-    cij::err "ssh::shutdown - Invalid ENV."
+    cij::err "ssh::push: invalid environment"
     return 1
   fi
 
-  ssh::cmd 'shutdown now'
+  _args=""
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then                    # KEY
+    _args="$_args -i $SSH_KEY"
+  fi
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then                  # PORT
+    _args="$_args -P $SSH_PORT"
+  fi
+  if [[ -v SSH_NO_CHECKS && $SSH_NO_CHECKS -eq 1 ]]; then
+    _args="$_args -o UserKnownHostsFile=/dev/null"
+    _args="$_args -o StrictHostKeyChecking=no"
+  fi
+
+  _cmd="scp $_args $_src ${SSH_USER}@${SSH_HOST}:$_dst"
+  if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
+    cij::emph "ssh:push:cmd: $_cmd"
+  fi
+
+  eval "$_cmd"
+}
+
+ssh::pull() {
+  local _src=$1
+  local _dst=$2
+  local _args=""
+  local _cmd=""
+
+  if [[ ! -v _src ]]; then
+    cij::err "ssh::pull: local path _src: '$_src'"
+    return 1
+  fi
+  if [[ ! -v _dst ]]; then
+    cij::err "ssh::pull: remote path _dst: '$_dst'"
+    return 1
+  fi
+  if ! ssh::env; then
+    cij::err "ssh::pull: invalid environment"
+    return 1
+  fi
+
+  _args="-r"
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then                    # KEY
+    _args="$_args -i $SSH_KEY"
+  fi
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then                  # PORT
+    _args="$_args -P $SSH_PORT"
+  fi
+  if [[ -v SSH_NO_CHECKS && $SSH_NO_CHECKS -eq 1 ]]; then
+    _args="$_args -o UserKnownHostsFile=/dev/null"
+    _args="$_args -o StrictHostKeyChecking=no"
+  fi
+
+  _cmd="scp $_args ${SSH_USER}@${SSH_HOST}:$_src $_dst"
+
+  eval "$_cmd"
 }
 
 ssh::check() {
   if ! ssh::env; then
-    cij::err "ssh::check - Invalid ENV."
+    cij::err "ssh::check: invalid environment"
     return 1
   fi
 
@@ -151,71 +231,19 @@ ssh::check() {
   return $?
 }
 
-ssh::push() {
-  SRC=$1
-  if [[ ! -v SRC ]]; then
-    cij::err "ssh::copy: local path SRC: '$SRC'"
-    return 1
-  fi
 
-  DST=$2
-  if [[ ! -v DST ]]; then
-    cij::err "ssh::copy: remote path DST: '$DST'"
-    return 1
-  fi
-
+ssh::shutdown() {
   if ! ssh::env; then
-    cij::err "ssh::copy: invalid environment"
+    cij::err "ssh::shutdown: invalid environment"
     return 1
   fi
 
-  SCP_CMD_ARGS=""
-  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then
-    SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
-  fi
-  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then
-    SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
-  fi
-
-  SCP_CMD="scp $SCP_CMD_ARGS $SRC ${SSH_USER}@${SSH_HOST}:$DST"
-
-  eval "$SCP_CMD"
-}
-
-ssh::pull() {
-  SRC=$1
-  if [[ ! -v SRC ]]; then
-    cij::err "ssh::copy: remote path SRC: '$SRC'"
-    return 1
-  fi
-
-  DST=$2
-  if [[ ! -v DST ]]; then
-    cij::err "ssh::copy: local path DST: '$DST'"
-    return 1
-  fi
-
-  if ! ssh::env; then
-    cij::err "ssh::copy: invalid environment"
-    return 1
-  fi
-
-  SCP_CMD_ARGS="-r"
-  if [[ -v SSH_PORT ]]; then
-    SCP_CMD_ARGS="${SCP_CMD_ARGS} -P $SSH_PORT"
-  fi
-  if [[ -v SSH_KEY ]]; then
-    SCP_CMD_ARGS="${SCP_CMD_ARGS} -i $SSH_KEY"
-  fi
-
-  SCP_CMD="scp $SCP_CMD_ARGS ${SSH_USER}@${SSH_HOST}:$SRC $DST"
-
-  eval "$SCP_CMD"
+  ssh::cmd 'shutdown now'
 }
 
 ssh::reboot() {
   if ! ssh::env; then
-    cij::err "ssh::reboot - Invalid ENV."
+    cij::err "ssh::reboot: invalid environment"
     return 1
   fi
 
