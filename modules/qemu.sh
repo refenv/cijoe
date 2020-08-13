@@ -24,18 +24,23 @@
 #
 # Variables:
 #
-# QEMU_BIN              - Path to qemu binary, no default, MUST be set.
-# QEMU_GUESTS           - Path to qemu guests, default /tmp/guests.
-# QEMU_ARGS_EXTRA       - Wildcard for options which aren't wrapped below.
+# QEMU_HOST                     - SSH_HOST of qemu-host
+# QEMU_HOST_USER                - SSH_USER of qemu-host
+# QEMU_HOST_PORT                - SSH_PORT of qemu-host
+#
+# QEMU_HOST_SYSTEM_BIN          - Path to qemu binary, default 'qemu'
+# QEMU_HOST_IMG_BIN             - Path to qemu binary, default 'qemu-img'
+#
+# QEMU_ARGS_EXTRA               - Wildcard for options which aren't wrapped below.
 #
 # The "QEMU_GUESTS" is just a directory containing subdirectories,
 # one subdirectory for each guests. Within each guest directory files such
 # as "guest.pid", "console.out", "guest.monitor", "boot.img", "nvme00.img", and
 # the like.
 #
-# QEMU_HOST             - SSH_HOST of qemu-host
-# QEMU_HOST_USER        - SSH_USER of qemu-host
-# QEMU_HOST_PORT        - SSH_PORT of qemu-host
+# QEMU_GUESTS                   - Path to qemu guests, default /tmp/guests.
+#
+# The "QEMU_GUEST_*"            - These define how a guest is started
 #
 # QEMU_GUEST_NAME               - Default "default-guest"
 # QEMU_GUEST_PATH               - Default "QEMU_GUESTS/QEMU_GUEST_NAME"
@@ -75,6 +80,10 @@ qemu::env() {
     cij::info "QEMU_GUESTS is unset using 'default-guest'"
     : "${QEMU_GUEST_NAME=default-guest}"
   fi
+
+  # Set qemu defaults
+  : "${QEMU_HOST_SYSTEM_BIN:=qemu}"
+  : "${QEMU_HOST_IMG_BIN:=qemu-img}"
 
   # set guest defaults
   : "${QEMU_GUEST_BOOT_ISO:=}"
@@ -262,7 +271,7 @@ qemu::monitor() {
 # interactive usage
 qemu::console() {
   if ! qemu::env; then
-    cij::err "qemu::console: failed"
+    cij::err "qemu::console: qemu::env failed"
     return 1
   fi
 
@@ -270,13 +279,51 @@ qemu::console() {
   return $?
 }
 
+qemu::img() {
+  if ! qemu::env; then
+    cij::err "qemu::img: qemu::env failed"
+    return 1
+  fi
+
+  local _cmd
+
+  _cmd="${QEMU_HOST_IMG_BIN} $*"
+
+  qemu::hostcmd "${_cmd}"
+  return $?
+}
+
 qemu::guest_dev_exists() {
   if ! qemu::env; then
-    cij::err "qemu::guest_dev_exists: failed"
+    cij::err "qemu::guest_dev_exists: qemu::env failed"
     return 1
   fi
 
   qemu::hostcmd "[[ -f $QEMU_DEV_IMAGE_FPATH ]]"
+  return $?
+}
+
+qemu::img_create() {
+  if ! qemu::env; then
+    cij::err "qemu::env failed"
+    return 1
+  fi
+
+  : "${1?missing: ident}"
+  : "${2?missing: fmt}"
+  : "${3?missing: size}"
+
+  local _ident="$1"
+  local _fmt="$2"
+  local _size="$3"
+
+  local _img="${QEMU_GUEST_PATH}/${_ident}.img"
+
+  if qemu::hostcmd "[[ -f ${_img} ]]"; then
+    return 0
+  fi
+
+  qemu::img "create -f ${_fmt} ${_img} ${_size}"
   return $?
 }
 
@@ -347,7 +394,7 @@ qemu::run() {
       ;;
   esac
 
-  _cmd="$QEMU_BIN $_args $QEMU_ARGS_EXTRA"
+  _cmd="$QEMU_HOST_SYSTEM_BIN $_args $QEMU_ARGS_EXTRA"
 
   cij::info "Starting QEMU with commandline: $_cmd"
   if ! qemu::hostcmd "$_cmd"; then
@@ -414,10 +461,39 @@ qemu::img_from_url() {
     return 1
   fi
 
-  # TODO: wait for it spin up then shut it down
-  qemu::wait 120
-
-  cij::info "Is good!?"
+  # TODO: wait for it spin up, init, configure and then then shut it down
+  qemu::wait 600
 
   return 0
 }
+
+#
+# Helper function, creating a "-drive" args loving in QEMU_GUEST_PATH
+#
+qemu::args_drive() {
+  if ! qemu::env; then
+    cij::err "qemu::env failed"
+    return 1
+  fi
+
+  : "${1?missing: id}"
+  : "${2?missing: format}"
+
+  local _ident="$1"
+  local _fmt="$2"
+  local _args
+
+  _args="-drive "
+  _args="${_args}id=${_ident}"
+  _args="${_args},file=${QEMU_GUEST_PATH}/${_ident}.img"
+  _args="${_args},format=${_fmt}"
+  _args="${_args},if=none"
+  _args="${_args},discard=on"
+  _args="${_args},detect-zeroes=unmap"
+  if [[ -n "$3" ]]; then
+    _args="${_args},$3"
+  fi
+
+  echo "$_args"
+}
+
