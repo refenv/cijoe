@@ -461,8 +461,8 @@ qemu::img_from_url() {
     return 1
   fi
 
-  # TODO: wait for it spin up then shut it down
-  qemu::wait 120
+  # TODO: wait for it spin up, init, configure and then then shut it down
+  qemu::wait 600
 
   return 0
 }
