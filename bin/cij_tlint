@@ -200,7 +200,7 @@ def tplans_content(ident, roots, fnames):
                 "%s.suite" % suite.get("name", "jank") not in fnames["TSUITES"]:
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
-                    "testsuite: no testcases defined" % suite["name"]
+                    "testsuite: no testcases defined in '%s'" % suite["name"]
                 ))
 
             violations += tplan_testcases_exists(
