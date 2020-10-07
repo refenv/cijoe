@@ -2,6 +2,12 @@
 #
 # qemu.sh - Script providing convenience functions for invoking qemu
 #
+# Tools required:
+#
+# * ssh, the SSH cli
+# * cloud-localds, for provisioning cloud-images via 'qemu::img_from_url'
+# * minicom, for interactive text-console
+#
 # Functions:
 #
 # qemu::run                     - Run qemu
@@ -19,6 +25,8 @@
 # qemu::is_running              - Check whether the guest is running
 # qemu::wait                    - Wait for QEMU to stop running
 #
+# qemu::img_from_url
+#
 # Guest configuration and QEMU arguments are managed via variables. Define them
 # as exported environment variables or make sure they are in scope.
 #
@@ -35,7 +43,7 @@
 #
 # The "QEMU_GUESTS" is just a directory containing subdirectories,
 # one subdirectory for each guests. Within each guest directory files such
-# as "guest.pid", "console.out", "guest.monitor", "boot.img", "nvme00.img", and
+# as "guest.pid", "guest.serial", "guest.monitor", "boot.img", "nvme00.img", and
 # the like.
 #
 # QEMU_GUESTS                   - Path to qemu guests, default /tmp/guests.
@@ -50,7 +58,9 @@
 # QEMU_GUEST_CPU                - Adds "-cpu $QEMU_GUEST_CPU", DEFAULT: "host"
 # QEMU_GUEST_MEM                - Adds "-m QEMU_GUEST_MEM", DEFAULT: "2G"
 # QEMU_GUEST_SMP                - Adds "-smp $QEMU_GUEST_SMP", OPTIONAL, no DEFAULT
-# QEMU_GUEST_KERNEL             - Adds "-kernel $QEMU_GUEST_KERNEL" and additional args
+# QEMU_GUEST_IOMMU              - Adds "-device, 'intel-iommu,pt,intremap=on'"
+
+# QEMU_GUEST_KERNEL             - Adds "-kernel $QEMU_GUEST_PATH/bzImage" and additional args
 # QEMU_GUEST_APPEND             - Adds extra kernel parameters for -append
 # QEMU_GUEST_SSH_FWD_PORT       - Port to forward port 22 to host. Default: 2022
 # QEMU_GUEST_CONSOLE            - Default: "file"
@@ -58,6 +68,8 @@
 #   "stdio":  Console mapped to stdio
 #   "file": Console output piped to file "QEMU_GUEST_PATH/console.out"
 #   "foo":  The SDL interface pops up.
+#
+# QEMU_GUEST_HOST_SHARE         - Set to an absolute path to share with guest
 #
 qemu::env() {
   if [[ ! -v QEMU_HOST ]]; then
@@ -87,25 +99,32 @@ qemu::env() {
 
   # set guest defaults
   : "${QEMU_GUEST_BOOT_ISO:=}"
-  : "${QEMU_GUEST_PATH:=$QEMU_GUESTS/$QEMU_GUEST_NAME}"
-  : "${QEMU_GUEST_MONITOR:=$QEMU_GUEST_PATH/guest.monitor}"
-  : "${QEMU_GUEST_PIDFILE:=$QEMU_GUEST_PATH/guest.pid}"
+  : "${QEMU_GUEST_PATH:=${QEMU_GUESTS}/${QEMU_GUEST_NAME}}"
+
+  case ${QEMU_GUEST_CONSOLE} in
+  sock)
+    : "${QEMU_GUEST_MONITOR:=${QEMU_GUEST_PATH}/monitor.sock}"
+    : "${QEMU_GUEST_SERIAL:=${QEMU_GUEST_PATH}/serial.sock}"
+    ;;
+  file)
+    : "${QEMU_GUEST_MONITOR:=${QEMU_GUEST_PATH}/monitor.sock}"
+    : "${QEMU_GUEST_SERIAL:=${QEMU_GUEST_PATH}/serial.txt}"
+    ;;
+  esac
+
+  : "${QEMU_GUEST_PIDFILE:=${QEMU_GUEST_PATH}/guest.pid}"
   : "${QEMU_GUEST_APPEND:=}"
   : "${QEMU_GUEST_SSH_FWD_PORT:=2022}"
   : "${QEMU_GUEST_MACHINE_TYPE:=q35}"
   : "${QEMU_GUEST_CPU:=host}"
   : "${QEMU_GUEST_MEM:=2G}"
-  : "${QEMU_GUEST_BOOT_IMG:=$QEMU_GUEST_PATH/boot.img}"
+  : "${QEMU_GUEST_IOMMU:=0}"
+  : "${QEMU_GUEST_BOOT_IMG:=${QEMU_GUEST_PATH}/boot.img}"
   : "${QEMU_GUEST_BOOT_IMG_FMT:=qcow2}"
 
-  if [[ ! -v QEMU_GUEST_KERNEL && -f "$QEMU_GUEST_PATH/bzImage" ]]; then
-    : "${QEMU_GUEST_KERNEL:=$QEMU_GUEST_PATH/bzImage}"
-  fi
+  : "${QEMU_GUEST_KERNEL:=0}"
 
   : "${QEMU_GUEST_CONSOLE:=file}"
-  if [[ "$QEMU_GUEST_CONSOLE" = "file" ]]; then
-    QEMU_GUEST_CONSOLE_FILE="$QEMU_GUEST_PATH/console.out"
-  fi
 
   return 0
 }
@@ -116,7 +135,7 @@ qemu::hostcmd() {
     return 1
   fi
 
-  SSH_USER=$QEMU_HOST_USER SSH_HOST=$QEMU_HOST SSH_PORT=$QEMU_HOST_PORT ssh::cmd "$1"
+  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::cmd "$1"
 }
 
 qemu::hostcmd_output() {
@@ -125,7 +144,7 @@ qemu::hostcmd_output() {
     return 1
   fi
 
-  SSH_USER=$QEMU_HOST_USER SSH_HOST=$QEMU_HOST SSH_PORT=$QEMU_HOST_PORT ssh::cmd_output "$1"
+  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::cmd_output "$1"
 }
 
 qemu::host_push() {
@@ -134,7 +153,7 @@ qemu::host_push() {
     return 1
   fi
 
-  if ! SSH_USER=$QEMU_HOST_USER SSH_HOST=$QEMU_HOST SSH_PORT=$QEMU_HOST_PORT ssh::push "$1" "$2"; then
+  if ! SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::push "$1" "$2"; then
     cij::err "qemu::host_push failed"
     return 1
   fi
@@ -142,24 +161,21 @@ qemu::host_push() {
   return 0
 }
 
+# Copy from path into guest, e.g.
+# > qemu::provision_kernel "/path/to/kernel/bzImage"
 qemu::provision_kernel() {
   if ! qemu::env; then
     cij::err "qemu::provision_kernel failed"
     return 1
   fi
 
-  kernel_path=$1
-  if [[ -z "$kernel_path" ]]; then
-    cij::info "Local kernel path not supplied. Defaulting to: arch/x86/boot/bzImage"
-    kernel_path="arch/x86/boot/bzImage"
-  fi
+  local bzi_src
+  local bzi_dst
 
-  if [[ ! -v QEMU_GUEST_KERNEL ]]; then
-    cij::err "qemu::provision_kernel: !QEMU_GUEST_KERNEL: '$QEMU_GUEST_KERNEL'"
-    return 1
-  fi
+  bzi_src=$1
+  bzi_dst="${QEMU_GUEST_PATH}/bzImage"
 
-  if ! qemu::host_push "$kernel_path" "$QEMU_GUEST_KERNEL"; then
+  if ! qemu::host_push "$bzi_src" "${bzi_dst}"; then
     cij::err "qemu:provision_kernel failed"
     return 1
   fi
@@ -191,14 +207,14 @@ qemu::is_running() {
     return 1
   fi
 
-  if ! qemu::hostcmd "[[ -f \"$QEMU_GUEST_PIDFILE\" ]]"; then
+  if ! qemu::hostcmd "[[ -f \"${QEMU_GUEST_PIDFILE}\" ]]"; then
     cij::info "qemu::is_running: no pidfile, assuming it is not running"
     return 1
   fi
 
   PID=""
-  if ! PID=$(qemu::hostcmd_output "cat \"$QEMU_GUEST_PIDFILE\""); then
-    cij::err "qemu::is_running: failed getting pid from '$QEMU_GUEST_PIDFILE'"
+  if ! PID=$(qemu::hostcmd_output "cat \"${QEMU_GUEST_PIDFILE}\""); then
+    cij::err "qemu::is_running: failed getting pid from '${QEMU_GUEST_PIDFILE}'"
     return 1
   fi
 
@@ -243,7 +259,7 @@ qemu::poweroff() {
     return 1
   fi
 
-  qemu::hostcmd "echo system_powerdown | socat - UNIX-CONNECT:$QEMU_GUEST_MONITOR"
+  qemu::hostcmd "echo system_powerdown | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
@@ -253,7 +269,7 @@ qemu::reset() {
     return 1
   fi
 
-  qemu::hostcmd "echo system_reset | socat - UNIX-CONNECT:$QEMU_GUEST_MONITOR"
+  qemu::hostcmd "echo system_reset | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
@@ -263,7 +279,7 @@ qemu::monitor() {
     return 1
   fi
 
-  qemu::hostcmd "socat - UNIX-CONNECT:$QEMU_GUEST_MONITOR"
+  qemu::hostcmd "socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
@@ -275,7 +291,15 @@ qemu::console() {
     return 1
   fi
 
-  qemu::hostcmd "tail -n 1000 -f $QEMU_GUEST_PATH/console.out"
+  case ${QEMU_GUEST_CONSOLE} in
+  sock)
+    SSH_EXTRA_ARGS="-t" qemu::hostcmd "minicom -D unix#${QEMU_GUEST_PATH}/serial.sock"
+    ;;
+  file)
+    qemu::hostcmd "tail -n 1000 -f ${QEMU_GUEST_PATH}/serial.txt"
+    ;;
+  esac
+
   return $?
 }
 
@@ -299,7 +323,7 @@ qemu::guest_dev_exists() {
     return 1
   fi
 
-  qemu::hostcmd "[[ -f $QEMU_DEV_IMAGE_FPATH ]]"
+  qemu::hostcmd "[[ -f ${QEMU_DEV_IMAGE_FPATH} ]]"
   return $?
 }
 
@@ -336,9 +360,9 @@ qemu::run() {
     cij::err "qemu::run: looks like qemu is already running"
     return 1
   fi
-  cij::info "Guests: $QEMU_GUESTS Name: $QEMU_GUEST_NAME Path: $QEMU_GUEST_PATH"
-  if ! qemu::hostcmd "[[ -f $QEMU_GUEST_BOOT_IMG ]]"; then
-    cij::err "qemu::run: missing: $QEMU_GUEST_BOOT_IMG"
+  cij::info "Guests: ${QEMU_GUESTS} Name: ${QEMU_GUEST_NAME} Path: ${QEMU_GUEST_PATH}"
+  if ! qemu::hostcmd "[[ -f ${QEMU_GUEST_BOOT_IMG} ]]"; then
+    cij::err "qemu::run: missing: ${QEMU_GUEST_BOOT_IMG}"
     return 1
   fi
 
@@ -349,17 +373,22 @@ qemu::run() {
 
   # cpu/memory
   _args="$_args -machine type=$QEMU_GUEST_MACHINE_TYPE,kernel_irqchip=split,accel=kvm"
-  _args="$_args -cpu $QEMU_GUEST_CPU"
+  _args="$_args -cpu ${QEMU_GUEST_CPU}"
 
   if [[ -v QEMU_GUEST_SMP ]]; then
-    _args="$_args -smp $QEMU_GUEST_SMP"
+    _args="$_args -smp ${QEMU_GUEST_SMP}"
   fi
 
-  _args="$_args -m $QEMU_GUEST_MEM"
+  # NOTE: how does this behave when cpu=host and the host is e.g. a Ryzen?
+  if [[ -v QEMU_GUEST_IOMMU ]]; then
+    _args="$_args -device intel-iommu,pt,intremap=on"
+  fi
+
+  _args="$_args -m ${QEMU_GUEST_MEM}"
 
   # optionally boot from iso
   if [[ -n "${QEMU_GUEST_BOOT_ISO}" ]]; then
-    _args="$_args -boot d -cdrom $QEMU_GUEST_BOOT_ISO"
+    _args="$_args -boot d -cdrom ${QEMU_GUEST_BOOT_ISO}"
   fi
 
   # boot drive
@@ -367,34 +396,50 @@ qemu::run() {
   _args="$_args -device virtio-blk-pci,drive=boot"
 
   # network interface with a single port-forward
-  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp::$QEMU_GUEST_SSH_FWD_PORT-:22"
+  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp::${QEMU_GUEST_SSH_FWD_PORT}-:22"
   _args="$_args -device virtio-net-pci,netdev=n1"
 
-  # qemu monitor
-  _args="$_args -monitor unix:$QEMU_GUEST_MONITOR,server,nowait"
-
   # pidfile
-  _args="$_args -pidfile $QEMU_GUEST_PIDFILE"
+  _args="$_args -pidfile ${QEMU_GUEST_PIDFILE}"
 
   # optionally boot specific kernel
-  if [[ -v QEMU_GUEST_KERNEL ]]; then
-    _args="$_args -kernel \"${QEMU_GUEST_KERNEL}\""
-    _args="$_args -append \"root=/dev/vda1 vga=0 console=ttyS0,kgdboc=ttyS1,115200 $QEMU_GUEST_APPEND\""
+  if [[ -v QEMU_GUEST_KERNEL && "${QEMU_GUEST_KERNEL}" == "1" ]]; then
+    _args="$_args -kernel \"${QEMU_GUEST_PATH}/bzImage\""
+    _args="$_args -append \"root=/dev/vda1 vga=0 console=ttyS0,kgdboc=ttyS1,115200 ${QEMU_GUEST_APPEND}\""
   fi
 
-  case $QEMU_GUEST_CONSOLE in
-    file )
-      _args="$_args -display none -serial file:$QEMU_GUEST_CONSOLE_FILE"
-      _args="$_args -daemonize"
-      ;;
+  # qemu monitor
+  _args="$_args -monitor unix:${QEMU_GUEST_PATH}/monitor.sock,server,nowait"
 
-    stdio )
-      _args="$_args -nographic"
-      _args="$_args -serial mon:stdio"
-      ;;
+  case ${QEMU_GUEST_CONSOLE} in
+  sock)
+    _args="$_args -display none"
+    _args="$_args -serial unix:${QEMU_GUEST_PATH}/serial.sock,server,nowait"
+    _args="$_args -daemonize"
+    ;;
+
+  file)
+    _args="$_args -display none"
+    _args="$_args -serial file:${QEMU_GUEST_PATH}/serial.txt"
+    _args="$_args -daemonize"
+    ;;
+
+  stdio)
+    _args="$_args -nographic"
+    _args="$_args -serial mon:stdio"
+    ;;
   esac
 
-  _cmd="$QEMU_HOST_SYSTEM_BIN $_args $QEMU_ARGS_EXTRA"
+  if [[ -v QEMU_GUEST_HOST_SHARE ]]; then
+    _args="$_args -virtfs fsdriver=local,id=fsdev0,security_model=mapped,mount_tag=hostshare,path=${QEMU_GUEST_HOST_SHARE}"
+  fi
+
+  _cmd="$_args -D ${QEMU_GUEST_PATH}/stderr.log"
+
+  _cmd="${QEMU_HOST_SYSTEM_BIN} $_args"
+  if [[ -v QEMU_ARGS_EXTRA ]]; then
+    _cmd="${_cmd} ${QEMU_ARGS_EXTRA}"
+  fi
 
   cij::info "Starting QEMU with commandline: $_cmd"
   if ! qemu::hostcmd "$_cmd"; then
@@ -490,9 +535,9 @@ qemu::args_drive() {
   _args="${_args},if=none"
   _args="${_args},discard=on"
   _args="${_args},detect-zeroes=unmap"
-  if [[ -n "$3" ]]; then
-    _args="${_args},$3"
-  fi
+#  if [[ -n "$3" ]]; then
+#    _args="${_args},$3"
+#  fi
 
   echo "$_args"
 }
