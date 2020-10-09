@@ -55,6 +55,9 @@ Run **cijoe** interactively and define the target environment:
   the ``SSH_HOST`` and ``SSH_USER`` in your environment configuration e.g. in
   ``target_env.sh``. Have a look at `SshKeys`_ for setting up key-based auth.
 
+Using runner and report
+-----------------------
+
 Invoke the test runner, generate report and inspect the result:
 
 .. code-block:: bash
@@ -73,6 +76,30 @@ Invoke the test runner, generate report and inspect the result:
 
   # Inspect the test-report
   xdg-open $RESULTS/report.html
+
+Using testcases directly
+------------------------
+
+When 1 out of 40.000 tests fail, you might want to zoom in and run that
+testcase manually, here is how you would do that:
+
+.. code-block:: bash
+
+  # Start cijoe interactively with your test-environment
+  cijoe target_env.sh
+
+  # Define the test-result root
+  export CIJ_TEST_RES_ROOT=/tmp/manual
+
+  # Then just run the bash-script!
+  bash mytestcase.sh
+
+However, if your testplan uses hooks, evars, or other target-modifying things,
+then the state of your target will of course not match the state of your target
+when the testcase is executed via the runner.
+
+Often, it is simpler to just copy the testplan and change it to only hold the
+single testcase of interest.
 
 Python Version
 ==============
