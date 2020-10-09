@@ -646,15 +646,19 @@ def main(conf):
         ts_ent_err = tsuite_enter(trun, tsuite)
         for tcase in (tc for tc in tsuite["testcases"] if not ts_ent_err):
 
-            tc_err = tcase_enter(trun, tsuite, tcase)
-            if not tc_err:
-                tc_err += script_run(trun, tcase)
-                tc_err += tcase_exit(trun, tsuite, tcase)
+            tc_err = 0
 
-            tcase["status"] = "FAIL" if tc_err else "PASS"
+            tcase_match = conf.get("TESTCASE_MATCH", None)
+            if not (tcase_match and tcase_match not in tcase["name"]):
+                tc_err = tcase_enter(trun, tsuite, tcase)
+                if not tc_err:
+                    tc_err += script_run(trun, tcase)
+                    tc_err += tcase_exit(trun, tsuite, tcase)
+
+                tcase["status"] = "FAIL" if tc_err else "PASS"
+                trun["progress"]["UNKN"] -= 1
 
             trun["progress"][tcase["status"]] += 1  # Update progress
-            trun["progress"]["UNKN"] -= 1
 
             ts_err += tc_err                        # Accumulate errors
 
@@ -684,4 +688,4 @@ def main(conf):
     cij.emph("rnr:main:progress %r" % trun["progress"])
     cij.emph("rnr:main:trun %r" % trun["status"], trun["status"] != "PASS")
 
-    return trun["progress"]["UNKN"] + trun["progress"]["FAIL"]
+    return trun["progress"]["FAIL"]
