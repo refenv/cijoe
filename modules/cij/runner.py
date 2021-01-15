@@ -1,8 +1,10 @@
 """
     library functions for the CIJOE test runner, `cij_runner`.
 """
+from __future__ import print_function, annotations
 from subprocess import Popen, STDOUT
 from xml.dom import minidom
+import dataclasses
 import shutil
 import copy
 import time
@@ -22,87 +24,179 @@ HOOK_PATTERNS = {
     ]
 }
 
-HOOK = {
-    "evars": {},
+@dataclasses.dataclass
+class Runnable:
+    name: str = "UNNAMED"
+    evars: dict = dataclasses.field(default_factory=dict)
+    log_fpath: str = None
+    fpath: str = None
+    res_root: str = None
+    rcode: int = None
+    wallc: float = None
 
-    "name": None,
-    "fname": None,
-    "fpath": None,
-    "fpath_orig": None,
 
-    "res_root": None,
-    "log_fpath": None,
-    "rcode": None,
-    "wallc": None,
-}
+@dataclasses.dataclass
+class Hook(Runnable):
+    fname: dict = None
+    fpath_orig: dict = None
 
-TESTSUITE = {
-    "ident": None,
-    "name": None,
-    "alias": None,
-    "hooks": {
+    @staticmethod
+    def hooks_from_dict(hooks_dict) -> dict:
+        """
+        Deserialize a hook dict containing lists of hook dicts dicts into a hook
+        dict containing lists of Hooks
+        """
+        hook_fields = set(Hook.__dataclass_fields__)
+
+        hooks = {}
+        for hook_stage, hooks_entries in hooks_dict.items():
+            hooks[hook_stage] = []
+
+            for hook_entry in hooks_entries:
+                hook = Hook()
+                for key in hook_fields & set(hook_entry):
+                    setattr(hook, key, hook_entry[key])
+                hooks[hook_stage].append(hook)
+
+        return hooks
+
+
+@dataclasses.dataclass
+class TestCase(Runnable):
+    ident: str = "UNDEFINED"
+    fname: str = None
+    aux_root: str = None
+    aux_list: list = dataclasses.field(default_factory=list)
+
+    hooks: dict = dataclasses.field(default_factory=dict)
+    hnames: list = dataclasses.field(default_factory=list)
+
+    status: str = "UNKN"
+    src_content: str = ""
+    descr: str = ""
+    descr_long: str = ""
+    src_content: str = ""
+    log_content: str = ""
+
+
+    @staticmethod
+    def tcases_from_dicts(tcase_dicts) -> list[TestCase]:
+        """
+        Deserialize a list of tcase dictionaries into a list of TestCases
+        """
+        complex_keys = {'hooks': Hook.hooks_from_dict} 
+        tcase_fields = set(TestCase.__dataclass_fields__)
+
+        tcases = []
+        for tcase_dict in tcase_dicts:
+            tcase = TestCase()
+            for key in tcase_fields & set(tcase_dict):
+                deserialize = complex_keys.get(key, lambda x: x)
+                setattr(tcase, key, deserialize(tcase_dict[key]))
+
+            tcases.append(tcase)
+
+        return tcases
+
+
+@dataclasses.dataclass
+class TestSuite:
+    ident: str = "UNDEFINED"
+    name: str = "UNNAMED"
+    alias: str = ""
+    hooks: dict = dataclasses.field(default_factory=lambda: {
         "enter": [],
         "exit": []
-    },
-    "evars": {},
+    })
+    evars: dict = dataclasses.field(default_factory=dict)
 
-    "fpath": None,
-    "fname": None,
-    "res_root": None,
-    "aux_root": None,
-    "aux_list": [],
+    fpath: str = None
+    fname: str = None
+    res_root: str = None
+    aux_root: str = None
+    aux_list: list = dataclasses.field(default_factory=list)
 
-    "status": "UNKN",
-    "wallc": None,
+    status: str = "UNKN"
+    wallc: float = None
 
-    "testcases": [],
-    "hooks_pr_tcase": [],
-}
+    testcases: list = dataclasses.field(default_factory=list)
+    hooks_pr_tcase: list = dataclasses.field(default_factory=list)
 
-TESTCASE = {
-    "ident": None,
-    "fpath": None,
-    "fname": None,
-    "name": None,
-    "res_root": None,
-    "aux_root": None,
-    "aux_list": [],
-    "log_fpath": None,
+    log_content: str = ""
+    hnames: list = dataclasses.field(default_factory=list)
 
-    "hooks": None,
-    "evars": {},
+    @staticmethod
+    def tsuites_from_dicts(tsuites_dicts) -> list[TestSuite]:
+        """
+        Deserialize a list of tsuite dicts into a list of TestSuites
+        """
+        complex_keys = {
+            'testcases': TestCase.tcases_from_dicts,
+            'hooks': Hook.hooks_from_dict,
+        }
+        tsuite_fields = set(TestSuite.__dataclass_fields__)
 
-    "status": "UNKN",
-    "rcode": None,
-    "wallc": None,
-}
+        tsuites = []
+        for tsuite_dict in tsuites_dicts:
+            tsuite = TestSuite()
+            for key in tsuite_fields & set(tsuite_dict):
+                deserialize = complex_keys.get(key, lambda x: x)
+                setattr(tsuite, key, deserialize(tsuite_dict[key]))
 
-TRUN = {
-    "ver": None,
-    "conf": None,
-    "evars": {},
-    "progress": {
+            tsuites.append(tsuite)
+
+        return tsuites
+
+
+@dataclasses.dataclass
+class TestRun:
+    ver: str = None
+    conf: dict = None
+    evars: dict = dataclasses.field(default_factory=dict)
+    progress: dict = dataclasses.field(default_factory=lambda: {
         "PASS": 0,
         "FAIL": 0,
         "UNKN": 0
-    },
-    "stamp": {
+    })
+    stamp: dict = dataclasses.field(default_factory=lambda: {
         "begin": None,
         "end": None
-    },
-    "hooks": {
+    })
+    hooks: dict = dataclasses.field(default_factory=lambda: {
         "enter": [],
         "exit": []
-    },
-    "res_root": None,
-    "aux_root": None,
-    "aux_list": [],
+    })
+    res_root: str = None
+    aux_root: str = None
+    aux_list: list = dataclasses.field(default_factory=list)
 
-    "testsuites": [],
+    testsuites: list = dataclasses.field(default_factory=list)
 
-    "status": "UNKN",
-    "wallc": None,
-}
+    status: str = "UNKN"
+    wallc: float = None
+    log_content: str = ""
+    hnames: list = dataclasses.field(default_factory=list)
+
+
+    @staticmethod
+    def from_dict(trun_dict) -> TestRun:
+        """
+        Deserialize a trun dict into TestRun
+        """
+        complex_keys = {
+            'testsuites': TestSuite.tsuites_from_dicts,
+            'hooks': Hook.hooks_from_dict,
+        }
+
+        trun = TestRun()
+
+        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)
+        for key in fields:
+            deserialize = complex_keys.get(key, lambda x: x)
+            setattr(trun, key, deserialize(trun_dict[key]))
+
+        return trun
+
 
 def yml_fpath(output_path):
     """Returns the path to the trun YAML-file"""
@@ -114,27 +208,27 @@ def junit_fpath(output_path):
 
     return os.sep.join([output_path, "trun.xml"])
 
-def script_run(trun, script):
+def script_run(trun, script: Runnable):
     """Execute a script or testcase"""
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:script:run { script: %s }" % script)
-        cij.emph("rnr:script:run:evars: %s" % script["evars"])
+        cij.emph("rnr:script:run:evars: %s" % script.evars)
 
     launchers = {
         ".py": "python",
         ".sh": "source"
     }
 
-    ext = os.path.splitext(script["fpath"])[-1]
+    ext = os.path.splitext(script.fpath)[-1]
     if not ext in launchers.keys():
-        cij.err("rnr:script:run { invalid script[\"fpath\"]: %r }" % script["fpath"])
+        cij.err("rnr:script:run { invalid script.fpath: %r }" % script.fpath)
         return 1
 
     launch = launchers[ext]
 
-    with open(script["log_fpath"], "a") as log_fd:
-        log_fd.write("# script_fpath: %r\n" % script["fpath"])
+    with open(script.log_fpath, "a") as log_fd:
+        log_fd.write("# script_fpath: %r\n" % script.fpath)
         log_fd.flush()
 
         bgn = time.time()
@@ -144,61 +238,61 @@ def script_run(trun, script):
             'source $CIJ_ROOT/modules/cijoe.sh && '
             'source %s && '
             'CIJ_TEST_RES_ROOT="%s" %s %s ' % (
-                trun["conf"]["ENV_FPATH"],
-                script["res_root"],
+                trun.conf["ENV_FPATH"],
+                script.res_root,
                 launch,
-                script["fpath"]
+                script.fpath
             )
         ]
-        if trun["conf"]["VERBOSE"] > 1:
+        if trun.conf["VERBOSE"] > 1:
             cij.emph("rnr:script:run { cmd: %r }" % " ".join(cmd))
 
         evars = os.environ.copy()
-        evars.update({k: str(script["evars"][k]) for k in script["evars"]})
+        evars.update({k: str(script.evars[k]) for k in script.evars})
 
         process = Popen(
             cmd,
             stdout=log_fd,
             stderr=STDOUT,
-            cwd=script["res_root"],
+            cwd=script.res_root,
             env=evars
         )
         process.wait()
 
-        script["rcode"] = process.returncode
-        script["wallc"] = time.time() - bgn
+        script.rcode = process.returncode
+        script.wallc = time.time() - bgn
 
-    if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:script:run { wallc: %02f }" % script["wallc"])
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:script:run { wallc: %02f }" % script.wallc)
         cij.emph(
-            "rnr:script:run { rcode: %r } " % script["rcode"],
-            script["rcode"]
+            "rnr:script:run { rcode: %r } " % script.rcode,
+            script.rcode
         )
 
-    return script["rcode"]
+    return script.rcode
 
-def hook_setup(parent, hook_fpath):
+def hook_setup(parent, hook_fpath) -> Hook:
     """Setup hook"""
 
-    hook = copy.deepcopy(HOOK)
-    hook["name"] = os.path.splitext(os.path.basename(hook_fpath))[0]
-    hook["name"] = hook["name"].replace("_enter", "").replace("_exit", "")
-    hook["res_root"] = parent["res_root"]
-    hook["fpath_orig"] = hook_fpath
-    hook["fname"] = "hook_%s" % os.path.basename(hook["fpath_orig"])
-    hook["fpath"] = os.sep.join([hook["res_root"], hook["fname"]])
-    hook["log_fpath"] = os.sep.join([
-        hook["res_root"],
-        "%s.log" % hook["fname"]
+    hook = Hook()
+    hook.name = os.path.splitext(os.path.basename(hook_fpath))[0]
+    hook.name = hook.name.replace("_enter", "").replace("_exit", "")
+    hook.res_root = parent.res_root
+    hook.fpath_orig = hook_fpath
+    hook.fname = "hook_%s" % os.path.basename(hook.fpath_orig)
+    hook.fpath = os.sep.join([hook.res_root, hook.fname])
+    hook.log_fpath = os.sep.join([
+        hook.res_root,
+        "%s.log" % hook.fname
     ])
 
-    hook["evars"].update(copy.deepcopy(parent["evars"]))
+    hook.evars.update(copy.deepcopy(parent.evars))
 
-    shutil.copyfile(hook["fpath_orig"], hook["fpath"])
+    shutil.copyfile(hook.fpath_orig, hook.fpath)
 
     return hook
 
-def hooks_setup(trun, parent, hnames=None):
+def hooks_setup(trun, parent, hnames=None) -> dict:
     """
     Setup test-hooks
     @returns dict of hook filepaths {"enter": [], "exit": []}
@@ -215,7 +309,7 @@ def hooks_setup(trun, parent, hnames=None):
     for hname in hnames:      # Fill out paths
         for med in HOOK_PATTERNS:
             for ptn in HOOK_PATTERNS[med]:
-                fpath = os.sep.join([trun["conf"]["HOOKS"], ptn % hname])
+                fpath = os.sep.join([trun.conf["HOOKS"], ptn % hname])
                 if not os.path.exists(fpath):
                     continue
 
@@ -236,10 +330,11 @@ def trun_to_file(trun, fpath=None):
     """Dump the given trun to file"""
 
     if fpath is None:
-        fpath = yml_fpath(trun["conf"]["OUTPUT"])
+        fpath = yml_fpath(trun.conf["OUTPUT"])
 
+    trun_dict = dataclasses.asdict(trun)
     with open(fpath, 'w') as yml_file:
-        data = yaml.dump(trun, explicit_start=True, default_flow_style=False)
+        data = yaml.dump(trun_dict, explicit_start=True, default_flow_style=False)
         yml_file.write(data)
 
 def trun_to_junitfile(trun, fpath=None):
@@ -247,14 +342,14 @@ def trun_to_junitfile(trun, fpath=None):
 
     try:
         if fpath is None:
-            fpath = junit_fpath(trun["conf"]["OUTPUT"])
+            fpath = junit_fpath(trun.conf["OUTPUT"])
 
         doc = minidom.Document()
 
         doc_testsuites = doc.createElement('testsuites')
 
         duration = 0
-        stamp = trun.get("stamp", None)
+        stamp = trun.stamp
         if stamp:
             stamp_begin = stamp.get("begin", None)
             if not stamp_begin:
@@ -271,21 +366,21 @@ def trun_to_junitfile(trun, fpath=None):
 
         doc.appendChild(doc_testsuites)
 
-        for ts_id, tsuite in enumerate(trun.get("testsuites", [])):
+        for ts_id, tsuite in enumerate(trun.testsuites):
 
             doc_tsuite = doc.createElement("testsuite")
-            doc_tsuite.setAttribute("name", tsuite.get("name", "UNNAMED"))
-            doc_tsuite.setAttribute("package", tsuite.get("ident", "UNDEFINED"))
+            doc_tsuite.setAttribute("name", tsuite.name)
+            doc_tsuite.setAttribute("package", tsuite.ident)
             doc_tsuite.setAttribute(
                 "tests",
-                str(len(tsuite.get("testcases", [])))
+                str(len(tsuite.testcases))
             )
 
             nfailures = 0
             wallc_total = 0.0
 
-            for tcase in tsuite["testcases"]:
-                wallc = tcase.get("wallc", None)
+            for tcase in tsuite.testcases:
+                wallc = tcase.wallc
                 if not wallc:
                     wallc = 0.0
 
@@ -293,14 +388,14 @@ def trun_to_junitfile(trun, fpath=None):
 
                 doc_tcase = doc.createElement("testcase")
                 doc_tcase.setAttribute(
-                    "name", str(tcase.get("name", "UNNAMED"))
+                    "name", str(tcase.name)
                 )
                 doc_tcase.setAttribute(
-                    "classname", str(tcase.get("ident", "UNDEFINED"))
+                    "classname", str(tcase.ident)
                 )
                 doc_tcase.setAttribute("time", "%0.3f" % wallc)
 
-                rcode = tcase.get("rcode", None)
+                rcode = tcase.rcode
                 if rcode != 0:
                     nfailures += 1
 
@@ -333,58 +428,59 @@ def trun_from_file(fpath):
     """Returns trun from the given fpath"""
 
     with open(fpath, 'r') as yml_file:
-        return yaml.safe_load(yml_file)
-
+        trun_dict = yaml.safe_load(yml_file)
+        return TestRun.from_dict(trun_dict)
+    
 
 def trun_emph(trun):
     """Print essential info on"""
 
-    if trun["conf"]["VERBOSE"] > 1:               # Print environment variables
+    if trun.conf["VERBOSE"] > 1:               # Print environment variables
         cij.emph("rnr:CONF {")
-        for cvar in sorted(trun["conf"].keys()):
-            cij.emph("  % 16s: %r" % (cvar, trun["conf"][cvar]))
+        for cvar in sorted(trun.conf.keys()):
+            cij.emph("  % 16s: %r" % (cvar, trun.conf[cvar]))
         cij.emph("}")
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:INFO {")
-        cij.emph("  OUTPUT: %r" % trun["conf"]["OUTPUT"])
-        cij.emph("  yml_fpath: %r" % yml_fpath(trun["conf"]["OUTPUT"]))
+        cij.emph("  OUTPUT: %r" % trun.conf["OUTPUT"])
+        cij.emph("  yml_fpath: %r" % yml_fpath(trun.conf["OUTPUT"]))
         cij.emph("}")
 
 
-def tcase_setup(trun, parent, tcase_fname):
+def tcase_setup(trun, parent, tcase_fname) -> TestCase:
     """
     Create and initialize a testcase
     """
     #pylint: disable=locally-disabled, unused-argument
 
-    case = copy.deepcopy(TESTCASE)
+    case = TestCase()
 
-    case["fname"] = tcase_fname
-    case["fpath_orig"] = os.sep.join([trun["conf"]["TESTCASES"], case["fname"]])
+    case.fname = tcase_fname
+    case.fpath_orig = os.sep.join([trun.conf["TESTCASES"], case.fname])
 
-    if not os.path.exists(case["fpath_orig"]):
-        cij.err('rnr:tcase_setup: !case["fpath_orig"]: %r' % case["fpath_orig"])
+    if not os.path.exists(case.fpath_orig):
+        cij.err('rnr:tcase_setup: !case.fpath_orig: %r' % case.fpath_orig)
         return None
 
-    case["name"] = os.path.splitext(case["fname"])[0]
-    case["ident"] = "/".join([parent["ident"], case["fname"]])
+    case.name = os.path.splitext(case.fname)[0]
+    case.ident = "/".join([parent.ident, case.fname])
 
-    case["res_root"] = os.sep.join([parent["res_root"], case["fname"]])
-    case["aux_root"] = os.sep.join([case["res_root"], "_aux"])
-    case["log_fpath"] = os.sep.join([case["res_root"], "run.log"])
+    case.res_root = os.sep.join([parent.res_root, case.fname])
+    case.aux_root = os.sep.join([case.res_root, "_aux"])
+    case.log_fpath = os.sep.join([case.res_root, "run.log"])
 
-    case["fpath"] = os.sep.join([case["res_root"], case["fname"]])
+    case.fpath = os.sep.join([case.res_root, case.fname])
 
-    case["evars"].update(copy.deepcopy(parent["evars"]))
+    case.evars.update(copy.deepcopy(parent.evars))
 
     # Initalize
-    os.makedirs(case["res_root"])                       # Create DIRS
-    os.makedirs(case["aux_root"])
-    shutil.copyfile(case["fpath_orig"], case["fpath"])  # Copy testcase
+    os.makedirs(case.res_root)                       # Create DIRS
+    os.makedirs(case.aux_root)
+    shutil.copyfile(case.fpath_orig, case.fpath)  # Copy testcase
 
     # Initialize hooks
-    case["hooks"] = hooks_setup(trun, case, parent.get("hooks_pr_tcase"))
+    case.hooks = hooks_setup(trun, case, parent.hooks_pr_tcase)
 
     return case
 
@@ -392,16 +488,16 @@ def tcase_setup(trun, parent, tcase_fname):
 def tsuite_exit(trun, tsuite):
     """Triggers when exiting the given testsuite"""
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tsuite:exit")
 
     rcode = 0
-    for hook in reversed(tsuite["hooks"]["exit"]):      # EXIT-hooks
+    for hook in reversed(tsuite.hooks["exit"]):      # EXIT-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tsuite:exit { rcode: %r } " % rcode, rcode)
 
     return rcode
@@ -410,62 +506,62 @@ def tsuite_exit(trun, tsuite):
 def tsuite_enter(trun, tsuite):
     """Triggers when entering the given testsuite"""
 
-    if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tsuite:enter { name: %r }" % tsuite["name"])
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:tsuite:enter { name: %r }" % tsuite.name)
 
     rcode = 0
-    for hook in tsuite["hooks"]["enter"]:     # ENTER-hooks
+    for hook in tsuite.hooks["enter"]:     # ENTER-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tsuite:enter { rcode: %r } " % rcode, rcode)
 
     return rcode
 
-def tsuite_setup(trun, declr, enum):
+def tsuite_setup(trun, declr, enum) -> TestSuite:
     """
     Creates and initialized a TESTSUITE struct and site-effects such as creating
     output directories and forwarding initialization of testcases
     """
 
-    suite = copy.deepcopy(TESTSUITE)  # Setup the test-suite
+    suite = TestSuite()  # Setup the test-suite
 
-    suite["name"] = declr.get("name")
-    if suite["name"] is None:
+    suite.name = declr.get("name")
+    if suite.name is None:
         cij.err("rnr:tsuite_setup: no testsuite is given")
         return None
 
-    suite["alias"] = declr.get("alias")
-    suite["ident"] = "%s_%d" % (suite["name"], enum)
+    suite.alias = declr.get("alias")
+    suite.ident = "%s_%d" % (suite.name, enum)
 
-    suite["res_root"] = os.sep.join([trun["conf"]["OUTPUT"], suite["ident"]])
-    suite["aux_root"] = os.sep.join([suite["res_root"], "_aux"])
+    suite.res_root = os.sep.join([trun.conf["OUTPUT"], suite.ident])
+    suite.aux_root = os.sep.join([suite.res_root, "_aux"])
 
-    suite["evars"].update(copy.deepcopy(trun["evars"]))
-    suite["evars"].update(copy.deepcopy(declr.get("evars", {})))
+    suite.evars.update(copy.deepcopy(trun.evars))
+    suite.evars.update(copy.deepcopy(declr.get("evars", {})))
 
     # Initialize
-    os.makedirs(suite["res_root"])
-    os.makedirs(suite["aux_root"])
+    os.makedirs(suite.res_root)
+    os.makedirs(suite.aux_root)
 
     # Setup testsuite-hooks
-    suite["hooks"] = hooks_setup(trun, suite, declr.get("hooks"))
+    suite.hooks = hooks_setup(trun, suite, declr.get("hooks"))
 
     # Forward from declaration
-    suite["hooks_pr_tcase"] = declr.get("hooks_pr_tcase", [])
+    suite.hooks_pr_tcase = declr.get("hooks_pr_tcase", [])
 
-    suite["fname"] = "%s.suite" % suite["name"]
-    suite["fpath"] = os.sep.join([trun["conf"]["TESTSUITES"], suite["fname"]])
+    suite.fname = "%s.suite" % suite.name
+    suite.fpath = os.sep.join([trun.conf["TESTSUITES"], suite.fname])
 
     #
     # Load testcases from .suite file OR from declaration
     #
     tcase_fpaths = []                               # Load testcase fpaths
-    if os.path.exists(suite["fpath"]):              # From suite-file
+    if os.path.exists(suite.fpath):              # From suite-file
         suite_lines = (
-            l.strip() for l in open(suite["fpath"]).read().splitlines()
+            l.strip() for l in open(suite.fpath).read().splitlines()
         )
         tcase_fpaths.extend(
             (l for l in suite_lines if len(l) > 1 and l[0] != "#")
@@ -485,7 +581,7 @@ def tsuite_setup(trun, declr, enum):
             cij.err("rnr:suite: failed: tcase_setup")
             return None
 
-        suite["testcases"].append(tcase)
+        suite.testcases.append(tcase)
 
     return suite
 
@@ -494,16 +590,16 @@ def tcase_exit(trun, tsuite, tcase):
     """..."""
     #pylint: disable=locally-disabled, unused-argument
 
-    if trun["conf"]["VERBOSE"]:
-        cij.emph("rnr:tcase:exit { fname: %r }" % tcase["fname"])
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:tcase:exit { fname: %r }" % tcase.fname)
 
     rcode = 0
-    for hook in reversed(tcase["hooks"]["exit"]):    # tcase EXIT-hooks
+    for hook in reversed(tcase.hooks["exit"]):    # tcase EXIT-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tcase:exit { rcode: %r }" % rcode, rcode)
 
     return rcode
@@ -517,18 +613,18 @@ def tcase_enter(trun, tsuite, tcase):
     """
     #pylint: disable=locally-disabled, unused-argument
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tcase:enter")
-        cij.emph("rnr:tcase:enter { fname: %r }" % tcase["fname"])
-        cij.emph("rnr:tcase:enter { log_fpath: %r }" % tcase["log_fpath"])
+        cij.emph("rnr:tcase:enter { fname: %r }" % tcase.fname)
+        cij.emph("rnr:tcase:enter { log_fpath: %r }" % tcase.log_fpath)
 
     rcode = 0
-    for hook in tcase["hooks"]["enter"]:    # tcase ENTER-hooks
+    for hook in tcase.hooks["enter"]:    # tcase ENTER-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:tcase:exit: { rcode: %r }" % rcode, rcode)
 
     return rcode
@@ -536,16 +632,16 @@ def tcase_enter(trun, tsuite, tcase):
 def trun_exit(trun):
     """Triggers when exiting the given testrun"""
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:trun:exit")
 
     rcode = 0
-    for hook in reversed(trun["hooks"]["exit"]):    # EXIT-hooks
+    for hook in reversed(trun.hooks["exit"]):    # EXIT-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:trun::exit { rcode: %r }" % rcode, rcode)
 
     return rcode
@@ -554,24 +650,24 @@ def trun_exit(trun):
 def trun_enter(trun):
     """Triggers when entering the given testrun"""
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:trun::enter")
 
-    trun["stamp"]["begin"] = int(time.time())     # Record start timestamp
+    trun.stamp["begin"] = int(time.time())     # Record start timestamp
 
     rcode = 0
-    for hook in trun["hooks"]["enter"]:     # ENTER-hooks
+    for hook in trun.hooks["enter"]:     # ENTER-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
-    if trun["conf"]["VERBOSE"]:
+    if trun.conf["VERBOSE"]:
         cij.emph("rnr:trun::enter { rcode: %r }" % rcode, rcode)
 
     return rcode
 
 
-def trun_setup(conf):
+def trun_setup(conf) -> TestRun:
     """
     Setup the testrunner data-structure, embedding the parsed environment
     variables and command-line arguments and continues with setup for testplans,
@@ -588,18 +684,18 @@ def trun_setup(conf):
     if not declr:
         return None
 
-    trun = copy.deepcopy(TRUN)
-    trun["ver"] = cij.VERSION
+    trun = TestRun()
+    trun.ver = cij.VERSION
 
-    trun["conf"] = copy.deepcopy(conf)
-    trun["res_root"] = conf["OUTPUT"]
-    trun["aux_root"] = os.sep.join([trun["res_root"], "_aux"])
-    trun["evars"].update(copy.deepcopy(declr.get("evars", {})))
+    trun.conf = copy.deepcopy(conf)
+    trun.res_root = conf["OUTPUT"]
+    trun.aux_root = os.sep.join([trun.res_root, "_aux"])
+    trun.evars.update(copy.deepcopy(declr.get("evars", {})))
 
-    os.makedirs(trun["aux_root"])
+    os.makedirs(trun.aux_root)
 
     # Setup top-level hooks
-    trun["hooks"] = hooks_setup(trun, trun, declr.get("hooks", []))
+    trun.hooks = hooks_setup(trun, trun, declr.get("hooks", []))
 
     for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
         tsuite = tsuite_setup(trun, declr, enum)
@@ -607,8 +703,8 @@ def trun_setup(conf):
             cij.err("main::FAILED: setting up tsuite: %r" % tsuite)
             return 1
 
-        trun["testsuites"].append(tsuite)
-        trun["progress"]["UNKN"] += len(tsuite["testcases"])
+        trun.testsuites.append(tsuite)
+        trun.progress["UNKN"] += len(tsuite.testcases)
 
     return trun
 
@@ -631,25 +727,25 @@ def main(conf):
 
     tr_err = 0
     tr_ent_err = trun_enter(trun)
-    for tsuite in (ts for ts in trun["testsuites"] if not tr_ent_err):
+    for tsuite in (ts for ts in trun.testsuites if not tr_ent_err):
 
         ts_err = 0
         ts_ent_err = tsuite_enter(trun, tsuite)
-        for tcase in (tc for tc in tsuite["testcases"] if not ts_ent_err):
+        for tcase in (tc for tc in tsuite.testcases if not ts_ent_err):
 
             tc_err = 0
 
             tcase_match = conf.get("TESTCASE_MATCH", None)
-            if not (tcase_match and tcase_match not in tcase["name"]):
+            if not (tcase_match and tcase_match not in tcase.name):
                 tc_err = tcase_enter(trun, tsuite, tcase)
                 if not tc_err:
                     tc_err += script_run(trun, tcase)
                     tc_err += tcase_exit(trun, tsuite, tcase)
 
-                tcase["status"] = "FAIL" if tc_err else "PASS"
-                trun["progress"]["UNKN"] -= 1
+                tcase.status = "FAIL" if tc_err else "PASS"
+                trun.progress["UNKN"] -= 1
 
-            trun["progress"][tcase["status"]] += 1  # Update progress
+            trun.progress[tcase.status] += 1  # Update progress
 
             ts_err += tc_err                        # Accumulate errors
 
@@ -662,21 +758,21 @@ def main(conf):
         ts_err += ts_ent_err                        # Accumulate errors
         tr_err += ts_err
 
-        tsuite["status"] = "FAIL" if ts_err else "PASS"
+        tsuite.status = "FAIL" if ts_err else "PASS"
 
-        cij.emph("rnr:tsuite %r" % tsuite["status"], tsuite["status"] != "PASS")
+        cij.emph("rnr:tsuite %r" % tsuite.status, tsuite.status != "PASS")
 
     if not tr_ent_err:
         trun_exit(trun)
 
     tr_err += tr_ent_err
-    trun["status"] = "FAIL" if tr_err else "PASS"
+    trun.status = "FAIL" if tr_err else "PASS"
 
-    trun["stamp"]["end"] = int(time.time()) + 1         # END STAMP
+    trun.stamp["end"] = int(time.time()) + 1         # END STAMP
     trun_to_file(trun)                                  # PERSIST
     trun_to_junitfile(trun)                             # Persist as jUNIT XML
 
-    cij.emph("rnr:main:progress %r" % trun["progress"])
-    cij.emph("rnr:main:trun %r" % trun["status"], trun["status"] != "PASS")
+    cij.emph("rnr:main:progress %r" % trun.progress)
+    cij.emph("rnr:main:trun %r" % trun.status, trun.status != "PASS")
 
-    return trun["progress"]["FAIL"]
+    return trun.progress["FAIL"]
