@@ -14,8 +14,8 @@ def extract_hook_names(ent):
     """Extract hook names from the given entity"""
 
     hnames = []
-    for hook in ent["hooks"]["enter"] + ent["hooks"]["exit"]:
-        hname = os.path.basename(hook["fpath_orig"])
+    for hook in ent.hooks["enter"] + ent.hooks["exit"]:
+        hname = os.path.basename(hook.fpath_orig)
         hname = os.path.splitext(hname)[0]
         hname = hname.strip()
         hname = hname.replace("_enter", "")
@@ -34,18 +34,18 @@ def tcase_comment(tcase):
     """
     Extract testcase comment section / testcase description
 
-    @returns the testcase-comment from the tcase["fpath"] as a list of strings
+    @returns the testcase-comment from the tcase.fpath as a list of strings
     """
 
-    src = open(tcase["fpath"]).read()
+    src = open(tcase.fpath).read()
     if len(src) < 3:
-        cij.err("rprtr::tcase_comment: invalid src, tcase: %r" % tcase["name"])
+        cij.err("rprtr::tcase_comment: invalid src, tcase: %r" % tcase.name)
         return None
 
-    ext = os.path.splitext(tcase["fpath"])[-1]
+    ext = os.path.splitext(tcase.fpath)[-1]
     if ext not in [".sh", ".py"]:
         cij.err("rprtr::tcase_comment: invalid ext: %r, tcase: %r" % (
-            ext, tcase["name"]
+            ext, tcase.name
         ))
         return None
 
@@ -154,9 +154,9 @@ def process_tsuite(tsuite):
 
     # scoop of output from all run-logs
 
-    tsuite["log_content"] = runlogs_to_html(tsuite["res_root"])
-    tsuite["aux_list"] = aux_listing(tsuite["aux_root"])
-    tsuite["hnames"] = extract_hook_names(tsuite)
+    tsuite.log_content = runlogs_to_html(tsuite.res_root)
+    tsuite.aux_list = aux_listing(tsuite.aux_root)
+    tsuite.hnames = extract_hook_names(tsuite)
 
     return True
 
@@ -164,11 +164,11 @@ def process_tsuite(tsuite):
 def process_tcase(tcase):
     """Goes through the trun and processes "run.log" """
 
-    tcase["src_content"] = src_to_html(tcase["fpath"])
-    tcase["log_content"] = runlogs_to_html(tcase["res_root"])
-    tcase["aux_list"] = aux_listing(tcase["aux_root"])
-    tcase["descr_short"], tcase["descr_long"] = tcase_parse_descr(tcase)
-    tcase["hnames"] = extract_hook_names(tcase)
+    tcase.src_content = src_to_html(tcase.fpath)
+    tcase.log_content = runlogs_to_html(tcase.res_root)
+    tcase.aux_list = aux_listing(tcase.aux_root)
+    tcase.descr, tcase.descr_long = tcase_parse_descr(tcase)
+    tcase.hnames = extract_hook_names(tcase)
 
     return True
 
@@ -176,9 +176,9 @@ def process_tcase(tcase):
 def process_trun(trun):
     """Goes through the trun and processes "run.log" """
 
-    trun["log_content"] = runlogs_to_html(trun["res_root"])
-    trun["aux_list"] = aux_listing(trun["aux_root"])
-    trun["hnames"] = extract_hook_names(trun)
+    trun.log_content = runlogs_to_html(trun.res_root)
+    trun.aux_list = aux_listing(trun.aux_root)
+    trun.hnames = extract_hook_names(trun)
 
     return True
 
@@ -189,10 +189,10 @@ def postprocess(trun):
     plog = []
     plog.append(("trun", process_trun(trun)))
 
-    for tsuite in trun["testsuites"]:
+    for tsuite in trun.testsuites:
         plog.append(("tsuite", process_tsuite(tsuite)))
 
-        for tcase in tsuite["testcases"]:
+        for tcase in tsuite.testcases:
             plog.append(("tcase", process_tcase(tcase)))
 
     for task, success in plog:
@@ -261,7 +261,7 @@ def main(args):
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
 
-    rehome(trun["conf"]["OUTPUT"], args.output, trun)
+    rehome(trun.conf["OUTPUT"], args.output, trun)
 
     postprocess(trun)
 
