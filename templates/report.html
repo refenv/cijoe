@@ -397,7 +397,7 @@
           </div>
 
           <div class="collapse" id="DESCR_{{ ident }}" data-parent="#results">
-            <h5 class="m-2">{{ tcase.descr_short if tcase.descr_short else "UNDOCUMENTED" }}</h5>
+            <h5 class="m-2">{{ tcase.descr if tcase.descr else "UNDOCUMENTED" }}</h5>
             <pre><code class="nohighlight">{{ tcase.descr_long if tcase.descr_long else "UNDOCUMENTED" }}</code></pre>
           </div>
 
