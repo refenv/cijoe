@@ -9,7 +9,9 @@ from __future__ import print_function
 import argparse
 import sys
 import os
+import dataclasses
 from cij.reporter import tcase_parse_descr, dset_to_html
+from cij.runner import TestCase
 import cij
 
 def construct_dset(evars):
@@ -29,21 +31,19 @@ def construct_dset(evars):
 
         fpath = os.sep.join([evars["TESTCASES"], fname])
 
-        tcase = {
-            "fpath": fpath,
-            "name": fname,
-            "fname": fname,
-            "descr": "",
-            "descr_long": "",
-            "src_content": open(fpath, "r").read()
-        }
+        tcase = TestCase(
+            fpath=fpath,
+            name=fname,
+            fname=fname,
+            src_content=open(fpath, "r").read(),
+        )
 
         descr, descr_long = tcase_parse_descr(tcase)
 
-        tcase["descr"] = descr
-        tcase["descr_long"] = descr_long
+        tcase.descr = descr
+        tcase.descr_long = descr_long
 
-        dset[group].append(tcase)
+        dset[group].append(dataclasses.asdict(tcase))
 
     dset["group_names"].sort()
 
