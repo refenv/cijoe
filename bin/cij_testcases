@@ -10,7 +10,6 @@ import argparse
 import sys
 import os
 from cij.reporter import tcase_parse_descr, dset_to_html
-import cij.test
 import cij
 
 def construct_dset(evars):
