@@ -20,8 +20,6 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::require block
-test::require fs
 test::enter
 
 FS_DEV_PATH=$BLOCK_DEV_PATH
