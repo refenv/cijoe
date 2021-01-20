@@ -5,12 +5,6 @@
 #
 #  * CIJ_TEST_RES_ROOT -- Must be a valid path to a directory to store test output
 #
-# Variables REQUIRED:
-#
-#  * SSH_HOST -- REQUIRED SSH hostname/IP of the machine running tests
-#  * SSH_PORT -- REQUIRED port of the SSH machine
-#  * SSH_USER -- REQURIED username of the SSH machine
-#
 # The test contract will then setup the following that must be used in the test
 # script
 #
@@ -20,58 +14,11 @@ test::usage() {
 
   echo ""
   echo "This should contain useful information on how to write and run a test"
-  echo "but it does not, so read the docs instead"
+  echo "but it does not, so read the docs instead..."
   echo ""
-
-  cij::info "CIJ_TEST_REQS: $CIJ_TEST_REQS"
-}
-
-test::require() {
-  if [[ -z ${1+x} ]]; then
-    test::exit 1 "test::require: missing argument"
-  fi
-
-  : "${CIJ_TEST_REQS:=ssh}"
-
-  CIJ_TEST_REQS="$CIJ_TEST_REQS $1"
-  export CIJ_TEST_REQS
 }
 
 test::enter() {
-  test::require ssh
-
-  if ! ssh::env; then
-    test::usage
-    test::fail "invalid SSH environment"
-  fi
-
-  for REQ in $CIJ_TEST_REQS; do
-    if [[ "$REQ" == "nvme" ]]; then
-      if ! nvme::env; then
-        test::usage
-        test::fail "Invalid NVMe environment"
-      fi
-      if ! nvme::exists; then
-        test::usage
-        test::fail "Invalid NVMe environment"
-      fi
-    elif [[ "$REQ" == "block" ]]; then
-      if ! block::env; then
-        test::usage
-        test::fail "Invalid BLOCK environment"
-      fi
-      if ! block::exists; then
-        test::usage
-        test::fail "Invalid BLOCK environment"
-      fi
-    elif [[ "$REQ" == "fio" ]]; then
-      if ! fio::env; then
-        test::usage
-        test::fail "Invalid FIO environment"
-      fi
-    fi
-  done
-
   # Verify the test output directories exists
   if [[ -z "$CIJ_TEST_RES_ROOT" ]]; then
     test::usage
