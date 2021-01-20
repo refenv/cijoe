@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     config_add_opts - Merge Linux kernel .config options
 """
