@@ -1,7 +1,6 @@
 # Testcases
 
-This folder contains testcases, written as scripts, implemented as BASH/SHELL or
-Python scripts.
+This folder contains testcases, written as scripts, implemented as BASH/SHELL
 
 The absolute path to this directory is defined as environment variable:
 
@@ -40,13 +39,3 @@ expressions can lead to unexpected behavior when not succeeding. Additionally,
 when checking return values, provide a meaningful informational message via
 `cij::err`. Checking and providing meaningful annotated error-messages makes
 reading log-files from testcases a lot easier and accelerates troubleshooting.
-
-## Python scripts
-
-Tests implemented in Python must comply with the Python PEP8 style guide found
-here:
-
- * https://www.python.org/dev/peps/pep-0008/
-
-In addition, they should use the `CIJOE` Python package `cij` and its containing
-modules under the same guidelines are the Bash SHELL scripts.
