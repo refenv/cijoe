@@ -37,7 +37,6 @@ A hook can have scripts named like this:
 
 ```bash
 	dmesg_enter.sh
-	lnvm_exit.sh
 ```
 
 When it does, then the name of the hook is `dmesg`, and it has two different
