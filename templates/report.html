@@ -421,8 +421,8 @@
 
           <!-- TCASE: HOOKS-SNIPPET -->
           <div class="collapse" id="HOOKS_{{ ident }}" data-parent="#results">
-            <p class="m-2">A total of <b>{{ tcase.hnames | length }}</b> evars are defined for the
-            testcase before sourcing environment definition</p>
+            <p class="m-2">A total of <b>{{ tcase.hnames | length }}</b> hooks are run 
+              before/after the testcase</p>
 
             <ul class="list-group">
             {% for hname in tcase.hnames %}
