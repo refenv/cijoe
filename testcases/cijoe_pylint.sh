@@ -14,7 +14,7 @@ export CIJ_TEST_NAME
 source "$CIJ_ROOT/modules/cijoe.sh"
 test::enter
 
-cij::info "CIJ_PKG_REPOS: 'CIJ_PKG_REPOS'"
+cij::info "CIJ_PKG_REPOS: '${CIJ_PKG_REPOS}'"
 
 if [[ -z "$CIJ_PKG_REPOS" ]]; then
   test::fail "Please set 'CIJ_PKG_REPOS'"
@@ -22,12 +22,12 @@ fi
 pushd "$CIJ_PKG_REPOS" || test::fail "Invalid 'CIJ_PKG_REPOS'"
 
 paths=""
-for path in {bin,hooks,testcases}/* "$CIJ_PKG_REPOS/modules/cij" "$CIJ_PKG_REPOS/setup.py"; do
+for path in {bin,hooks,testcases}/* "${CIJ_PKG_REPOS}/modules/cij/"*.py "${CIJ_PKG_REPOS}/setup.py"; do
   if [[ -d "$path" ]]; then
     continue
   fi
 
-  if grep "^#.*python" "$path" > /dev/null; then
+  if grep "^#.*python" "$path" > /dev/null || [[ $path == *.py ]]; then
     paths="$paths $path"
   fi
 done
