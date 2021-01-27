@@ -52,3 +52,10 @@ jobs:
     - name: result-log-dump on error
       if: failure()
       run: find selftest_results -name "*.log" | xargs cat
+
+    - name: upload selftest results and report
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.python-version }}
+        path: selftest_results/*
