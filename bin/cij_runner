@@ -3,6 +3,7 @@
     CIJOE Test Runner
 """
 import argparse
+import tempfile
 import uuid
 import sys
 import os
@@ -102,8 +103,20 @@ def main():
     return rcode
 
 if __name__ == "__main__":
+    FNAME = os.path.join(tempfile.gettempdir(), "cijoe.lock")
     try:
-        sys.exit(main())
+        with open(FNAME, "x") as fd:
+            RES = main()
+        os.remove(FNAME)
+
+        sys.exit(RES)
+    except (FileExistsError) as exc:
+        cij.err("-------------==========={[ CIJOE IS LOCKED ]}==========--------------")
+        cij.warn("Looks like CIJOE is already running or previous run did unclean exit")
+        cij.warn("Clean up the target-system-under-test reboot / provision")
+        cij.warn("Then remove '%s' and start the runner again" % FNAME)
+        cij.err("-------------==========={[ CIJOE IS LOCKED ]}==========--------------")
+        cij.err(exc)
     except (KeyboardInterrupt) as exc:
         cij.warn("!")
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
@@ -116,7 +129,7 @@ if __name__ == "__main__":
         cij.warn("! To start the runner again, do the following             !")
         cij.warn("!                                                         !")
         cij.warn("! 1) Ensure the target is sound, e.g. reboot / provision  !")
-        cij.warn("! 2) Remove the CIJOE_LOCK                                !")
+        cij.warn("! 2) Remove the lock: '%s'                                !" % FNAME)
         cij.warn("! 3) Start the runner                                     !")
         cij.warn("!                                                         !")
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
