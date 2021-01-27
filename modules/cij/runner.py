@@ -1,7 +1,6 @@
 """
     library functions for the CIJOE test runner, `cij_runner`.
 """
-from __future__ import print_function
 from subprocess import Popen, STDOUT
 from xml.dom import minidom
 import shutil
@@ -9,7 +8,6 @@ import copy
 import time
 import os
 import yaml
-import cij.test
 import cij
 
 HOOK_PATTERNS = {
@@ -600,15 +598,8 @@ def trun_setup(conf):
 
     os.makedirs(trun["aux_root"])
 
-    hook_names = declr.get("hooks", [])
-    if "lock" not in hook_names:
-        hook_names = ["lock"] + hook_names
-
-    if hook_names[0] != "lock":
-        return None
-
     # Setup top-level hooks
-    trun["hooks"] = hooks_setup(trun, trun, hook_names)
+    trun["hooks"] = hooks_setup(trun, trun, declr.get("hooks", []))
 
     for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
         tsuite = tsuite_setup(trun, declr, enum)
