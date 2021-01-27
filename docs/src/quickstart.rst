@@ -30,6 +30,7 @@ installing it system wide and potentially colliding with system packages.
 **cijoe** seeks to be minimally intrusive, however, it does require the
 following to operate properly:
 
+* `Python`_ (>= 3.7)
 * `Bash`_ (>=4.2)
 * `ShellCheck`_
 * `Pylint`_
@@ -113,5 +114,6 @@ not support certain versions of Python.
 
 .. _Bash: https://www.gnu.org/software/bash/
 .. _Pylint: https://www.pylint.org/
+.. _Python: https://www.python.org/
 .. _ShellCheck: https://www.shellcheck.net/
 .. _SshKeys: https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
