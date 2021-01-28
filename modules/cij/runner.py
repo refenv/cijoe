@@ -5,6 +5,7 @@ from __future__ import print_function, annotations
 from subprocess import Popen, STDOUT
 from xml.dom import minidom
 import dataclasses
+from typing import List
 import shutil
 import copy
 import time
@@ -26,6 +27,9 @@ HOOK_PATTERNS = {
 
 @dataclasses.dataclass
 class Runnable:
+    """
+    Runnable contains attributes required for classes to be run by script_run
+    """
     name: str = "UNNAMED"
     evars: dict = dataclasses.field(default_factory=dict)
     log_fpath: str = None
@@ -37,6 +41,10 @@ class Runnable:
 
 @dataclasses.dataclass
 class Hook(Runnable):
+    """
+    Hooks are user-defined scripts that can be run before and/or after
+    TestRuns, TestSuites, and TestCases.
+    """
     fname: dict = None
     fpath_orig: dict = None
 
@@ -46,7 +54,7 @@ class Hook(Runnable):
         Deserialize a hook dict containing lists of hook dicts dicts into a hook
         dict containing lists of Hooks
         """
-        hook_fields = set(Hook.__dataclass_fields__)
+        hook_fields = set(Hook.__dataclass_fields__)  # pylint: disable=maybe-no-member
 
         hooks = {}
         for hook_stage, hooks_entries in hooks_dict.items():
@@ -63,8 +71,15 @@ class Hook(Runnable):
 
 @dataclasses.dataclass
 class TestCase(Runnable):
+    """
+    TestCases are user-defined scripts used to verify functionality of external
+    programs.
+    """
+    # pylint: disable=too-many-instance-attributes
+
     ident: str = "UNDEFINED"
     fname: str = None
+    fpath_orig: str = None
     aux_root: str = None
     aux_list: list = dataclasses.field(default_factory=list)
 
@@ -80,12 +95,12 @@ class TestCase(Runnable):
 
 
     @staticmethod
-    def tcases_from_dicts(tcase_dicts) -> list[TestCase]:
+    def tcases_from_dicts(tcase_dicts) -> List[TestCase]:
         """
         Deserialize a list of tcase dictionaries into a list of TestCases
         """
-        complex_keys = {'hooks': Hook.hooks_from_dict} 
-        tcase_fields = set(TestCase.__dataclass_fields__)
+        complex_keys = {'hooks': Hook.hooks_from_dict}
+        tcase_fields = set(TestCase.__dataclass_fields__)  # pylint: disable=maybe-no-member
 
         tcases = []
         for tcase_dict in tcase_dicts:
@@ -101,6 +116,12 @@ class TestCase(Runnable):
 
 @dataclasses.dataclass
 class TestSuite:
+    """
+    TestSuites are used for grouping TestCases, allowing them to share
+    configurations, e.g. environment variables and hooks.
+    """
+    # pylint: disable=too-many-instance-attributes
+
     ident: str = "UNDEFINED"
     name: str = "UNNAMED"
     alias: str = ""
@@ -126,7 +147,7 @@ class TestSuite:
     hnames: list = dataclasses.field(default_factory=list)
 
     @staticmethod
-    def tsuites_from_dicts(tsuites_dicts) -> list[TestSuite]:
+    def tsuites_from_dicts(tsuites_dicts) -> List[TestSuite]:
         """
         Deserialize a list of tsuite dicts into a list of TestSuites
         """
@@ -134,7 +155,7 @@ class TestSuite:
             'testcases': TestCase.tcases_from_dicts,
             'hooks': Hook.hooks_from_dict,
         }
-        tsuite_fields = set(TestSuite.__dataclass_fields__)
+        tsuite_fields = set(TestSuite.__dataclass_fields__)  # pylint: disable=maybe-no-member
 
         tsuites = []
         for tsuite_dict in tsuites_dicts:
@@ -150,6 +171,11 @@ class TestSuite:
 
 @dataclasses.dataclass
 class TestRun:
+    """
+    TestRuns contain information required to execute a testplan.
+    """
+    # pylint: disable=too-many-instance-attributes
+
     ver: str = None
     conf: dict = None
     evars: dict = dataclasses.field(default_factory=dict)
@@ -190,7 +216,7 @@ class TestRun:
 
         trun = TestRun()
 
-        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)
+        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)  # pylint: disable=maybe-no-member
         for key in fields:
             deserialize = complex_keys.get(key, lambda x: x)
             setattr(trun, key, deserialize(trun_dict[key]))
@@ -345,29 +371,19 @@ def trun_to_junitfile(trun, fpath=None):
             fpath = junit_fpath(trun.conf["OUTPUT"])
 
         doc = minidom.Document()
-
         doc_testsuites = doc.createElement('testsuites')
 
-        duration = 0
-        stamp = trun.stamp
-        if stamp:
-            stamp_begin = stamp.get("begin", None)
-            if not stamp_begin:
-                stamp_begin = time.time()
-
-            stamp_end = stamp.get("end", None)
-            if not stamp_end:
-                stamp_end = time.time()
-
-            if stamp_end > stamp_begin:
-                duration = stamp_end - stamp_begin
+        duration = max(
+            0,
+            (trun.stamp["end"] or time.time()) -
+            (trun.stamp["begin"] or time.time())
+        )
 
         doc_testsuites.setAttribute("duration", str(duration))
 
         doc.appendChild(doc_testsuites)
 
-        for ts_id, tsuite in enumerate(trun.testsuites):
-
+        for tsuite in trun.testsuites:
             doc_tsuite = doc.createElement("testsuite")
             doc_tsuite.setAttribute("name", tsuite.name)
             doc_tsuite.setAttribute("package", tsuite.ident)
@@ -380,11 +396,10 @@ def trun_to_junitfile(trun, fpath=None):
             wallc_total = 0.0
 
             for tcase in tsuite.testcases:
-                wallc = tcase.wallc
-                if not wallc:
-                    wallc = 0.0
+                if not tcase.wallc:
+                    tcase.wallc = 0.0
 
-                wallc_total += wallc
+                wallc_total += tcase.wallc
 
                 doc_tcase = doc.createElement("testcase")
                 doc_tcase.setAttribute(
@@ -393,16 +408,15 @@ def trun_to_junitfile(trun, fpath=None):
                 doc_tcase.setAttribute(
                     "classname", str(tcase.ident)
                 )
-                doc_tcase.setAttribute("time", "%0.3f" % wallc)
+                doc_tcase.setAttribute("time", "%0.3f" % tcase.wallc)
 
-                rcode = tcase.rcode
-                if rcode != 0:
+                if tcase.rcode != 0:
                     nfailures += 1
 
                     doc_failure = doc.createElement("failure")
                     doc_failure.setAttribute(
                         "message",
-                        "not executed" if rcode is None else "test failed"
+                        "not executed" if tcase.rcode is None else "test failed"
                     )
 
                     doc_tcase.appendChild(doc_failure)
@@ -414,10 +428,10 @@ def trun_to_junitfile(trun, fpath=None):
 
             doc_testsuites.appendChild(doc_tsuite)
 
-        with open(fpath, "w") as f:
-            f.write(doc.toprettyxml(indent="  "))
+        with open(fpath, "w") as junitf:
+            junitf.write(doc.toprettyxml(indent="  "))
 
-    except Exception as ex:
+    except Exception as ex: # pylint: disable=broad-except
         cij.err("Failed persisting testrun as jUNIT XML, ex(%r)" % ex)
         return 1
 
@@ -430,7 +444,7 @@ def trun_from_file(fpath):
     with open(fpath, 'r') as yml_file:
         trun_dict = yaml.safe_load(yml_file)
         return TestRun.from_dict(trun_dict)
-    
+
 
 def trun_emph(trun):
     """Print essential info on"""
@@ -519,6 +533,7 @@ def tsuite_enter(trun, tsuite):
         cij.emph("rnr:tsuite:enter { rcode: %r } " % rcode, rcode)
 
     return rcode
+
 
 def tsuite_setup(trun, declr, enum) -> TestSuite:
     """
