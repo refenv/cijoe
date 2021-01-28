@@ -3,6 +3,7 @@
     Library functions for cij_reporter
 """
 import datetime
+import traceback
 import glob
 import os
 import jinja2
@@ -53,7 +54,7 @@ def tcase_comment(tcase):
     for line in src.splitlines()[2:]:
         if ext == ".sh" and not line.startswith("#"):
             break
-        elif ext == ".py" and not '"""' in line:
+        if ext == ".py" and not '"""' in line:
             break
 
         comment.append(line)
@@ -274,7 +275,6 @@ def main(args):
         with open(html_fpath, 'w') as html_file:
             html_file.write(dset_to_html(trun, args.tmpl_fpath))
     except (IOError, OSError, ValueError) as exc:
-        import traceback
         traceback.print_exc()
         cij.err("rprtr:main: exc: %s" % exc)
         return 1
