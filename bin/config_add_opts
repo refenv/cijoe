@@ -4,6 +4,7 @@
 """
 import argparse
 
+
 def main(args):
     """Main entry-point of config_add_opts"""
 
@@ -17,7 +18,8 @@ def main(args):
             conf_addition = "%s=%s" % (option, value)
             added = False
             for line_nr, line in enumerate(config):
-                if "# %s is not set" % option in line or "%s=" % option in line:
+                if "# %s is not set" % option in line or \
+                        "%s=" % option in line:
                     config[line_nr] = conf_addition
                     added = True
                     break
@@ -27,6 +29,7 @@ def main(args):
 
     with open(args.cfg_fn, 'w') as cfg_fd:
         cfg_fd.write("\n".join(config))
+
 
 if __name__ == "__main__":
     PRSR = argparse.ArgumentParser(description='Replace options in .config')
