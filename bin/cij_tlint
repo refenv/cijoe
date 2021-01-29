@@ -60,8 +60,12 @@ def tsuitefile_testcases_exists(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:    # Search .suite files
         ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
-        ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
-        ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
+        ts_lines_all = (
+            line.strip() for line in open(ts_fpath).read().splitlines()
+        )
+        ts_lines = (
+            line for line in ts_lines_all if len(line) > 1 and line[0] != "#"
+        )
 
         for tc_fname in ts_lines:
             if tc_fname in fnames["TCASES"]:
@@ -83,8 +87,12 @@ def testcase_unused(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:  # Testcases from suite-files
         ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
-        ts_lines_all = (l.strip() for l in open(ts_fpath).read().splitlines())
-        ts_lines = (l for l in ts_lines_all if len(l) > 1 and l[0] != "#")
+        ts_lines_all = (
+            line.strip() for line in open(ts_fpath).read().splitlines()
+        )
+        ts_lines = (
+            line for line in ts_lines_all if len(line) > 1 and line[0] != "#"
+        )
 
         for tc_fname in ts_lines:
             tcases_in_use.add(tc_fname)
@@ -196,21 +204,19 @@ def tplans_content(ident, roots, fnames):
             hooks.extend(suite.get("hooks_pr_tcase", []))
 
             # A file is only required when 'testcases' are not defined inline
-            if "testcases" not in suite and \
-                "%s.suite" % suite.get("name", "jank") not in fnames["TSUITES"]:
+            if "testcases" not in suite and "%s.suite" % \
+                    suite.get("name", "jank") not in fnames["TSUITES"]:
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
-                    "testsuite: no testcases defined in '%s'" % suite["name"]
+                    "testsuite: no testcases in '%s'" % suite["name"]
                 ))
-
-            violations += tplan_testcases_exists(
-                tp_fname, ident, fnames, suite.get("testcases", [])
-            )
+                violations += tplan_testcases_exists(
+                    tp_fname, ident, fnames, suite.get("testcases", [])
+                )
 
         for hname in set(hooks):        # Check for existence of hooks
-            if not sum(tmpl % hname in fnames["HOOKS"] for tmpl in [
-                    "%s.sh", "%s_enter.sh", "%s_exit.sh"
-                ]):
+            tmpls = ["%s.sh", "%s_enter.sh", "%s_exit.sh"]
+            if not sum(tmpl % hname in fnames["HOOKS"] for tmpl in tmpls):
                 violations.append(MESSAGES[ident] % (
                     tp_fname,
                     "hook: %r, does not exist" % hname
@@ -235,6 +241,7 @@ CHECKERS = {
 }
 
 IDENTS = sorted(CHECKERS.keys())
+
 
 def main(roots):
     """."""
@@ -261,6 +268,7 @@ def main(roots):
             cij.emph(msg)
 
     return errors
+
 
 if __name__ == "__main__":
 
