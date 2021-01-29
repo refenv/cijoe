@@ -5,5 +5,6 @@ testsuites:
   - name: Linters
     testcases:
       - cijoe_pylint.sh
+      - cijoe_flake8.sh
       - cijoe_shellcheck.sh
       - cijoe_tlint.sh
