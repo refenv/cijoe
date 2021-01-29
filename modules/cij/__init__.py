@@ -47,7 +47,9 @@ def get_time_stamp():
     """Get time stampe if CIJ_ECHO_TIME_STAMP is 1"""
 
     if CIJ_ECHO_TIME_STAMP == "1":
-        return time.strftime('[%Y-%m-%d %H:%M:%S] ', time.localtime(time.time()))
+        return time.strftime(
+            '[%Y-%m-%d %H:%M:%S] ', time.localtime(time.time())
+        )
 
     return ""
 
@@ -90,15 +92,14 @@ def emph(txt, rval=None):
     else:               # any other value, considered 'bad'
         err(txt)
 
+
 def paths_from_env(prefix=None, names=None):
     """Construct dict of paths from environment variables'"""
-
 
     def expand_path(path):
         """Expands variables in 'path' and turns it into absolute path"""
 
         return os.path.abspath(os.path.expanduser(os.path.expandvars(path)))
-
 
     if prefix is None:
         prefix = "CIJ"
@@ -110,12 +111,14 @@ def paths_from_env(prefix=None, names=None):
 
     conf = {v: os.environ.get("_".join([prefix, v])) for v in names}
 
-    for env in (e for e in conf.keys() if e[:len(prefix)] in names and conf[e]):
+    for env in (e for e in conf.keys()
+                if e[:len(prefix)] in names and conf[e]):
         conf[env] = expand_path(conf[env])
         if not os.path.exists(conf[env]):
             err("%s_%s: %r, does not exist" % (prefix, env, conf[env]))
 
     return conf
+
 
 def env_to_dict(prefix, names):
     """
@@ -135,7 +138,7 @@ def env_to_dict(prefix, names):
 
 def env_export(prefix, exported, env):
     """
-    Define the list of 'exported' variables with 'prefix' with values from 'env'
+    Define the list of 'exported' variables with 'prefix' and values from 'env'
     """
 
     for exp in exported:
