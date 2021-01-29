@@ -25,6 +25,7 @@ HOOK_PATTERNS = {
     ]
 }
 
+
 @dataclasses.dataclass
 class Runnable:
     """
@@ -51,10 +52,12 @@ class Hook(Runnable):
     @staticmethod
     def hooks_from_dict(hooks_dict) -> dict:
         """
-        Deserialize a hook dict containing lists of hook dicts dicts into a hook
-        dict containing lists of Hooks
+        Deserialize a hook dict containing lists of hook dicts dicts into a
+        hook dict containing lists of Hooks
         """
-        hook_fields = set(Hook.__dataclass_fields__)  # pylint: disable=maybe-no-member
+        # pylint: disable=maybe-no-member
+        hook_fields = set(Hook.__dataclass_fields__)
+        # pylint: enable=maybe-no-member
 
         hooks = {}
         for hook_stage, hooks_entries in hooks_dict.items():
@@ -93,14 +96,15 @@ class TestCase(Runnable):
     src_content: str = ""
     log_content: str = ""
 
-
     @staticmethod
     def tcases_from_dicts(tcase_dicts) -> List[TestCase]:
         """
         Deserialize a list of tcase dictionaries into a list of TestCases
         """
         complex_keys = {'hooks': Hook.hooks_from_dict}
-        tcase_fields = set(TestCase.__dataclass_fields__)  # pylint: disable=maybe-no-member
+        # pylint: disable=maybe-no-member
+        tcase_fields = set(TestCase.__dataclass_fields__)
+        # pylint: enable=maybe-no-member
 
         tcases = []
         for tcase_dict in tcase_dicts:
@@ -155,7 +159,9 @@ class TestSuite:
             'testcases': TestCase.tcases_from_dicts,
             'hooks': Hook.hooks_from_dict,
         }
-        tsuite_fields = set(TestSuite.__dataclass_fields__)  # pylint: disable=maybe-no-member
+        # pylint: disable=maybe-no-member
+        tsuite_fields = set(TestSuite.__dataclass_fields__)
+        # pylint: enable=maybe-no-member
 
         tsuites = []
         for tsuite_dict in tsuites_dicts:
@@ -203,7 +209,6 @@ class TestRun:
     log_content: str = ""
     hnames: list = dataclasses.field(default_factory=list)
 
-
     @staticmethod
     def from_dict(trun_dict) -> TestRun:
         """
@@ -216,7 +221,9 @@ class TestRun:
 
         trun = TestRun()
 
-        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)  # pylint: disable=maybe-no-member
+        # pylint: disable=maybe-no-member
+        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)
+        # pylint: enable=maybe-no-member
         for key in fields:
             deserialize = complex_keys.get(key, lambda x: x)
             setattr(trun, key, deserialize(trun_dict[key]))
@@ -229,10 +236,12 @@ def yml_fpath(output_path):
 
     return os.sep.join([output_path, "trun.yml"])
 
+
 def junit_fpath(output_path):
     """Returns the path to the jUNIT XML-file"""
 
     return os.sep.join([output_path, "trun.xml"])
+
 
 def script_run(trun, script: Runnable):
     """Execute a script or testcase"""
@@ -247,7 +256,7 @@ def script_run(trun, script: Runnable):
     }
 
     ext = os.path.splitext(script.fpath)[-1]
-    if not ext in launchers.keys():
+    if ext not in launchers.keys():
         cij.err("rnr:script:run { invalid script.fpath: %r }" % script.fpath)
         return 1
 
@@ -297,6 +306,7 @@ def script_run(trun, script: Runnable):
 
     return script.rcode
 
+
 def hook_setup(parent, hook_fpath) -> Hook:
     """Setup hook"""
 
@@ -317,6 +327,7 @@ def hook_setup(parent, hook_fpath) -> Hook:
     shutil.copyfile(hook.fpath_orig, hook.fpath)
 
     return hook
+
 
 def hooks_setup(trun, parent, hnames=None) -> dict:
     """
@@ -360,8 +371,11 @@ def trun_to_file(trun, fpath=None):
 
     trun_dict = dataclasses.asdict(trun)
     with open(fpath, 'w') as yml_file:
-        data = yaml.dump(trun_dict, explicit_start=True, default_flow_style=False)
+        data = yaml.dump(
+            trun_dict, explicit_start=True, default_flow_style=False
+        )
         yml_file.write(data)
+
 
 def trun_to_junitfile(trun, fpath=None):
     """Generate jUNIT XML from testrun YML"""
@@ -416,7 +430,8 @@ def trun_to_junitfile(trun, fpath=None):
                     doc_failure = doc.createElement("failure")
                     doc_failure.setAttribute(
                         "message",
-                        "not executed" if tcase.rcode is None else "test failed"
+                        "not executed" if tcase.rcode is None
+                        else "test failed"
                     )
 
                     doc_tcase.appendChild(doc_failure)
@@ -431,7 +446,7 @@ def trun_to_junitfile(trun, fpath=None):
         with open(fpath, "w") as junitf:
             junitf.write(doc.toprettyxml(indent="  "))
 
-    except Exception as ex: # pylint: disable=broad-except
+    except Exception as ex:     # pylint: disable=broad-except
         cij.err("Failed persisting testrun as jUNIT XML, ex(%r)" % ex)
         return 1
 
@@ -466,7 +481,7 @@ def tcase_setup(trun, parent, tcase_fname) -> TestCase:
     """
     Create and initialize a testcase
     """
-    #pylint: disable=locally-disabled, unused-argument
+    # pylint: disable=locally-disabled, unused-argument
 
     case = TestCase()
 
@@ -537,8 +552,8 @@ def tsuite_enter(trun, tsuite):
 
 def tsuite_setup(trun, declr, enum) -> TestSuite:
     """
-    Creates and initialized a TESTSUITE struct and site-effects such as creating
-    output directories and forwarding initialization of testcases
+    Creates and initialized a TESTSUITE struct and site-effects such as
+    creating output directories and forwarding initialization of testcases
     """
 
     suite = TestSuite()  # Setup the test-suite
@@ -576,10 +591,10 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
     tcase_fpaths = []                               # Load testcase fpaths
     if os.path.exists(suite.fpath):              # From suite-file
         suite_lines = (
-            l.strip() for l in open(suite.fpath).read().splitlines()
+            line.strip() for line in open(suite.fpath).read().splitlines()
         )
         tcase_fpaths.extend(
-            (l for l in suite_lines if len(l) > 1 and l[0] != "#")
+            (line for line in suite_lines if len(line) > 1 and line[0] != "#")
         )
     else:                                           # From declaration
         tcase_fpaths.extend(declr.get("testcases", []))
@@ -603,7 +618,7 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
 
 def tcase_exit(trun, tsuite, tcase):
     """..."""
-    #pylint: disable=locally-disabled, unused-argument
+    # pylint: disable=locally-disabled, unused-argument
 
     if trun.conf["VERBOSE"]:
         cij.emph("rnr:tcase:exit { fname: %r }" % tcase.fname)
@@ -626,7 +641,7 @@ def tcase_enter(trun, tsuite, tcase):
 
     @returns 0 when all hooks succeed, some value othervise
     """
-    #pylint: disable=locally-disabled, unused-argument
+    # pylint: disable=locally-disabled, unused-argument
 
     if trun.conf["VERBOSE"]:
         cij.emph("rnr:tcase:enter")
@@ -643,6 +658,7 @@ def tcase_enter(trun, tsuite, tcase):
         cij.emph("rnr:tcase:exit: { rcode: %r }" % rcode, rcode)
 
     return rcode
+
 
 def trun_exit(trun):
     """Triggers when exiting the given testrun"""
@@ -685,8 +701,8 @@ def trun_enter(trun):
 def trun_setup(conf) -> TestRun:
     """
     Setup the testrunner data-structure, embedding the parsed environment
-    variables and command-line arguments and continues with setup for testplans,
-    testsuites, and testcases
+    variables and command-line arguments and continues with setup for
+    testplans, testsuites, and testcases
     """
 
     declr = None
