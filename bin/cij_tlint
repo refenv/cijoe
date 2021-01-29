@@ -60,18 +60,20 @@ def tsuitefile_testcases_exists(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:    # Search .suite files
         ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
-        ts_lines_all = (
-            line.strip() for line in open(ts_fpath).read().splitlines()
-        )
-        ts_lines = (
-            line for line in ts_lines_all if len(line) > 1 and line[0] != "#"
-        )
+        with open(ts_fpath) as tsfd:
+            ts_lines_all = (
+                line.strip() for line in tsfd.read().splitlines()
+            )
+            ts_lines = (
+                line for line in ts_lines_all
+                if len(line) > 1 and line[0] != "#"
+            )
 
-        for tc_fname in ts_lines:
-            if tc_fname in fnames["TCASES"]:
-                continue
+            for tc_fname in ts_lines:
+                if tc_fname in fnames["TCASES"]:
+                    continue
 
-            violations.append(MESSAGES[ident] % (tc_fname, ts_fpath))
+                violations.append(MESSAGES[ident] % (tc_fname, ts_fpath))
 
     return violations
 
@@ -87,15 +89,17 @@ def testcase_unused(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:  # Testcases from suite-files
         ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
-        ts_lines_all = (
-            line.strip() for line in open(ts_fpath).read().splitlines()
-        )
-        ts_lines = (
-            line for line in ts_lines_all if len(line) > 1 and line[0] != "#"
-        )
+        with open(ts_fpath) as tsfd:
+            ts_lines_all = (
+                line.strip() for line in tsfd.read().splitlines()
+            )
+            ts_lines = (
+                line for line in ts_lines_all
+                if len(line) > 1 and line[0] != "#"
+            )
 
-        for tc_fname in ts_lines:
-            tcases_in_use.add(tc_fname)
+            for tc_fname in ts_lines:
+                tcases_in_use.add(tc_fname)
 
     tplans, _ = _load_tplans(ident, roots, fnames)  # testcases inline
     for _, tplan in tplans.items():
