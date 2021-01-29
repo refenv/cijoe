@@ -11,6 +11,7 @@ import cij.runner
 import cij.util
 import cij
 
+
 def parse_args():
     """Parse command-line arguments"""
 
@@ -40,6 +41,7 @@ def parse_args():
 
     return args
 
+
 def main():
     """
     Parse environment variables and command-line arguments, then invoke gen.
@@ -57,6 +59,7 @@ def main():
         cij.err("rprtr:rcode: %r, error while creating jUNIT XML" % rcode)
 
     return rcode
+
 
 if __name__ == "__main__":
     sys.exit(main())
