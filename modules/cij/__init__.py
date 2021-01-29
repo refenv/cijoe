@@ -111,11 +111,11 @@ def paths_from_env(prefix=None, names=None):
 
     conf = {v: os.environ.get("_".join([prefix, v])) for v in names}
 
-    for env in (e for e in conf.keys()
-                if e[:len(prefix)] in names and conf[e]):
-        conf[env] = expand_path(conf[env])
-        if not os.path.exists(conf[env]):
-            err("%s_%s: %r, does not exist" % (prefix, env, conf[env]))
+    evars = (e for e in conf.keys() if e[:len(prefix)] in names and conf[e])
+    for evar in evars:
+        conf[evar] = expand_path(conf[evar])
+        if not os.path.exists(conf[evar]):
+            err("%s_%s: %r, does not exist" % (prefix, evar, conf[evar]))
 
     return conf
 
