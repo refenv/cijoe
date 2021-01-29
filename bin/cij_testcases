@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
- cij_testcases - Lists CIJOE testcases
+cij_testcases - Lists CIJOE testcases
 
- CIJ_TESTCASES - This is what it is all about, these are the tests that are listed
-
+Produces a HTML report with an overview of available testcases
 """
 from __future__ import print_function
 import argparse
@@ -13,6 +12,7 @@ import dataclasses
 from cij.reporter import tcase_parse_descr, dset_to_html
 from cij.runner import TestCase
 import cij
+
 
 def construct_dset(evars):
     """
@@ -52,6 +52,7 @@ def construct_dset(evars):
 
     return dset
 
+
 def parse_args():
     """Parse command-line arguments and evars for cij_testcases"""
 
@@ -88,6 +89,7 @@ def parse_args():
 
     return args, evars
 
+
 def main(args, evars):
     """Main entry point"""
 
@@ -108,6 +110,7 @@ def main(args, evars):
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     ARGS, EVARS = parse_args()
