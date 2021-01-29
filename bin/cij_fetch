@@ -89,9 +89,11 @@ def meta_reservoir(url):
 def meta_is_equiv(one, other):
     """Return True two different metas has the same size and md5sum."""
 
-    return (one is not None and other is not None) and \
-        (one["length"] == other["length"]) and \
+    return (
+        (one is not None and other is not None) and
+        (one["length"] == other["length"]) and
         (one["md5"] == other["md5"])
+    )
 
 
 def reservoir_to_mem(url):
