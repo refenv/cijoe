@@ -6,6 +6,7 @@ import glob
 import os
 from setuptools import setup
 
+
 def read(*parts):
     """Read parts to use a e.g. long_description"""
 
@@ -15,6 +16,7 @@ def read(*parts):
     #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
     with codecs.open(os.path.join(here, *parts), 'r') as pfp:
         return pfp.read()
+
 
 setup(
     name="cijoe",
@@ -45,7 +47,7 @@ setup(
         ("share/cijoe/testsuites", glob.glob("testsuites/*")),
         ("share/cijoe/testplans", glob.glob("testplans/*"))
     ],
-    options={'bdist_wheel':{'universal':True}},
+    options={'bdist_wheel': {'universal': True}},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
