@@ -47,7 +47,9 @@ def execute(cmd=None, shell=True, echo=True):
         if shell:
             cmd = " ".join(cmd)
 
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=shell, close_fds=True)
+        proc = Popen(
+            cmd, stdout=PIPE, stderr=PIPE, shell=shell, close_fds=True
+        )
         stdout, stderr = proc.communicate()
         rcode = proc.returncode
 
