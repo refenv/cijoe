@@ -590,12 +590,14 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
     #
     tcase_fpaths = []                               # Load testcase fpaths
     if os.path.exists(suite.fpath):              # From suite-file
-        suite_lines = (
-            line.strip() for line in open(suite.fpath).read().splitlines()
-        )
-        tcase_fpaths.extend(
-            (line for line in suite_lines if len(line) > 1 and line[0] != "#")
-        )
+        with open(suite.fpath) as sfd:
+            suite_lines = (
+                line.strip() for line in sfd.read().splitlines()
+            )
+            tcase_fpaths.extend((
+                line for line in suite_lines
+                if len(line) > 1 and line[0] != "#"
+            ))
     else:                                           # From declaration
         tcase_fpaths.extend(declr.get("testcases", []))
 
