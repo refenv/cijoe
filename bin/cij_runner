@@ -11,6 +11,7 @@ import cij.runner
 import cij.util
 import cij
 
+
 def parse_args():
     """Parse command-line arguments for cij_runner"""
 
@@ -49,6 +50,7 @@ def parse_args():
     dargs = vars(args)
 
     return {k.upper(): dargs[k] for k in dargs}
+
 
 def main():
     """
