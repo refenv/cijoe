@@ -54,43 +54,48 @@ def get_time_stamp():
     return ""
 
 
-def info(txt):
+def info(txt, file=sys.stdout):
     """Print, emphasized 'neutral', the given 'txt' message"""
 
-    print("%s# %s%s%s" % (PR_EMPH_CC, get_time_stamp(), txt, PR_NC))
-    sys.stdout.flush()
+    print("%s# %s%s%s" % (PR_EMPH_CC, get_time_stamp(), txt, PR_NC), file=file)
+    _flush(file)
 
 
-def good(txt):
+def good(txt, file=sys.stdout):
     """Print, emphasized 'good', the given 'txt' message"""
 
-    print("%s# %s%s%s" % (PR_GOOD_CC, get_time_stamp(), txt, PR_NC))
-    sys.stdout.flush()
+    print("%s# %s%s%s" % (PR_GOOD_CC, get_time_stamp(), txt, PR_NC), file=file)
+    _flush(file)
 
 
-def warn(txt):
+def warn(txt, file=sys.stdout):
     """Print, emphasized 'warning', the given 'txt' message"""
 
-    print("%s# %s%s%s" % (PR_WARN_CC, get_time_stamp(), txt, PR_NC))
-    sys.stdout.flush()
+    print("%s# %s%s%s" % (PR_WARN_CC, get_time_stamp(), txt, PR_NC), file=file)
+    _flush(file)
 
 
-def err(txt):
+def err(txt, file=sys.stdout):
     """Print, emphasized 'error', the given 'txt' message"""
 
-    print("%s# %s%s%s" % (PR_ERR_CC, get_time_stamp(), txt, PR_NC))
-    sys.stdout.flush()
+    print("%s# %s%s%s" % (PR_ERR_CC, get_time_stamp(), txt, PR_NC), file=file)
+    _flush(file)
 
 
-def emph(txt, rval=None):
+def emph(txt, rval=None, file=sys.stdout):
     """Print, emphasized based on rval"""
 
     if rval is None:    # rval is not specified, use 'neutral'
-        info(txt)
+        info(txt, file=file)
     elif rval == 0:     # rval is 0, by convention, this is 'good'
-        good(txt)
+        good(txt, file=file)
     else:               # any other value, considered 'bad'
-        err(txt)
+        err(txt, file=file)
+
+
+def _flush(file):
+    if getattr(file, 'flush', None) and callable(file.flush):
+        file.flush()
 
 
 def paths_from_env(prefix=None, names=None):
