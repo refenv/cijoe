@@ -430,8 +430,8 @@ def trun_to_junitfile(trun, fpath=None):
                     doc_failure = doc.createElement("failure")
                     doc_failure.setAttribute(
                         "message",
-                        "not executed" if tcase.rcode is None
-                        else "test failed"
+                        "not executed" if tcase.rcode is None else
+                        "test failed"
                     )
 
                     doc_tcase.appendChild(doc_failure)
