@@ -104,6 +104,7 @@ def main():
 
     return rcode
 
+
 if __name__ == "__main__":
     FNAME = os.path.join(tempfile.gettempdir(), "cijoe.lock")
     try:
@@ -112,26 +113,24 @@ if __name__ == "__main__":
         os.remove(FNAME)
 
         sys.exit(RES)
-    except (FileExistsError) as exc:
-        cij.err("-------------==========={[ CIJOE IS LOCKED ]}==========--------------")
-        cij.warn("Looks like CIJOE is already running or previous run did unclean exit")
+    except FileExistsError:
+        cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
+        cij.warn("Looks like CIJOE is already running")
+        cij.warn("or, a previous run did unclean exit")
         cij.warn("Clean up the target-system-under-test reboot / provision")
         cij.warn("Then remove '%s' and start the runner again" % FNAME)
-        cij.err("-------------==========={[ CIJOE IS LOCKED ]}==========--------------")
-        cij.err(exc)
-    except (KeyboardInterrupt) as exc:
-        cij.warn("!")
+        cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
+    except KeyboardInterrupt:
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
-        cij.warn("!                                                         !")
-        cij.warn("! Runner was killed by keyboard-interrupt e.g. Ctrl+C     !")
-        cij.warn("!                                                         !")
-        cij.warn("! Target is tainted as processes are likely to still be   !")
-        cij.warn("! running on the target.                                  !")
-        cij.warn("!                                                         !")
-        cij.warn("! To start the runner again, do the following             !")
-        cij.warn("!                                                         !")
-        cij.warn("! 1) Ensure the target is sound, e.g. reboot / provision  !")
-        cij.warn("! 2) Remove the lock: '%s'                                !" % FNAME)
-        cij.warn("! 3) Start the runner                                     !")
-        cij.warn("!                                                         !")
+        cij.warn(" ")
+        cij.warn(" Runner was killed by keyboard-interrupt e.g. Ctrl+C")
+        cij.warn(" ")
+        cij.warn(" Target is tainted as processes are likely to still be")
+        cij.warn(" running on the target.")
+        cij.warn(" ")
+        cij.warn(" To start the runner again, do the following")
+        cij.warn(" ")
+        cij.warn(" 1) Ensure the target is sound, e.g. reboot / provision")
+        cij.warn(" 2) Remove the lock: '%s'" % FNAME)
+        cij.warn(" 3) Start the runner")
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
