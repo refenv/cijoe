@@ -54,7 +54,7 @@ def tcase_comment(tcase):
     for line in src.splitlines()[2:]:
         if ext == ".sh" and not line.startswith("#"):
             break
-        if ext == ".py" and not '"""' in line:
+        if ext == ".py" and '"""' not in line:
             break
 
         comment.append(line)
@@ -74,8 +74,8 @@ def tcase_parse_descr(tcase):
         comment = []
         cij.err("tcase_parse_descr: failed: %r, tcase: %r" % (exc, tcase))
 
-    comment = [l for l in comment if l.strip()]     # Remove empty lines
-
+    # Remove empty lines
+    comment = [line for line in comment if line.strip()]
     for line_number, line in enumerate(comment):
         if line.startswith("#"):
             comment[line_number] = line[1:]
@@ -91,8 +91,8 @@ def tcase_parse_descr(tcase):
 
 def runlogs_to_html(run_root):
     """
-    Returns content of the given 'fpath' with HTML annotations, currently simply
-    a conversion of ANSI color codes to HTML elements
+    Returns content of the given 'fpath' with HTML annotations, currently
+    simply a conversion of ANSI color codes to HTML elements
     """
 
     if not os.path.isdir(run_root):
