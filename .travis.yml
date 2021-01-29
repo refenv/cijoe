@@ -19,6 +19,7 @@ addons:
 before_install:
 - pip install -U pip
 - pip install pylint
+- pip install flake8
 
 install:
 - make release-build
