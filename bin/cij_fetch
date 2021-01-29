@@ -19,6 +19,7 @@ except ImportError:
 
 CHUNK_SIZE = 16 * 1024
 
+
 def md5_create(path):
     """
     Create md5sum of <path> and store it in <path>.md5
@@ -36,6 +37,7 @@ def md5_create(path):
             md5_fd.write(out)
 
     return process.returncode
+
 
 def meta_local(path):
     """Equivalent of meta_reservoir but on local filesystem"""
@@ -60,6 +62,7 @@ def meta_local(path):
 
     return None
 
+
 def meta_reservoir(url):
     """Returns {"length": ..., "md5": ...} on url in reservoir"""
 
@@ -82,12 +85,14 @@ def meta_reservoir(url):
 
     return None
 
+
 def meta_is_equiv(one, other):
     """Return True two different metas has the same size and md5sum."""
 
     return (one is not None and other is not None) and \
-            (one["length"] == other["length"]) and \
-            (one["md5"] == other["md5"])
+        (one["length"] == other["length"]) and \
+        (one["md5"] == other["md5"])
+
 
 def reservoir_to_mem(url):
     """Returns reservoir resource from url."""
@@ -97,21 +102,22 @@ def reservoir_to_mem(url):
 
     return content
 
+
 def reservoir_to_file(url, path):
     """Downloads the url to path"""
 
     url_meta = meta_reservoir(url)
     local_meta = meta_local(path)
 
-    if meta_is_equiv(local_meta, url_meta): # Skip if it meta is equivalent
+    if meta_is_equiv(local_meta, url_meta):     # Skip if it meta is equivalent
         return True
 
-    local_dir = os.path.dirname(path)       # Ensure parent dir exists
+    local_dir = os.path.dirname(path)           # Ensure parent dir exists
     if not os.path.exists(local_dir):
         os.makedirs(local_dir)
 
     try:
-        response = urlopen(url)             # Download the file
+        response = urlopen(url)                 # Download the file
         with open(path, 'wb') as res_fd:
             while True:
                 chunk = response.read(CHUNK_SIZE)
@@ -119,14 +125,15 @@ def reservoir_to_file(url, path):
                     break
                 res_fd.write(chunk)
 
-        md5_create(path)                    # Create md5sum
-        local_meta = meta_local(path)       # Refresh
+        md5_create(path)                        # Create md5sum
+        local_meta = meta_local(path)           # Refresh
 
     except Exception as exc:
         _, _, exc_tb = sys.exc_info()
         print("Around lineno(%s) error(%s)" % (exc_tb.tb_lineno, exc))
 
     return meta_is_equiv(local_meta, url_meta)
+
 
 def main(args):
     """
@@ -146,8 +153,8 @@ def main(args):
     else:
         sys.exit(1)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(
         description='cij_fetch - Fetches file from reservoir'
     )
