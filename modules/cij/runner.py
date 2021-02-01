@@ -5,7 +5,7 @@ from __future__ import print_function, annotations
 from subprocess import Popen, STDOUT
 from xml.dom import minidom
 import dataclasses
-from typing import List
+from typing import List, Optional, Dict, Set
 import shutil
 import copy
 import time
@@ -33,11 +33,11 @@ class Runnable:
     """
     name: str = "UNNAMED"
     evars: dict = dataclasses.field(default_factory=dict)
-    log_fpath: str = None
-    fpath: str = None
-    res_root: str = None
-    rcode: int = None
-    wallc: float = None
+    log_fpath: str = ""
+    fpath: str = ""
+    res_root: str = ""
+    rcode: Optional[int] = None
+    wallc: Optional[float] = None
 
 
 @dataclasses.dataclass
@@ -46,8 +46,8 @@ class Hook(Runnable):
     Hooks are user-defined scripts that can be run before and/or after
     TestRuns, TestSuites, and TestCases.
     """
-    fname: dict = None
-    fpath_orig: dict = None
+    fname: str = ""
+    fpath_orig: str = ""
 
     @staticmethod
     def hooks_from_dict(hooks_dict) -> dict:
@@ -55,11 +55,9 @@ class Hook(Runnable):
         Deserialize a hook dict containing lists of hook dicts dicts into a
         hook dict containing lists of Hooks
         """
-        # pylint: disable=maybe-no-member
-        hook_fields = set(Hook.__dataclass_fields__)
-        # pylint: enable=maybe-no-member
+        hook_fields = _get_dataclass_fields(Hook)
 
-        hooks = {}
+        hooks: Dict[str, List[Hook]] = {}
         for hook_stage, hooks_entries in hooks_dict.items():
             hooks[hook_stage] = []
 
@@ -81,16 +79,15 @@ class TestCase(Runnable):
     # pylint: disable=too-many-instance-attributes
 
     ident: str = "UNDEFINED"
-    fname: str = None
-    fpath_orig: str = None
-    aux_root: str = None
+    fname: str = ""
+    fpath_orig: str = ""
+    aux_root: str = ""
     aux_list: list = dataclasses.field(default_factory=list)
 
     hooks: dict = dataclasses.field(default_factory=dict)
     hnames: list = dataclasses.field(default_factory=list)
 
     status: str = "UNKN"
-    src_content: str = ""
     descr: str = ""
     descr_long: str = ""
     src_content: str = ""
@@ -102,9 +99,7 @@ class TestCase(Runnable):
         Deserialize a list of tcase dictionaries into a list of TestCases
         """
         complex_keys = {'hooks': Hook.hooks_from_dict}
-        # pylint: disable=maybe-no-member
-        tcase_fields = set(TestCase.__dataclass_fields__)
-        # pylint: enable=maybe-no-member
+        tcase_fields = _get_dataclass_fields(TestCase)
 
         tcases = []
         for tcase_dict in tcase_dicts:
@@ -135,14 +130,14 @@ class TestSuite:
     })
     evars: dict = dataclasses.field(default_factory=dict)
 
-    fpath: str = None
-    fname: str = None
-    res_root: str = None
-    aux_root: str = None
+    fpath: str = ""
+    fname: str = ""
+    res_root: str = ""
+    aux_root: str = ""
     aux_list: list = dataclasses.field(default_factory=list)
 
     status: str = "UNKN"
-    wallc: float = None
+    wallc: Optional[float] = None
 
     testcases: list = dataclasses.field(default_factory=list)
     hooks_pr_tcase: list = dataclasses.field(default_factory=list)
@@ -159,9 +154,7 @@ class TestSuite:
             'testcases': TestCase.tcases_from_dicts,
             'hooks': Hook.hooks_from_dict,
         }
-        # pylint: disable=maybe-no-member
-        tsuite_fields = set(TestSuite.__dataclass_fields__)
-        # pylint: enable=maybe-no-member
+        tsuite_fields = _get_dataclass_fields(TestSuite)
 
         tsuites = []
         for tsuite_dict in tsuites_dicts:
@@ -182,8 +175,8 @@ class TestRun:
     """
     # pylint: disable=too-many-instance-attributes
 
-    ver: str = None
-    conf: dict = None
+    ver: str = ""
+    conf: dict = dataclasses.field(default_factory=dict)
     evars: dict = dataclasses.field(default_factory=dict)
     progress: dict = dataclasses.field(default_factory=lambda: {
         "PASS": 0,
@@ -198,14 +191,14 @@ class TestRun:
         "enter": [],
         "exit": []
     })
-    res_root: str = None
-    aux_root: str = None
+    res_root: str = ""
+    aux_root: str = ""
     aux_list: list = dataclasses.field(default_factory=list)
 
     testsuites: list = dataclasses.field(default_factory=list)
 
     status: str = "UNKN"
-    wallc: float = None
+    wallc: Optional[float] = None
     log_content: str = ""
     hnames: list = dataclasses.field(default_factory=list)
 
@@ -221,14 +214,20 @@ class TestRun:
 
         trun = TestRun()
 
-        # pylint: disable=maybe-no-member
-        fields = set(TestRun.__dataclass_fields__) & set(trun_dict)
-        # pylint: enable=maybe-no-member
+        fields = _get_dataclass_fields(TestRun) & set(trun_dict)
         for key in fields:
             deserialize = complex_keys.get(key, lambda x: x)
             setattr(trun, key, deserialize(trun_dict[key]))
 
         return trun
+
+
+def _get_dataclass_fields(dclass) -> Set[str]:
+    return set(getattr(dclass, "__dataclass_fields__"))
+
+
+class InitializationError(Exception):
+    """Raised when failed to initialize data structures during test run"""
 
 
 def yml_fpath(output_path):
@@ -329,13 +328,13 @@ def hook_setup(parent, hook_fpath) -> Hook:
     return hook
 
 
-def hooks_setup(trun, parent, hnames=None) -> dict:
+def hooks_setup(trun, parent, hnames=None) -> Dict[str, List[Hook]]:
     """
     Setup test-hooks
     @returns dict of hook filepaths {"enter": [], "exit": []}
     """
 
-    hooks = {
+    hooks: Dict[str, List[Hook]] = {
         "enter": [],
         "exit": []
     }
@@ -351,14 +350,12 @@ def hooks_setup(trun, parent, hnames=None) -> dict:
                     continue
 
                 hook = hook_setup(parent, fpath)
-                if not hook:
-                    continue
-
                 hooks[med].append(hook)
 
         if not hooks["enter"] + hooks["exit"]:
-            cij.err("rnr:hooks_setup:FAIL { hname: %r has no files }" % hname)
-            return None
+            msg = "rnr:hooks_setup:FAIL { hname: %r has no files }" % hname
+            cij.err(msg)
+            raise InitializationError(msg)
 
     return hooks
 
@@ -489,8 +486,10 @@ def tcase_setup(trun, parent, tcase_fname) -> TestCase:
     case.fpath_orig = os.sep.join([trun.conf["TESTCASES"], case.fname])
 
     if not os.path.exists(case.fpath_orig):
-        cij.err('rnr:tcase_setup: !case.fpath_orig: %r' % case.fpath_orig)
-        return None
+        msg = ("rnr:tcase_setup: file case.fpath_orig does not exist: "
+               "%r" % case.fpath_orig)
+        cij.err(msg)
+        raise InitializationError(msg)
 
     case.name = os.path.splitext(case.fname)[0]
     case.ident = "/".join([parent.ident, case.fname])
@@ -588,7 +587,7 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
     #
     # Load testcases from .suite file OR from declaration
     #
-    tcase_fpaths = []                               # Load testcase fpaths
+    tcase_fpaths: List[str] = []                 # Load testcase fpaths
     if os.path.exists(suite.fpath):              # From suite-file
         with open(suite.fpath) as sfd:
             suite_lines = (
@@ -604,15 +603,12 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
     # NOTE: fix duplicates; allow them
     # NOTE: Currently hot-fixed here
     if len(set(tcase_fpaths)) != len(tcase_fpaths):
-        cij.err("rnr:suite: failed: duplicate tcase in suite not supported")
-        return None
+        msg = "rnr:suite: failed: duplicate tcase in suite not supported"
+        cij.err(msg)
+        raise InitializationError(msg)
 
     for tcase_fname in tcase_fpaths:                # Setup testcases
         tcase = tcase_setup(trun, suite, tcase_fname)
-        if not tcase:
-            cij.err("rnr:suite: failed: tcase_setup")
-            return None
-
         suite.testcases.append(tcase)
 
     return suite
@@ -715,7 +711,9 @@ def trun_setup(conf) -> TestRun:
         cij.err("rnr: %r" % exc)
 
     if not declr:
-        return None
+        msg = "rnr:trun_setup: failed to read declaration"
+        cij.err(msg)
+        raise InitializationError(msg)
 
     trun = TestRun()
     trun.ver = cij.VERSION
@@ -732,10 +730,6 @@ def trun_setup(conf) -> TestRun:
 
     for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
         tsuite = tsuite_setup(trun, declr, enum)
-        if tsuite is None:
-            cij.err("main::FAILED: setting up tsuite: %r" % tsuite)
-            return 1
-
         trun.testsuites.append(tsuite)
         trun.progress["UNKN"] += len(tsuite.testcases)
 
@@ -750,9 +744,11 @@ def main(conf):
         cij.err("main:FAILED { fpath: %r }, exists" % fpath)
         return 1
 
-    trun = trun_setup(conf)         # Construct 'trun' from 'conf'
-    if not trun:
-        return 1
+    trun: TestRun
+    try:
+        trun = trun_setup(conf)         # Construct 'trun' from 'conf'
+    except InitializationError as ex:
+        cij.err("main:FAILED to start testrun: %s" % ex)
 
     trun_to_file(trun)              # Persist trun
     trun_to_junitfile(trun)         # Persist as jUNIT XML
