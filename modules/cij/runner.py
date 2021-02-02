@@ -12,6 +12,7 @@ import time
 import os
 import yaml
 import cij
+# pylint:disable=unsubscriptable-object
 
 HOOK_PATTERNS = {
     "enter": [
