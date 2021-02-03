@@ -102,6 +102,7 @@ ssh::cmd() {
   fi
 
   eval "$_cmd"                                                  # Execute CMD
+  return $?
 }
 
 ssh::cmd_output() {
