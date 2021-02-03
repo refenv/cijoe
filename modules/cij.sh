@@ -193,3 +193,63 @@ cij::isint() {
   [[ "$1" =~ ^[0-9]+$ ]]
   return $?
 }
+
+#
+# Transform files from cijoe-local storage to target
+#
+cij::push() {
+  local _src=$1
+  local _dst=$2
+
+  if [[ ! -v _src ]]; then
+    cij::err "cij.push: missing first argument (src)"
+    return 1
+  fi
+  if [[ ! -v _dst ]]; then
+    cij::err "cij.push: missing second argument (dst)"
+    return 1
+  fi
+
+  if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
+    ssh::push "${_src}" "${_dst}"
+    return $?
+  else
+    cp -r "${_src}" "${_dst}"
+    return $?
+  fi
+}
+
+#
+# Transform files from target to cijoe-local storage
+#
+cij::pull() {
+  local _src=$1
+  local _dst=$2
+
+  if [[ ! -v _src ]]; then
+    cij::err "cij.pull: missing first argument (src)"
+    return 1
+  fi
+  if [[ ! -v _dst ]]; then
+    cij::err "cij.pull: missing second argument (dst)"
+    return 1
+  fi
+
+  if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
+    ssh::pull "${_src}" "${_dst}"
+    return $?
+  else
+    cp -r "${_src}" "${_dst}"
+    return $?
+  fi
+}
+
+cij::cmd() {
+  if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
+    ssh::cmd "$@"
+    return $?
+  else
+    "$@"
+    return $?
+  fi
+}
