@@ -1,0 +1,42 @@
+descr: Example utilizing fio
+descr_long: |
+  The testcase requires that certain variables such as FIO_BIN is set.
+
+  Depending on what and how fio is used then it makes sense to either define it in the
+  test-environment, or in the testplan. Example
+
+  * We want to utilize fio to measure bandwidth of a device, then simply set the FIO_BIN in the
+    target-environment as it is a precondition for what we want to do
+  * We want to measure differences in two different fio version on the same device, then it would
+    make sense to define paths to the different versions in the plan per at the testsuite level.
+    And utilize the alias feature to tell the two apart easily
+
+  The testcase runs fio
+
+  * for each block-size in FIO_BS_LIST
+  * for each iodepth in FIO_IODEPTH_LIST
+  * for FIO_FNRUNS number of times
+
+  In this testplan FIO_ARGS is set to define the fio-job, alternatively, FIO_SCRIPT and FIO_SECTION
+  could be used. The testcase auto-adds output-grabbing in the form of json and stores it in the
+  testcase aux-folder
+evars:
+  FIO_ARGS: >-
+    --rw=randread
+    --size=12G
+    --direct=1
+    --thread=1
+    --time_based=1
+    --ramp_time=3
+    --runtime=7
+    --norandommap=1
+    --allow_file_create=0
+    --name=foo42
+  FIO_FILENAME: "/dev/nvme0n1"
+  FIO_NRUNS: "1"
+  FIO_BS_LIST: "512"
+  FIO_IODEPTH_LIST: "1"
+testsuites:
+  - name: "fio-example"
+    testcases:
+    - extc_05_fio.sh
