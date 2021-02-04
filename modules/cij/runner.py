@@ -28,6 +28,16 @@ HOOK_PATTERNS = {
 
 
 @dataclasses.dataclass
+class Status:
+    """ Valid test statuses """
+    # pylint: disable=invalid-name
+
+    Pass: str = "PASS"
+    Fail: str = "FAIL"
+    Unkn: str = "UNKN"
+
+
+@dataclasses.dataclass
 class Runnable:
     """
     Runnable contains attributes required for classes to be run by script_run
@@ -88,7 +98,8 @@ class TestCase(Runnable):
     hooks: dict = dataclasses.field(default_factory=dict)
     hnames: list = dataclasses.field(default_factory=list)
 
-    status: str = "UNKN"
+    status: str = Status.Unkn
+    status_preq: str = Status.Unkn
     descr: str = ""
     descr_long: str = ""
     src_content: str = ""
@@ -137,7 +148,8 @@ class TestSuite:
     aux_root: str = ""
     aux_list: list = dataclasses.field(default_factory=list)
 
-    status: str = "UNKN"
+    status: str = Status.Unkn
+    status_preq: str = Status.Unkn
     wallc: Optional[float] = None
 
     testcases: list = dataclasses.field(default_factory=list)
@@ -180,9 +192,9 @@ class TestRun:
     conf: dict = dataclasses.field(default_factory=dict)
     evars: dict = dataclasses.field(default_factory=dict)
     progress: dict = dataclasses.field(default_factory=lambda: {
-        "PASS": 0,
-        "FAIL": 0,
-        "UNKN": 0
+        Status.Pass: 0,
+        Status.Fail: 0,
+        Status.Unkn: 0
     })
     stamp: dict = dataclasses.field(default_factory=lambda: {
         "begin": None,
@@ -198,7 +210,8 @@ class TestRun:
 
     testsuites: list = dataclasses.field(default_factory=list)
 
-    status: str = "UNKN"
+    status: str = Status.Unkn
+    status_preq: str = Status.Unkn
     wallc: Optional[float] = None
     log_content: str = ""
     hnames: list = dataclasses.field(default_factory=list)
@@ -732,7 +745,7 @@ def trun_setup(conf) -> TestRun:
     for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
         tsuite = tsuite_setup(trun, declr, enum)
         trun.testsuites.append(tsuite)
-        trun.progress["UNKN"] += len(tsuite.testcases)
+        trun.progress[Status.Unkn] += len(tsuite.testcases)
 
     return trun
 
@@ -772,8 +785,8 @@ def main(conf):
                     tc_err += script_run(trun, tcase)
                     tc_err += tcase_exit(trun, tsuite, tcase)
 
-                tcase.status = "FAIL" if tc_err else "PASS"
-                trun.progress["UNKN"] -= 1
+                tcase.status = Status.Fail if tc_err else Status.Pass
+                trun.progress[Status.Unkn] -= 1
 
             trun.progress[tcase.status] += 1  # Update progress
 
@@ -788,21 +801,21 @@ def main(conf):
         ts_err += ts_ent_err                        # Accumulate errors
         tr_err += ts_err
 
-        tsuite.status = "FAIL" if ts_err else "PASS"
+        tsuite.status = Status.Fail if ts_err else Status.Pass
 
-        cij.emph("rnr:tsuite %r" % tsuite.status, tsuite.status != "PASS")
+        cij.emph("rnr:tsuite %r" % tsuite.status, tsuite.status != Status.Pass)
 
     if not tr_ent_err:
         trun_exit(trun)
 
     tr_err += tr_ent_err
-    trun.status = "FAIL" if tr_err else "PASS"
+    trun.status = Status.Fail if tr_err else Status.Pass
 
     trun.stamp["end"] = int(time.time()) + 1         # END STAMP
     trun_to_file(trun)                                  # PERSIST
     trun_to_junitfile(trun)                             # Persist as jUNIT XML
 
     cij.emph("rnr:main:progress %r" % trun.progress)
-    cij.emph("rnr:main:trun %r" % trun.status, trun.status != "PASS")
+    cij.emph("rnr:main:trun %r" % trun.status, trun.status != Status.Pass)
 
-    return trun.progress["FAIL"]
+    return trun.progress[Status.Fail]
