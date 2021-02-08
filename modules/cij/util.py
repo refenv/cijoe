@@ -3,9 +3,20 @@
 """
 from __future__ import print_function
 from subprocess import Popen, PIPE
+import argparse
 import os
 import re
 import cij
+
+
+class ExtendAction(argparse.Action):
+    """Custom action, since the extend-action is not available until 3.8"""
+
+    # pylint: disable=too-few-public-methods
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = getattr(namespace, self.dest) or []
+        items.extend(values)
+        setattr(namespace, self.dest, items)
 
 
 def expand_path(path):
