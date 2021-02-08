@@ -19,12 +19,18 @@ def parse_args():
         description="cij_runner - CIJOE Test Runner",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    prsr.register('action', 'custom_extend', cij.util.ExtendAction)
     prsr.add_argument(
-        "testplan",
-        help="Path to the testplan to run",
+        "--testplan",
+        help="Path to one or more testplan(s) to run",
+        action="custom_extend",
+        nargs="+",
+        required=True,
+        type=str
     )
     prsr.add_argument(
-        "env",
+        "--env",
+        required=True,
         help="Path to the environment definition",
     )
     prsr.add_argument(
@@ -67,14 +73,17 @@ def main():
     conf = {}
     conf.update(evars)
     conf.update(args)
+    conf["TP_FPATH"] = []
 
-    # Setup path to testplan
-    conf["TESTPLAN_FPATH"] = cij.util.expand_path(conf["TESTPLAN"])
-    if not os.path.exists(conf["TESTPLAN_FPATH"]):
-        cij.err("TESTPLAN_FPATH: %r, does not exist" % conf["TESTPLAN_FPATH"])
-        return 1
-    conf["TESTPLAN_FNAME"] = os.path.basename(conf["TESTPLAN_FPATH"])
-    conf["TESTPLAN_NAME"] = ".".join(conf["TESTPLAN_FNAME"].split(".")[:-1])
+    # Setup tplan filepaths
+    for path in conf["TESTPLAN"]:
+        tplan_fpath = cij.util.expand_path(path)
+
+        if not os.path.exists(tplan_fpath):
+            cij.err("TESTPLAN_FPATH: %r, does not exist" % tplan_fpath)
+            return 1
+
+        conf["TP_FPATH"].append(tplan_fpath)
 
     # Setup path to env script
     conf["ENV_FPATH"] = cij.util.expand_path(conf["ENV"])

@@ -174,12 +174,21 @@ def process_tcase(tcase):
     return True
 
 
+def process_tplan(tplan):
+    """Goes through the tplan and processes "run.log" """
+
+    tplan.log_content = runlogs_to_html(tplan.res_root)
+    tplan.aux_list = aux_listing(tplan.aux_root)
+    tplan.hnames = extract_hook_names(tplan)
+
+    return True
+
+
 def process_trun(trun):
     """Goes through the trun and processes "run.log" """
 
     trun.log_content = runlogs_to_html(trun.res_root)
     trun.aux_list = aux_listing(trun.aux_root)
-    trun.hnames = extract_hook_names(trun)
 
     return True
 
@@ -190,11 +199,12 @@ def postprocess(trun):
     plog = []
     plog.append(("trun", process_trun(trun)))
 
-    for tsuite in trun.testsuites:
-        plog.append(("tsuite", process_tsuite(tsuite)))
+    for tplan in trun.testplans:
+        for tsuite in tplan.testsuites:
+            plog.append(("tsuite", process_tsuite(tsuite)))
 
-        for tcase in tsuite.testcases:
-            plog.append(("tcase", process_tcase(tcase)))
+            for tcase in tsuite.testcases:
+                plog.append(("tcase", process_tcase(tcase)))
 
     for task, success in plog:
         if not success:
