@@ -10,6 +10,17 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.1.42
+
+* Support for multiple testplans per test-run
+  - Arguments to ``cij_runner`` has changed
+    Use: ``--testplan`` to provide one or more testplans (this replaces positional arg)
+    Use: ``--env`` to provide invironment file (this replaces positional arg)
+  - Structure of ``cij_runner`` output has changed
+    Before: ``<OUTPUT>/testsuite_ident/...``
+    Now: ``<OUTPUT>/testplan_ident/testsuite_ident/...``
+    In other words, testsuites and nested beneath testplans in the test-result output.
+
 ## 0.0.35
 
 * Added option tot disable colors in bash-output-helpers
