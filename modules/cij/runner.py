@@ -44,9 +44,9 @@ class Runnable:
     """
     name: str = "UNNAMED"
     evars: dict = dataclasses.field(default_factory=dict)
-    log_fpath: str = ""
-    fpath: str = ""
-    res_root: str = ""
+    res_root: str = ""              # Abs. path to result directory
+    fpath: str = ""                 # Abs. path to script / suite /  plan
+    log_fpath: str = ""             # Abs. path to run.log
     rcode: Optional[int] = None
     wallc: Optional[float] = None
 
