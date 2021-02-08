@@ -256,7 +256,7 @@ def junit_fpath(output_path):
     return os.sep.join([output_path, "trun.xml"])
 
 
-def script_run(trun, script: Runnable):
+def script_run(trun: TestRun, script: Runnable):
     """Execute a script or testcase"""
 
     if trun.conf["VERBOSE"]:
@@ -342,7 +342,7 @@ def hook_setup(parent, hook_fpath) -> Hook:
     return hook
 
 
-def hooks_setup(trun, parent, hnames=None) -> Dict[str, List[Hook]]:
+def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
     """
     Setup test-hooks
     @returns dict of hook filepaths {"enter": [], "exit": []}
@@ -374,7 +374,7 @@ def hooks_setup(trun, parent, hnames=None) -> Dict[str, List[Hook]]:
     return hooks
 
 
-def trun_to_file(trun, fpath=None):
+def trun_to_file(trun: TestRun, fpath=None):
     """Dump the given trun to file"""
 
     if fpath is None:
@@ -388,7 +388,7 @@ def trun_to_file(trun, fpath=None):
         yml_file.write(data)
 
 
-def trun_to_junitfile(trun, fpath=None):
+def trun_to_junitfile(trun: TestRun, fpath=None) -> int:
     """Generate jUNIT XML from testrun YML"""
 
     try:
@@ -464,7 +464,7 @@ def trun_to_junitfile(trun, fpath=None):
     return 0
 
 
-def trun_from_file(fpath):
+def trun_from_file(fpath) -> TestRun:
     """Returns trun from the given fpath"""
 
     with open(fpath, 'r') as yml_file:
@@ -472,7 +472,7 @@ def trun_from_file(fpath):
         return TestRun.from_dict(trun_dict)
 
 
-def trun_emph(trun):
+def trun_emph(trun: TestRun):
     """Print essential info on"""
 
     if trun.conf["VERBOSE"] > 1:               # Print environment variables
@@ -488,7 +488,7 @@ def trun_emph(trun):
         cij.emph("}")
 
 
-def tcase_setup(trun, parent, tcase_fname) -> TestCase:
+def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     """
     Create and initialize a testcase
     """
@@ -527,7 +527,7 @@ def tcase_setup(trun, parent, tcase_fname) -> TestCase:
     return case
 
 
-def tsuite_exit(trun, tsuite):
+def tsuite_exit(trun: TestRun, tsuite: TestSuite) -> int:
     """Triggers when exiting the given testsuite"""
 
     if trun.conf["VERBOSE"]:
@@ -545,7 +545,7 @@ def tsuite_exit(trun, tsuite):
     return rcode
 
 
-def tsuite_enter(trun, tsuite):
+def tsuite_enter(trun: TestRun, tsuite: TestSuite) -> int:
     """Triggers when entering the given testsuite"""
 
     if trun.conf["VERBOSE"]:
@@ -563,7 +563,7 @@ def tsuite_enter(trun, tsuite):
     return rcode
 
 
-def tsuite_setup(trun, declr, enum) -> TestSuite:
+def tsuite_setup(trun: TestRun, declr, enum) -> TestSuite:
     """
     Creates and initialized a TESTSUITE struct and site-effects such as
     creating output directories and forwarding initialization of testcases
@@ -628,7 +628,7 @@ def tsuite_setup(trun, declr, enum) -> TestSuite:
     return suite
 
 
-def tcase_exit(trun, tsuite, tcase):
+def tcase_exit(trun: TestRun, tsuite: TestSuite, tcase: TestCase) -> int:
     """..."""
     # pylint: disable=locally-disabled, unused-argument
 
@@ -647,7 +647,7 @@ def tcase_exit(trun, tsuite, tcase):
     return rcode
 
 
-def tcase_enter(trun, tsuite, tcase):
+def tcase_enter(trun: TestRun, tsuite: TestSuite, tcase: TestCase) -> int:
     """
     setup res_root and aux_root, log info and run tcase-enter-hooks
 
@@ -672,7 +672,7 @@ def tcase_enter(trun, tsuite, tcase):
     return rcode
 
 
-def trun_exit(trun):
+def trun_exit(trun: TestRun) -> int:
     """Triggers when exiting the given testrun"""
 
     if trun.conf["VERBOSE"]:
@@ -690,7 +690,7 @@ def trun_exit(trun):
     return rcode
 
 
-def trun_enter(trun):
+def trun_enter(trun: TestRun) -> int:
     """Triggers when entering the given testrun"""
 
     if trun.conf["VERBOSE"]:
