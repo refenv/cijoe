@@ -54,7 +54,7 @@ main() {
   fi
 
   # Start the runner
-  if ! cij_runner "$tplan_fpath" "$env_fpath" --output "$res_dpath" -vvv; then
+  if ! cij_runner --testplan "$tplan_fpath" --env "$env_fpath" --output "$res_dpath" -vvv; then
     cij::err "cij_runner encountered an error"
     res=$(( res + 1 ))
   fi

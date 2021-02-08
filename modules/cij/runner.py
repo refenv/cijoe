@@ -182,6 +182,73 @@ class TestSuite:
 
 
 @dataclasses.dataclass
+class TestPlan:
+    """
+    TestPlans contain information required to execute a testplan.
+    """
+    # pylint: disable=too-many-instance-attributes
+
+    fpath_orig: str = ""
+    fpath: str = ""
+    fname: str = ""
+    name: str = ""
+    ident: str = ""
+
+    res_root: str = ""
+    aux_root: str = ""
+    aux_list: list = dataclasses.field(default_factory=list)
+    progress: dict = dataclasses.field(default_factory=lambda: {
+        Status.Pass: 0,
+        Status.Fail: 0,
+        Status.Unkn: 0
+    })
+    stamp: dict = dataclasses.field(default_factory=lambda: {
+        "begin": None,
+        "end": None
+    })
+    status: str = Status.Unkn
+    status_preq: str = Status.Unkn
+    wallc: Optional[float] = None
+    log_content: str = ""
+
+    evars: dict = dataclasses.field(default_factory=dict)
+    hooks: dict = dataclasses.field(default_factory=lambda: {
+        "enter": [],
+        "exit": []
+    })
+    hnames: list = dataclasses.field(default_factory=list)
+
+    testsuites: list = dataclasses.field(default_factory=list)
+
+    @staticmethod
+    def from_dict(tplan_dict) -> TestPlan:
+        """
+        Deserialize a tplan dict into TestPlan
+        """
+        complex_keys = {
+            'testsuites': TestSuite.tsuites_from_dicts,
+            'hooks': Hook.hooks_from_dict,
+        }
+
+        tplan = TestPlan()
+
+        fields = _get_dataclass_fields(TestPlan) & set(tplan_dict)
+        for key in fields:
+            deserialize = complex_keys.get(key, lambda x: x)
+            setattr(tplan, key, deserialize(tplan_dict[key]))
+
+        return tplan
+
+    @staticmethod
+    def tplans_from_dicts(lod) -> List[TestPlan]:
+        """
+        Transform a list of testplan dicts to a list of TestPlan
+        """
+
+        return [TestPlan.from_dict(tpd) for tpd in lod]
+
+
+@dataclasses.dataclass
 class TestRun:
     """
     TestRuns contain information required to execute a testplan.
@@ -202,21 +269,16 @@ class TestRun:
         "begin": None,
         "end": None
     })
-    hooks: dict = dataclasses.field(default_factory=lambda: {
-        "enter": [],
-        "exit": []
-    })
     res_root: str = ""
     aux_root: str = ""
     aux_list: list = dataclasses.field(default_factory=list)
 
-    testsuites: list = dataclasses.field(default_factory=list)
+    testplans: list = dataclasses.field(default_factory=list)
 
     status: str = Status.Unkn
     status_preq: str = Status.Unkn
     wallc: Optional[float] = None
     log_content: str = ""
-    hnames: list = dataclasses.field(default_factory=list)
 
     def inc(self):
         """Increment and return counter"""
@@ -231,8 +293,7 @@ class TestRun:
         Deserialize a trun dict into TestRun
         """
         complex_keys = {
-            'testsuites': TestSuite.tsuites_from_dicts,
-            'hooks': Hook.hooks_from_dict,
+            'testplans': TestPlan.tplans_from_dicts,
         }
 
         trun = TestRun()
@@ -417,51 +478,52 @@ def trun_to_junitfile(trun: TestRun, fpath=None) -> int:
 
         doc.appendChild(doc_testsuites)
 
-        for tsuite in trun.testsuites:
-            doc_tsuite = doc.createElement("testsuite")
-            doc_tsuite.setAttribute("name", tsuite.name)
-            doc_tsuite.setAttribute("package", tsuite.ident)
-            doc_tsuite.setAttribute(
-                "tests",
-                str(len(tsuite.testcases))
-            )
-
-            nfailures = 0
-            wallc_total = 0.0
-
-            for tcase in tsuite.testcases:
-                if not tcase.wallc:
-                    tcase.wallc = 0.0
-
-                wallc_total += tcase.wallc
-
-                doc_tcase = doc.createElement("testcase")
-                doc_tcase.setAttribute(
-                    "name", str(tcase.name)
+        for tplan in trun.testplans:
+            for tsuite in tplan.testsuites:
+                doc_tsuite = doc.createElement("testsuite")
+                doc_tsuite.setAttribute("name", tsuite.name)
+                doc_tsuite.setAttribute("package", tsuite.ident)
+                doc_tsuite.setAttribute(
+                    "tests",
+                    str(len(tsuite.testcases))
                 )
-                doc_tcase.setAttribute(
-                    "classname", str(tcase.ident)
-                )
-                doc_tcase.setAttribute("time", "%0.3f" % tcase.wallc)
 
-                if tcase.rcode != 0:
-                    nfailures += 1
+                nfailures = 0
+                wallc_total = 0.0
 
-                    doc_failure = doc.createElement("failure")
-                    doc_failure.setAttribute(
-                        "message",
-                        "not executed" if tcase.rcode is None else
-                        "test failed"
+                for tcase in tsuite.testcases:
+                    if not tcase.wallc:
+                        tcase.wallc = 0.0
+
+                    wallc_total += tcase.wallc
+
+                    doc_tcase = doc.createElement("testcase")
+                    doc_tcase.setAttribute(
+                        "name", str(tcase.name)
                     )
+                    doc_tcase.setAttribute(
+                        "classname", str(tcase.ident)
+                    )
+                    doc_tcase.setAttribute("time", "%0.3f" % tcase.wallc)
 
-                    doc_tcase.appendChild(doc_failure)
+                    if tcase.rcode != 0:
+                        nfailures += 1
 
-                doc_tsuite.appendChild(doc_tcase)
+                        doc_failure = doc.createElement("failure")
+                        doc_failure.setAttribute(
+                            "message",
+                            "not executed" if tcase.rcode is None else
+                            "test failed"
+                        )
 
-            doc_tsuite.setAttribute("failures", str(nfailures))
-            doc_tsuite.setAttribute("time", "%0.3f" % wallc_total)
+                        doc_tcase.appendChild(doc_failure)
 
-            doc_testsuites.appendChild(doc_tsuite)
+                    doc_tsuite.appendChild(doc_tcase)
+
+                doc_tsuite.setAttribute("failures", str(nfailures))
+                doc_tsuite.setAttribute("time", "%0.3f" % wallc_total)
+
+                doc_testsuites.appendChild(doc_tsuite)
 
         with open(fpath, "w") as junitf:
             junitf.write(doc.toprettyxml(indent="  "))
@@ -572,7 +634,7 @@ def tsuite_enter(trun: TestRun, tsuite: TestSuite) -> int:
     return rcode
 
 
-def tsuite_setup(trun: TestRun, declr, enum) -> TestSuite:
+def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     """
     Creates and initialized a TESTSUITE struct and site-effects such as
     creating output directories and forwarding initialization of testcases
@@ -588,10 +650,10 @@ def tsuite_setup(trun: TestRun, declr, enum) -> TestSuite:
     suite.alias = declr.get("alias")
     suite.ident = "%s_%d" % (suite.name, enum)
 
-    suite.res_root = os.sep.join([trun.conf["OUTPUT"], suite.ident])
+    suite.res_root = os.path.join(tplan.res_root, suite.ident)
     suite.aux_root = os.sep.join([suite.res_root, "_aux"])
 
-    suite.evars.update(copy.deepcopy(trun.evars))
+    suite.evars.update(copy.deepcopy(tplan.evars))
     suite.evars.update(copy.deepcopy(declr.get("evars", {})))
 
     # Initialize
@@ -681,25 +743,100 @@ def tcase_enter(trun: TestRun, tsuite: TestSuite, tcase: TestCase) -> int:
     return rcode
 
 
-def trun_exit(trun: TestRun) -> int:
-    """Triggers when exiting the given testrun"""
+def tplan_exit(trun: TestRun, tplan: TestPlan) -> int:
+    """Triggers when exiting the given testplan"""
 
     if trun.conf["VERBOSE"]:
-        cij.emph("rnr:trun:exit")
+        cij.emph("rnr:tplan:exit")
 
     rcode = 0
-    for hook in reversed(trun.hooks["exit"]):    # EXIT-hooks
+    for hook in reversed(tplan.hooks["exit"]):    # EXIT-hooks
         rcode = script_run(trun, hook)
         if rcode:
             break
 
     if trun.conf["VERBOSE"]:
-        cij.emph("rnr:trun::exit { rcode: %r }" % rcode, rcode)
+        cij.emph("rnr:tplan::exit { rcode: %r }" % rcode, rcode)
 
     return rcode
 
 
-def trun_enter(trun: TestRun) -> int:
+def tplan_enter(trun: TestRun, tplan: TestPlan):
+    """Triggers when entering the given testplan"""
+
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:tplan::enter")
+
+    tplan.stamp["begin"] = int(time.time())     # Record start timestamp
+
+    rcode = 0
+    for hook in tplan.hooks["enter"]:     # ENTER-hooks
+        rcode = script_run(trun, hook)
+        if rcode:
+            break
+
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:tplan::enter { rcode: %r }" % rcode, rcode)
+
+    return rcode
+
+
+def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
+    """
+    Setup the testplan data-structure, embedding the parsed environment
+    variables and command-line arguments and continues with setup for
+    testsuites, and testcases
+    """
+
+    tplan = TestPlan()
+
+    tplan.fpath_orig = tplan_fpath
+    tplan.fpath = tplan.fpath_orig
+    tplan.fname = os.path.basename(tplan.fpath)
+    tplan.name = ".".join(tplan.fname.split(".")[:-1])
+    tplan.ident = "%s_%d" % (tplan.name, trun.inc())
+
+    tplan.res_root = os.path.join(trun.conf["OUTPUT"], tplan.ident)
+    tplan.aux_root = os.path.join(tplan.res_root, "_aux")
+
+    declr = None
+    try:
+        with open(tplan.fpath) as declr_fd:
+            declr = yaml.safe_load(declr_fd)
+    except AttributeError as exc:
+        cij.err("rnr: %r" % exc)
+
+    if not declr:
+        msg = "rnr:tplan_setup: failed to read declaration"
+        cij.err(msg)
+        raise InitializationError(msg)
+
+    tplan.evars.update(copy.deepcopy(declr.get("evars", {})))
+
+    os.makedirs(tplan.aux_root)
+
+    # Setup top-level hooks
+    tplan.hooks = hooks_setup(trun, tplan, declr.get("hooks", []))
+
+    for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
+        tsuite = tsuite_setup(trun, tplan, declr, enum)
+        tplan.testsuites.append(tsuite)
+
+        trun.progress[Status.Unkn] += len(tsuite.testcases)
+
+    return tplan
+
+
+def trun_exit(trun: TestRun):
+    """Triggers when exiting the given testrun"""
+
+    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:trun:exit")
+
+    return 0
+
+
+def trun_enter(trun: TestRun):
     """Triggers when entering the given testrun"""
 
     if trun.conf["VERBOSE"]:
@@ -707,16 +844,7 @@ def trun_enter(trun: TestRun) -> int:
 
     trun.stamp["begin"] = int(time.time())     # Record start timestamp
 
-    rcode = 0
-    for hook in trun.hooks["enter"]:     # ENTER-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:trun::enter { rcode: %r }" % rcode, rcode)
-
-    return rcode
+    return 0
 
 
 def trun_setup(conf) -> TestRun:
@@ -726,35 +854,17 @@ def trun_setup(conf) -> TestRun:
     testplans, testsuites, and testcases
     """
 
-    declr = None
-    try:
-        with open(conf["TESTPLAN_FPATH"]) as declr_fd:
-            declr = yaml.safe_load(declr_fd)
-    except AttributeError as exc:
-        cij.err("rnr: %r" % exc)
-
-    if not declr:
-        msg = "rnr:trun_setup: failed to read declaration"
-        cij.err(msg)
-        raise InitializationError(msg)
-
     trun = TestRun()
     trun.ver = cij.VERSION
-
     trun.conf = copy.deepcopy(conf)
     trun.res_root = conf["OUTPUT"]
     trun.aux_root = os.sep.join([trun.res_root, "_aux"])
-    trun.evars.update(copy.deepcopy(declr.get("evars", {})))
 
     os.makedirs(trun.aux_root)
 
-    # Setup top-level hooks
-    trun.hooks = hooks_setup(trun, trun, declr.get("hooks", []))
-
-    for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
-        tsuite = tsuite_setup(trun, declr, enum)
-        trun.testsuites.append(tsuite)
-        trun.progress[Status.Unkn] += len(tsuite.testcases)
+    trun.testplans = [
+        tplan_setup(trun, tp_fpath) for tp_fpath in conf["TP_FPATH"]
+    ]
 
     return trun
 
@@ -769,50 +879,62 @@ def main(conf):
 
     trun: TestRun
     try:
-        trun = trun_setup(conf)         # Construct 'trun' from 'conf'
+        trun = trun_setup(conf)     # Construct 'trun' from 'conf'
     except InitializationError as ex:
         cij.err("main:FAILED to start testrun: %s" % ex)
 
     trun_to_file(trun)              # Persist trun
     trun_to_junitfile(trun)         # Persist as jUNIT XML
-    trun_emph(trun)                 # Print trun before run
 
     tr_err = 0
     tr_ent_err = trun_enter(trun)
-    for tsuite in (ts for ts in trun.testsuites if not tr_ent_err):
+    for tplan in (tp for tp in trun.testplans if not tr_ent_err):
+        tp_err = 0
+        tp_ent_err = tplan_enter(trun, tplan)
 
-        ts_err = 0
-        ts_ent_err = tsuite_enter(trun, tsuite)
-        for tcase in (tc for tc in tsuite.testcases if not ts_ent_err):
+        for tsuite in (ts for ts in tplan.testsuites if not tp_ent_err):
+            ts_err = 0
+            ts_ent_err = tsuite_enter(trun, tsuite)
 
-            tc_err = 0
+            for tcase in (tc for tc in tsuite.testcases if not ts_ent_err):
+                tc_err = 0
 
-            tcase_match = conf.get("TESTCASE_MATCH", None)
-            if not (tcase_match and tcase_match not in tcase.name):
-                tc_err = tcase_enter(trun, tsuite, tcase)
-                if not tc_err:
-                    tc_err += script_run(trun, tcase)
-                    tc_err += tcase_exit(trun, tsuite, tcase)
+                tcase_match = conf.get("TESTCASE_MATCH", None)
+                if not (tcase_match and tcase_match not in tcase.name):
+                    tc_err = tcase_enter(trun, tsuite, tcase)
+                    if not tc_err:
+                        tc_err += script_run(trun, tcase)
+                        tc_err += tcase_exit(trun, tsuite, tcase)
 
-                tcase.status = Status.Fail if tc_err else Status.Pass
-                trun.progress[Status.Unkn] -= 1
+                    tcase.status = Status.Fail if tc_err else Status.Pass
+                    trun.progress[Status.Unkn] -= 1
 
-            trun.progress[tcase.status] += 1  # Update progress
+                trun.progress[tcase.status] += 1  # Update progress
 
-            ts_err += tc_err                        # Accumulate errors
+                ts_err += tc_err                        # Accumulate errors
 
-            trun_to_file(trun)                      # Persist trun
-            trun_to_junitfile(trun)                 # Persist as jUNIT XML
+                trun_to_file(trun)                      # Persist trun
+                trun_to_junitfile(trun)                 # Persist as jUNIT XML
 
-        if not ts_ent_err:
-            ts_err += tsuite_exit(trun, tsuite)
+            if not ts_ent_err:
+                ts_err += tsuite_exit(trun, tsuite)
 
-        ts_err += ts_ent_err                        # Accumulate errors
-        tr_err += ts_err
+            ts_err += ts_ent_err                        # Accumulate errors
+            tp_err += ts_err
 
-        tsuite.status = Status.Fail if ts_err else Status.Pass
+            tsuite.status = Status.Fail if ts_err else Status.Pass
 
-        cij.emph("rnr:tsuite %r" % tsuite.status, tsuite.status != Status.Pass)
+            cij.emph(
+                "rnr:tsuite %r" % tsuite.status, tsuite.status != Status.Pass
+            )
+
+        if not tp_ent_err:
+            tp_err += tplan_exit(trun, tplan)
+
+        tp_err += tp_ent_err                            # Accumulate errors
+        tr_err += tp_err
+
+        tplan.status = Status.Fail if tp_err else Status.Pass
 
     if not tr_ent_err:
         trun_exit(trun)
