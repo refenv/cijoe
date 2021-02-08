@@ -190,6 +190,8 @@ class TestRun:
 
     ver: str = ""
     conf: dict = dataclasses.field(default_factory=dict)
+
+    counter: int = 0
     evars: dict = dataclasses.field(default_factory=dict)
     progress: dict = dataclasses.field(default_factory=lambda: {
         Status.Pass: 0,
@@ -215,6 +217,13 @@ class TestRun:
     wallc: Optional[float] = None
     log_content: str = ""
     hnames: list = dataclasses.field(default_factory=list)
+
+    def inc(self):
+        """Increment and return counter"""
+
+        self.counter += 1
+
+        return self.counter
 
     @staticmethod
     def from_dict(trun_dict) -> TestRun:
