@@ -40,15 +40,88 @@ class Status:
 @dataclasses.dataclass
 class Runnable:
     """
-    Runnable contains attributes required for classes to be run by script_run
+    Runnable contains the common attributes of testplans, testsuites,
+    testcases, and hooks as these are in different way "run".
     """
+    # pylint: disable=too-many-instance-attributes
+    # There are alot of attributes, which for this class is fine.
+
+    entered: bool = False
+
+    ident: str = "ANON"
     name: str = "UNNAMED"
-    evars: dict = dataclasses.field(default_factory=dict)
-    res_root: str = ""              # Abs. path to result directory
+
+    fpath_orig: str = ""            # Abs. path to script / suite /  plan
     fpath: str = ""                 # Abs. path to script / suite /  plan
+    fname: str = ""                 # Filename without path
+
+    evars: dict = dataclasses.field(default_factory=dict)
+    hooks: dict = dataclasses.field(default_factory=lambda: {
+        "enter": [],
+        "exit": []
+    })
+    hnames: list = dataclasses.field(default_factory=list)
+
+    res_root: str = ""              # Abs. path to result directory
+    aux_root: str = ""              # Abs. path to auxiliary directory
+    aux_list: list = dataclasses.field(default_factory=list)
+
     log_fpath: str = ""             # Abs. path to run.log
+
+    status: str = Status.Unkn
     rcode: Optional[int] = None
+    stamp: dict = dataclasses.field(default_factory=lambda: {
+        "begin": None,
+        "end": None
+    })
     wallc: Optional[float] = None
+
+    def enter(self, trun):
+        """Called by runner before invoking the runnable"""
+
+        if trun.conf["VERBOSE"]:
+            cij.emph("rnr:enter { ident: %r }" % self.ident)
+
+        self.stamp["begin"] = time.time()
+
+        rcode = 0
+        for hook in self.hooks["enter"]:  # ENTER-hooks
+            rcode = script_run(trun, hook)
+            if rcode:
+                break
+
+        self.entered = not rcode
+
+        if trun.conf["VERBOSE"]:
+            cij.emph("rnr:enter { ident: %r, rcode: %r } " % (
+                self.ident, rcode
+            ))
+
+        return rcode
+
+    def exit(self, trun):
+        """Called by runner after invoking the runnable"""
+
+        if trun.conf["VERBOSE"]:
+            cij.emph("rnr:exit: { ident: %r }" % self.ident)
+
+        rcode = 0
+        if self.entered:
+            for hook in reversed(self.hooks["exit"]):      # EXIT-hooks
+                rcode = script_run(trun, hook)
+                if rcode:
+                    break
+
+        self.stamp["end"] = time.time()
+        if self.wallc is None:
+            self.wallc = self.stamp["end"] - self.stamp["begin"]
+
+        if trun.conf["VERBOSE"]:
+            cij.emph("rnr:exit: { ident: %r, rcode: %r }" % (
+                self.ident, rcode
+            ))
+
+        return 0
 
 
 @dataclasses.dataclass
@@ -57,8 +130,6 @@ class Hook(Runnable):
     Hooks are user-defined scripts that can be run before and/or after
     TestRuns, TestSuites, and TestCases.
     """
-    fname: str = ""
-    fpath_orig: str = ""
 
     @staticmethod
     def hooks_from_dict(hooks_dict) -> dict:
@@ -89,17 +160,8 @@ class TestCase(Runnable):
     """
     # pylint: disable=too-many-instance-attributes
 
-    ident: str = "UNDEFINED"
-    fname: str = ""
-    fpath_orig: str = ""
-    aux_root: str = ""
-    aux_list: list = dataclasses.field(default_factory=list)
-
-    hooks: dict = dataclasses.field(default_factory=dict)
-    hnames: list = dataclasses.field(default_factory=list)
-
-    status: str = Status.Unkn
     status_preq: str = Status.Unkn
+
     descr: str = ""
     descr_long: str = ""
     src_content: str = ""
@@ -126,37 +188,26 @@ class TestCase(Runnable):
 
 
 @dataclasses.dataclass
-class TestSuite:
+class TestSuite(Runnable):
     """
     TestSuites are used for grouping TestCases, allowing them to share
     configurations, e.g. environment variables and hooks.
     """
     # pylint: disable=too-many-instance-attributes
 
-    ident: str = "UNDEFINED"
-    name: str = "UNNAMED"
     alias: str = ""
-    hooks: dict = dataclasses.field(default_factory=lambda: {
-        "enter": [],
-        "exit": []
+
+    progress: dict = dataclasses.field(default_factory=lambda: {
+        Status.Pass: 0,
+        Status.Fail: 0,
+        Status.Unkn: 0
     })
-    evars: dict = dataclasses.field(default_factory=dict)
-
-    fpath: str = ""
-    fname: str = ""
-    res_root: str = ""
-    aux_root: str = ""
-    aux_list: list = dataclasses.field(default_factory=list)
-
-    status: str = Status.Unkn
     status_preq: str = Status.Unkn
-    wallc: Optional[float] = None
 
-    testcases: list = dataclasses.field(default_factory=list)
     hooks_pr_tcase: list = dataclasses.field(default_factory=list)
+    testcases: list = dataclasses.field(default_factory=list)
 
     log_content: str = ""
-    hnames: list = dataclasses.field(default_factory=list)
 
     @staticmethod
     def tsuites_from_dicts(tsuites_dicts) -> List[TestSuite]:
@@ -182,41 +233,20 @@ class TestSuite:
 
 
 @dataclasses.dataclass
-class TestPlan:
+class TestPlan(Runnable):
     """
     TestPlans contain information required to execute a testplan.
     """
     # pylint: disable=too-many-instance-attributes
 
-    fpath_orig: str = ""
-    fpath: str = ""
-    fname: str = ""
-    name: str = ""
-    ident: str = ""
-
-    res_root: str = ""
-    aux_root: str = ""
-    aux_list: list = dataclasses.field(default_factory=list)
     progress: dict = dataclasses.field(default_factory=lambda: {
         Status.Pass: 0,
         Status.Fail: 0,
         Status.Unkn: 0
     })
-    stamp: dict = dataclasses.field(default_factory=lambda: {
-        "begin": None,
-        "end": None
-    })
-    status: str = Status.Unkn
-    status_preq: str = Status.Unkn
-    wallc: Optional[float] = None
-    log_content: str = ""
 
-    evars: dict = dataclasses.field(default_factory=dict)
-    hooks: dict = dataclasses.field(default_factory=lambda: {
-        "enter": [],
-        "exit": []
-    })
-    hnames: list = dataclasses.field(default_factory=list)
+    status_preq: str = Status.Unkn
+    log_content: str = ""
 
     testsuites: list = dataclasses.field(default_factory=list)
 
@@ -249,7 +279,7 @@ class TestPlan:
 
 
 @dataclasses.dataclass
-class TestRun:
+class TestRun(Runnable):
     """
     TestRuns contain information required to execute a testplan.
     """
@@ -257,27 +287,16 @@ class TestRun:
 
     ver: str = ""
     conf: dict = dataclasses.field(default_factory=dict)
-
     counter: int = 0
-    evars: dict = dataclasses.field(default_factory=dict)
     progress: dict = dataclasses.field(default_factory=lambda: {
         Status.Pass: 0,
         Status.Fail: 0,
         Status.Unkn: 0
     })
-    stamp: dict = dataclasses.field(default_factory=lambda: {
-        "begin": None,
-        "end": None
-    })
-    res_root: str = ""
-    aux_root: str = ""
-    aux_list: list = dataclasses.field(default_factory=list)
 
     testplans: list = dataclasses.field(default_factory=list)
 
-    status: str = Status.Unkn
     status_preq: str = Status.Unkn
-    wallc: Optional[float] = None
     log_content: str = ""
 
     def inc(self):
@@ -349,7 +368,8 @@ def script_run(trun: TestRun, script: Runnable):
         log_fd.write("# script_fpath: %r\n" % script.fpath)
         log_fd.flush()
 
-        bgn = time.time()
+        script.stamp["begin"] = time.time()
+
         cmd = [
             'bash', '-c',
             'CIJ_ROOT=$(cij_root) && '
@@ -378,10 +398,13 @@ def script_run(trun: TestRun, script: Runnable):
         process.wait()
 
         script.rcode = process.returncode
-        script.wallc = time.time() - bgn
+        script.stamp["end"] = time.time()
+        script.wallc = script.stamp["end"] - script.stamp["begin"]
 
     if trun.conf["VERBOSE"]:
-        cij.emph("rnr:script:run { wallc: %02f }" % script.wallc)
+        cij.emph("rnr:script:run { wallc: %02f }" % (
+            script.wallc if script.wallc is not None else 0.0
+        ))
         cij.emph(
             "rnr:script:run { rcode: %r } " % script.rcode,
             script.rcode
@@ -598,42 +621,6 @@ def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     return case
 
 
-def tsuite_exit(trun: TestRun, tsuite: TestSuite) -> int:
-    """Triggers when exiting the given testsuite"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tsuite:exit")
-
-    rcode = 0
-    for hook in reversed(tsuite.hooks["exit"]):      # EXIT-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tsuite:exit { rcode: %r } " % rcode, rcode)
-
-    return rcode
-
-
-def tsuite_enter(trun: TestRun, tsuite: TestSuite) -> int:
-    """Triggers when entering the given testsuite"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tsuite:enter { name: %r }" % tsuite.name)
-
-    rcode = 0
-    for hook in tsuite.hooks["enter"]:     # ENTER-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tsuite:enter { rcode: %r } " % rcode, rcode)
-
-    return rcode
-
-
 def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     """
     Creates and initialized a TESTSUITE struct and site-effects such as
@@ -696,89 +683,9 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
         tcase = tcase_setup(trun, suite, tcase_fname)
         suite.testcases.append(tcase)
 
+        suite.progress[Status.Unkn] += len(suite.testcases)
+
     return suite
-
-
-def tcase_exit(trun: TestRun, tsuite: TestSuite, tcase: TestCase) -> int:
-    """..."""
-    # pylint: disable=locally-disabled, unused-argument
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tcase:exit { fname: %r }" % tcase.fname)
-
-    rcode = 0
-    for hook in reversed(tcase.hooks["exit"]):    # tcase EXIT-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tcase:exit { rcode: %r }" % rcode, rcode)
-
-    return rcode
-
-
-def tcase_enter(trun: TestRun, tsuite: TestSuite, tcase: TestCase) -> int:
-    """
-    setup res_root and aux_root, log info and run tcase-enter-hooks
-
-    @returns 0 when all hooks succeed, some value othervise
-    """
-    # pylint: disable=locally-disabled, unused-argument
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tcase:enter")
-        cij.emph("rnr:tcase:enter { fname: %r }" % tcase.fname)
-        cij.emph("rnr:tcase:enter { log_fpath: %r }" % tcase.log_fpath)
-
-    rcode = 0
-    for hook in tcase.hooks["enter"]:    # tcase ENTER-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tcase:exit: { rcode: %r }" % rcode, rcode)
-
-    return rcode
-
-
-def tplan_exit(trun: TestRun, tplan: TestPlan) -> int:
-    """Triggers when exiting the given testplan"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tplan:exit")
-
-    rcode = 0
-    for hook in reversed(tplan.hooks["exit"]):    # EXIT-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tplan::exit { rcode: %r }" % rcode, rcode)
-
-    return rcode
-
-
-def tplan_enter(trun: TestRun, tplan: TestPlan):
-    """Triggers when entering the given testplan"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tplan::enter")
-
-    tplan.stamp["begin"] = int(time.time())     # Record start timestamp
-
-    rcode = 0
-    for hook in tplan.hooks["enter"]:     # ENTER-hooks
-        rcode = script_run(trun, hook)
-        if rcode:
-            break
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:tplan::enter { rcode: %r }" % rcode, rcode)
-
-    return rcode
 
 
 def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
@@ -823,28 +730,9 @@ def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
         tplan.testsuites.append(tsuite)
 
         trun.progress[Status.Unkn] += len(tsuite.testcases)
+        tplan.progress[Status.Unkn] += len(tsuite.testcases)
 
     return tplan
-
-
-def trun_exit(trun: TestRun):
-    """Triggers when exiting the given testrun"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:trun:exit")
-
-    return 0
-
-
-def trun_enter(trun: TestRun):
-    """Triggers when entering the given testrun"""
-
-    if trun.conf["VERBOSE"]:
-        cij.emph("rnr:trun::enter")
-
-    trun.stamp["begin"] = int(time.time())     # Record start timestamp
-
-    return 0
 
 
 def trun_setup(conf) -> TestRun:
@@ -857,6 +745,13 @@ def trun_setup(conf) -> TestRun:
     trun = TestRun()
     trun.ver = cij.VERSION
     trun.conf = copy.deepcopy(conf)
+
+    trun.fpath_orig = conf["OUTPUT"]
+    trun.fpath = trun.fpath_orig
+    trun.fname = os.path.basename(trun.fpath)
+    trun.name = trun.fname
+    trun.ident = trun.name
+
     trun.res_root = conf["OUTPUT"]
     trun.aux_root = os.sep.join([trun.res_root, "_aux"])
 
@@ -871,6 +766,8 @@ def trun_setup(conf) -> TestRun:
 
 def main(conf):
     """CIJ Test Runner main entry point"""
+    # pylint: disable=too-many-branches
+    # There are a lot of branches here... but that is fine.
 
     fpath = yml_fpath(conf["OUTPUT"])
     if os.path.exists(fpath):   # YAML exists, we exit, it might be RUNNING!
@@ -886,63 +783,59 @@ def main(conf):
     trun_to_file(trun)              # Persist trun
     trun_to_junitfile(trun)         # Persist as jUNIT XML
 
-    tr_err = 0
-    tr_ent_err = trun_enter(trun)
-    for tplan in (tp for tp in trun.testplans if not tr_ent_err):
-        tp_err = 0
-        tp_ent_err = tplan_enter(trun, tplan)
+    trun.enter(trun)
 
-        for tsuite in (ts for ts in tplan.testsuites if not tp_ent_err):
-            ts_err = 0
-            ts_ent_err = tsuite_enter(trun, tsuite)
+    for tplan in (tp for tp in trun.testplans if trun.entered):
+        tplan.enter(trun)
 
-            for tcase in (tc for tc in tsuite.testcases if not ts_ent_err):
-                tc_err = 0
+        for tsuite in (ts for ts in tplan.testsuites if tplan.entered):
+            tsuite.enter(trun)
 
+            for tcase in (tc for tc in tsuite.testcases if tsuite.entered):
                 tcase_match = conf.get("TESTCASE_MATCH", None)
                 if not (tcase_match and tcase_match not in tcase.name):
-                    tc_err = tcase_enter(trun, tsuite, tcase)
-                    if not tc_err:
-                        tc_err += script_run(trun, tcase)
-                        tc_err += tcase_exit(trun, tsuite, tcase)
+                    tcase.enter(trun)
+                    if tcase.entered:
+                        script_run(trun, tcase)
+                    tcase.exit(trun)
 
-                    tcase.status = Status.Fail if tc_err else Status.Pass
+                    tcase.status = Status.Pass
+                    if tcase.rcode is None or tcase.rcode:
+                        tcase.status = Status.Fail
+
+                    tsuite.progress[Status.Unkn] -= 1   # Update progress
+                    tplan.progress[Status.Unkn] -= 1
                     trun.progress[Status.Unkn] -= 1
 
-                trun.progress[tcase.status] += 1  # Update progress
+                tsuite.progress[tcase.status] += 1      # Update progress
+                tplan.progress[tcase.status] += 1
+                trun.progress[tcase.status] += 1
 
-                ts_err += tc_err                        # Accumulate errors
+                if tcase.status == Status.Fail:         # Propagate failure
+                    trun.status = tplan.status = tsuite.status = tcase.status
 
                 trun_to_file(trun)                      # Persist trun
                 trun_to_junitfile(trun)                 # Persist as jUNIT XML
 
-            if not ts_ent_err:
-                ts_err += tsuite_exit(trun, tsuite)
-
-            ts_err += ts_ent_err                        # Accumulate errors
-            tp_err += ts_err
-
-            tsuite.status = Status.Fail if ts_err else Status.Pass
+            if tsuite.exit(trun) or not tsuite.entered:
+                trun.status = tplan.status = tsuite.status = Status.Fail
+            if tsuite.status == Status.Unkn and tsuite.entered:
+                tsuite.status = Status.Pass
 
             cij.emph(
                 "rnr:tsuite %r" % tsuite.status, tsuite.status != Status.Pass
             )
 
-        if not tp_ent_err:
-            tp_err += tplan_exit(trun, tplan)
+        if tplan.exit(trun) or not tplan.entered:
+            trun.status = tplan.status = Status.Fail
+        if tplan.status == Status.Unkn and tplan.entered:
+            tplan.status = Status.Pass
 
-        tp_err += tp_ent_err                            # Accumulate errors
-        tr_err += tp_err
+    if trun.exit(trun) or not trun.entered:
+        trun.status = Status.Fail
+    if trun.status == Status.Unkn and trun.entered:
+        trun.status = Status.Pass
 
-        tplan.status = Status.Fail if tp_err else Status.Pass
-
-    if not tr_ent_err:
-        trun_exit(trun)
-
-    tr_err += tr_ent_err
-    trun.status = Status.Fail if tr_err else Status.Pass
-
-    trun.stamp["end"] = int(time.time()) + 1         # END STAMP
     trun_to_file(trun)                                  # PERSIST
     trun_to_junitfile(trun)                             # Persist as jUNIT XML
 
