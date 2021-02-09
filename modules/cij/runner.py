@@ -336,13 +336,13 @@ class InitializationError(Exception):
 def yml_fpath(output_path):
     """Returns the path to the trun YAML-file"""
 
-    return os.sep.join([output_path, "trun.yml"])
+    return os.path.join(output_path, "trun.yml")
 
 
 def junit_fpath(output_path):
     """Returns the path to the jUNIT XML-file"""
 
-    return os.sep.join([output_path, "trun.xml"])
+    return os.path.join(output_path, "trun.xml")
 
 
 def script_run(trun: TestRun, script: Runnable):
@@ -422,11 +422,8 @@ def hook_setup(parent, hook_fpath) -> Hook:
     hook.res_root = parent.res_root
     hook.fpath_orig = hook_fpath
     hook.fname = "hook_%s" % os.path.basename(hook.fpath_orig)
-    hook.fpath = os.sep.join([hook.res_root, hook.fname])
-    hook.log_fpath = os.sep.join([
-        hook.res_root,
-        "%s.log" % hook.fname
-    ])
+    hook.fpath = os.path.join(hook.res_root, hook.fname)
+    hook.log_fpath = os.path.join(hook.res_root, "%s.log" % hook.fname)
 
     hook.evars.update(copy.deepcopy(parent.evars))
 
@@ -452,7 +449,7 @@ def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
     for hname in hnames:      # Fill out paths
         for med in HOOK_PATTERNS:
             for ptn in HOOK_PATTERNS[med]:
-                fpath = os.sep.join([trun.conf["HOOKS"], ptn % hname])
+                fpath = os.path.join(trun.conf["HOOKS"], ptn % hname)
                 if not os.path.exists(fpath):
                     continue
 
@@ -591,7 +588,7 @@ def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     case = TestCase()
 
     case.fname = tcase_fname
-    case.fpath_orig = os.sep.join([trun.conf["TESTCASES"], case.fname])
+    case.fpath_orig = os.path.join(trun.conf["TESTCASES"], case.fname)
 
     if not os.path.exists(case.fpath_orig):
         msg = ("rnr:tcase_setup: file case.fpath_orig does not exist: "
@@ -602,11 +599,11 @@ def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     case.name = os.path.splitext(case.fname)[0]
     case.ident = "/".join([parent.ident, case.fname])
 
-    case.res_root = os.sep.join([parent.res_root, case.fname])
-    case.aux_root = os.sep.join([case.res_root, "_aux"])
-    case.log_fpath = os.sep.join([case.res_root, "run.log"])
+    case.res_root = os.path.join(parent.res_root, case.fname)
+    case.aux_root = os.path.join(case.res_root, "_aux")
+    case.log_fpath = os.path.join(case.res_root, "run.log")
 
-    case.fpath = os.sep.join([case.res_root, case.fname])
+    case.fpath = os.path.join(case.res_root, case.fname)
 
     case.evars.update(copy.deepcopy(parent.evars))
 
@@ -638,7 +635,7 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     suite.ident = "%s_%d" % (suite.name, enum)
 
     suite.res_root = os.path.join(tplan.res_root, suite.ident)
-    suite.aux_root = os.sep.join([suite.res_root, "_aux"])
+    suite.aux_root = os.path.join(suite.res_root, "_aux")
 
     suite.evars.update(copy.deepcopy(tplan.evars))
     suite.evars.update(copy.deepcopy(declr.get("evars", {})))
@@ -654,7 +651,7 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     suite.hooks_pr_tcase = declr.get("hooks_pr_tcase", [])
 
     suite.fname = "%s.suite" % suite.name
-    suite.fpath = os.sep.join([trun.conf["TESTSUITES"], suite.fname])
+    suite.fpath = os.path.join(trun.conf["TESTSUITES"], suite.fname)
 
     #
     # Load testcases from .suite file OR from declaration
@@ -753,7 +750,7 @@ def trun_setup(conf) -> TestRun:
     trun.ident = trun.name
 
     trun.res_root = conf["OUTPUT"]
-    trun.aux_root = os.sep.join([trun.res_root, "_aux"])
+    trun.aux_root = os.path.join(trun.res_root, "_aux")
 
     os.makedirs(trun.aux_root)
 
