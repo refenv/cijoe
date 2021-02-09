@@ -148,7 +148,7 @@ def main(args):
     url_parts = urlparse.urlparse(args.url)
     url_path = url_parts.path
 
-    local_path = os.path.normpath(os.sep.join([args.root, url_path]))
+    local_path = os.path.normpath(os.path.join(args.root, url_path))
 
     if reservoir_to_file(url, local_path):
         sys.exit(0)
