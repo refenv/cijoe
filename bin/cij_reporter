@@ -37,7 +37,7 @@ def parse_args():
     prsr.add_argument(
         '--template',
         help="Path to report template",
-        default=os.sep.join([cij_evars["TEMPLATES"], "report.html"])
+        default=os.path.join(cij_evars["TEMPLATES"], "report.html")
     )
     prsr.add_argument(
         '--force',
