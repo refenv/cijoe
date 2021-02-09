@@ -101,7 +101,7 @@ def runlogs_to_html(run_root):
     hook_enter = []
     hook_exit = []
     tcase = []
-    for fpath in glob.glob(os.sep.join([run_root, "*.log"])):
+    for fpath in glob.glob(os.path.join(run_root, "*.log")):
         if "exit" in fpath:
             hook_exit.append(fpath)
             continue
@@ -279,7 +279,7 @@ def main(args):
     cij.emph("main: reports are uses tmpl_fpath: %r" % args.tmpl_fpath)
     cij.emph("main: reports are here args.output: %r" % args.output)
 
-    html_fpath = os.sep.join([args.output, "%s.html" % args.tmpl_name])
+    html_fpath = os.path.join(args.output, "%s.html" % args.tmpl_name)
     cij.emph("html_fpath: %r" % html_fpath)
     try:                                    # Create and store HTML report
         with open(html_fpath, 'w') as html_file:
