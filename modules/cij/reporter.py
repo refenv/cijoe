@@ -114,9 +114,10 @@ def runlogs_to_html(run_root):
 
     content = ""
     for fpath in hook_enter + tcase + hook_exit:
-        content += "# BEGIN: run-log from log_fpath: %s\n" % fpath
-        content += open(fpath, "r").read()
-        content += "# END: run-log from log_fpath: %s\n\n" % fpath
+        with open(fpath, "r") as logf:
+            content += "# BEGIN: run-log from log_fpath: %s\n" % fpath
+            content += logf.read()
+            content += "# END: run-log from log_fpath: %s\n\n" % fpath
 
     return content
 
