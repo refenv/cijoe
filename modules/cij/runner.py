@@ -793,7 +793,7 @@ def main(conf):
 
             for tcase in (tc for tc in tsuite.testcases if tsuite.entered):
                 tcase_match = conf.get("TESTCASE_MATCH", None)
-                if not (tcase_match and tcase_match not in tcase.name):
+                if tcase_match is None or tcase_match in tcase.name:
                     tcase.enter(trun)
                     if tcase.entered:
                         script_run(trun, tcase)
