@@ -14,6 +14,7 @@ import os
 import yaml
 import cij.conf
 import cij
+from cij.errors import CIJError, InitializationError
 # pylint:disable=unsubscriptable-object
 
 HOOK_PATTERNS = {
@@ -344,10 +345,6 @@ class TestRun(Runnable):
 
 def _get_dataclass_fields(dclass) -> Set[str]:
     return set(getattr(dclass, "__dataclass_fields__"))
-
-
-class InitializationError(Exception):
-    """Raised when failed to initialize data structures during test run"""
 
 
 def yml_fpath(output_path):
@@ -807,7 +804,7 @@ def main(args, conf):
     trun: TestRun
     try:
         trun = trun_setup(args, conf)   # Construct 'trun' from args and conf
-    except InitializationError as ex:
+    except CIJError as ex:
         cij.err("main:FAILED to start testrun: %s" % ex)
 
     trun_to_file(trun)              # Persist trun
