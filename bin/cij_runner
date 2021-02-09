@@ -36,10 +36,7 @@ def parse_args():
     prsr.add_argument(
         "--output",
         help="Path to directory in which to store runner output",
-        default=os.sep.join([
-            "/tmp",
-            "trun-%s" % str(uuid.uuid4())[:8]
-        ])
+        default=os.path.join("/tmp", "trun-%s" % str(uuid.uuid4())[:8])
     )
     prsr.add_argument(
         "--testcase-match",
