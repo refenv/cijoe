@@ -29,7 +29,7 @@ def construct_dset(evars):
             dset[group] = []
             dset["group_names"].append(group)
 
-        fpath = os.sep.join([evars["TESTCASES"], fname])
+        fpath = os.path.join(evars["TESTCASES"], fname)
 
         tcase = TestCase(
             fpath=fpath,
@@ -72,7 +72,7 @@ def parse_args():
     prsr.add_argument(
         '--template',
         help="Path to template",
-        default=os.sep.join([evars["TEMPLATES"], "testcases.html"])
+        default=os.path.join(evars["TEMPLATES"], "testcases.html")
     )
     prsr.add_argument(
         '--output',
@@ -93,7 +93,7 @@ def parse_args():
 def main(args, evars):
     """Main entry point"""
 
-    html_fpath = os.sep.join([args.output, "testcases.html"])
+    html_fpath = os.path.join(args.output, "testcases.html")
 
     cij.emph("html_fpath: %r" % html_fpath)
 
