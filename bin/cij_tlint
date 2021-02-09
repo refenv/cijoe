@@ -26,7 +26,7 @@ def _load_tplans(ident, roots, fnames):
     violations = []
 
     for tp_fname in fnames["TPLANS"]:
-        tp_fpath = os.sep.join([roots["TPLANS"], tp_fname])
+        tp_fpath = os.path.join(roots["TPLANS"], tp_fname)
 
         tplan = None
         try:
@@ -59,7 +59,7 @@ def tsuitefile_testcases_exists(ident, roots, fnames):
     violations = []
 
     for ts_fname in fnames["TSUITES"]:    # Search .suite files
-        ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
+        ts_fpath = os.path.join(roots["TSUITES"], ts_fname)
         with open(ts_fpath) as tsfd:
             ts_lines_all = (
                 line.strip() for line in tsfd.read().splitlines()
@@ -88,7 +88,7 @@ def testcase_unused(ident, roots, fnames):
     tcases_in_use = set([])
 
     for ts_fname in fnames["TSUITES"]:  # Testcases from suite-files
-        ts_fpath = os.sep.join([roots["TSUITES"], ts_fname])
+        ts_fpath = os.path.join(roots["TSUITES"], ts_fname)
         with open(ts_fpath) as tsfd:
             ts_lines_all = (
                 line.strip() for line in tsfd.read().splitlines()
@@ -288,10 +288,10 @@ if __name__ == "__main__":
     ARGS = PRSR.parse_args()
 
     ROOTS = {
-        "TPLANS": os.sep.join([CIJ_ROOT, "testplans"]),
-        "TSUITES": os.sep.join([CIJ_ROOT, "testsuites"]),
-        "TCASES": os.sep.join([CIJ_ROOT, "testcases"]),
-        "HOOKS": os.sep.join([CIJ_ROOT, "hooks"])
+        "TPLANS": os.path.join(CIJ_ROOT, "testplans"),
+        "TSUITES": os.path.join(CIJ_ROOT, "testsuites"),
+        "TCASES": os.path.join(CIJ_ROOT, "testcases"),
+        "HOOKS": os.path.join(CIJ_ROOT, "hooks")
     }
 
     sys.exit(main(ROOTS))
