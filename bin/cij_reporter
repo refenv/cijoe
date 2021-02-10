@@ -9,20 +9,17 @@ import os
 import cij.reporter
 import cij.runner
 import cij.util
+import cij.conf
 import cij
 
 
 def parse_args():
     """Parse command-line arguments for cij_reporter"""
 
-    cij_evars = cij.paths_from_env("CIJ", ["TEMPLATES"])
-    for key, val in cij_evars.items():
-        if val is None:
-            cij.err(
-                "rprtr:rprtr: failed parsing environment variable 'CIJ_%s'" %
-                key
-            )
-            return None
+    conf = cij.conf.from_system()
+    if conf is None:
+        cij.err("rprt: failed retrieving CIJOE configuration")
+        return None
 
     # Parse the Command-Line
     prsr = argparse.ArgumentParser(
@@ -37,7 +34,7 @@ def parse_args():
     prsr.add_argument(
         '--template',
         help="Path to report template",
-        default=os.path.join(cij_evars["TEMPLATES"], "report.html")
+        default=os.path.join(conf.templates, "report.html")
     )
     prsr.add_argument(
         '--force',
