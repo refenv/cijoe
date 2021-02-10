@@ -12,6 +12,7 @@ HEAD can be subject to a git rebase.
 
 ## 0.1.42
 
+* Support for using the Python tools without entering the CIJOE shell
 * Support for multiple testplans per test-run
   - Arguments to ``cij_runner`` has changed
     Use: ``--testplan`` to provide one or more testplans (this replaces positional arg)
