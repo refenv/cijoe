@@ -15,6 +15,7 @@ import argparse
 import sys
 import os
 import yaml
+import cij.conf
 import cij
 
 
@@ -276,9 +277,9 @@ def main(roots):
 
 if __name__ == "__main__":
 
-    CIJ_ROOT = os.environ.get("CIJ_ROOT")
-    if not (CIJ_ROOT and os.path.exists(CIJ_ROOT)):
-        print("Please set ENV. VAR. CIJ_ROOT, correctly")
+    CONF = cij.conf.from_system()
+    if CONF is None:
+        cij.err("rprt: failed retrieving CIJOE configuration")
         sys.exit(1)
 
     PRSR = argparse.ArgumentParser(
@@ -288,10 +289,10 @@ if __name__ == "__main__":
     ARGS = PRSR.parse_args()
 
     ROOTS = {
-        "TPLANS": os.path.join(CIJ_ROOT, "testplans"),
-        "TSUITES": os.path.join(CIJ_ROOT, "testsuites"),
-        "TCASES": os.path.join(CIJ_ROOT, "testcases"),
-        "HOOKS": os.path.join(CIJ_ROOT, "hooks")
+        "TPLANS": CONF.testplans,
+        "TSUITES": CONF.testsuites,
+        "TCASES": CONF.testcases,
+        "HOOKS": CONF.hooks
     }
 
     sys.exit(main(ROOTS))
