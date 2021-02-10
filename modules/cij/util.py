@@ -4,6 +4,7 @@
 from __future__ import print_function
 from subprocess import Popen, PIPE
 import argparse
+import dataclasses
 import os
 import re
 import cij
@@ -70,3 +71,40 @@ def execute(cmd=None, shell=True, echo=True):
         cij.err("cij.util.execute: rcode: %s" % rcode)
 
     return rcode, stdout, stderr
+
+
+def rehome(old, new, struct):
+    """
+    Replace all absolute paths to "re-home" it
+    """
+    # pylint: disable=too-many-branches
+
+    if old == new:
+        return
+
+    if isinstance(struct, list):
+        for item in struct:
+            rehome(old, new, item)
+
+    elif isinstance(struct, dict):
+        for key, val in struct.items():
+            if isinstance(val, (dict, list)):
+                rehome(old, new, val)
+            elif "conf" in key:
+                continue
+            elif "orig" in key:
+                continue
+            elif "root" in key or "path" in key:
+                struct[key] = struct[key].replace(old, new)
+
+    elif dataclasses.is_dataclass(struct):
+        for key in struct.__dataclass_fields__:
+            val = getattr(struct, key)
+            if isinstance(val, (dict, list)) or dataclasses.is_dataclass(val):
+                rehome(old, new, val)
+            elif "conf" in key:
+                continue
+            elif "orig" in key:
+                continue
+            elif "root" in key or "path" in key:
+                setattr(struct, key, val.replace(old, new))
