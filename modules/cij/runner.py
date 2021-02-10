@@ -820,14 +820,16 @@ def main(conf):
             if tsuite.status == Status.Unkn and tsuite.entered:
                 tsuite.status = Status.Pass
 
-            cij.emph(
-                "rnr:tsuite %r" % tsuite.status, tsuite.status != Status.Pass
-            )
+            trun_to_file(trun)                      # Persist trun
+            trun_to_junitfile(trun)                 # Persist as jUNIT XML
 
         if tplan.exit(trun) or not tplan.entered:
             trun.status = tplan.status = Status.Fail
         if tplan.status == Status.Unkn and tplan.entered:
             tplan.status = Status.Pass
+
+        trun_to_file(trun)                      # Persist trun
+        trun_to_junitfile(trun)                 # Persist as jUNIT XML
 
     if trun.exit(trun) or not trun.entered:
         trun.status = Status.Fail
