@@ -764,7 +764,8 @@ def trun_setup(conf) -> TestRun:
 def main(conf):
     """CIJ Test Runner main entry point"""
     # pylint: disable=too-many-branches
-    # There are a lot of branches here... but that is fine.
+    # pylint: disable=too-many-statements
+    # There are a lot of branches and statements here... but that is fine.
 
     fpath = yml_fpath(conf["OUTPUT"])
     if os.path.exists(fpath):   # YAML exists, we exit, it might be RUNNING!
