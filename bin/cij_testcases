@@ -11,10 +11,11 @@ import os
 import dataclasses
 from cij.reporter import tcase_parse_descr, dset_to_html
 from cij.runner import TestCase
+import cij.conf
 import cij
 
 
-def construct_dset(evars):
+def construct_dset(conf: cij.conf.Config) -> dict:
     """
     Create a dataset = { "group_names": [ testcase, .. , testcase ] }
     """
@@ -23,13 +24,13 @@ def construct_dset(evars):
         "group_names": [],
     }
 
-    for fname in cij.index(evars["TESTCASES"], "TCASES"):
+    for fname in cij.index(conf.testcases, "TCASES"):
         group = fname.split("_")[0]
         if group not in dset:
             dset[group] = []
             dset["group_names"].append(group)
 
-        fpath = os.path.join(evars["TESTCASES"], fname)
+        fpath = os.path.join(conf.testcases, fname)
 
         tcase = TestCase(
             fpath=fpath,
@@ -54,25 +55,20 @@ def construct_dset(evars):
 
 
 def parse_args():
-    """Parse command-line arguments and evars for cij_testcases"""
+    """Parse command-line arguments and conf for cij_testcases"""
 
-    evars = cij.paths_from_env("CIJ", ["TEMPLATES", "TESTCASES"])
-    for key, val in evars.items():
-        if val is None:
-            cij.err(
-                "rprtr: failed parsing environment variable 'CIJ_%s'" %
-                key
-            )
-            return None, None
+    conf = cij.conf.from_system()
+    if conf is None:
+        cij.err("rprt: failed retrieving CIJOE configuration")
+        return None
 
     prsr = argparse.ArgumentParser(
         description='cij_testcases - Creates a report containing all testcases'
     )
-
     prsr.add_argument(
         '--template',
         help="Path to template",
-        default=os.path.join(evars["TEMPLATES"], "testcases.html")
+        default=os.path.join(conf.templates, "testcases.html")
     )
     prsr.add_argument(
         '--output',
@@ -87,17 +83,17 @@ def parse_args():
     args.tmpl_fname = os.path.basename(args.tmpl_fpath)
     args.tmpl_name = os.path.splitext(args.tmpl_fname)[0]
 
-    return args, evars
+    return args, conf
 
 
-def main(args, evars):
+def main(args: argparse.Namespace, conf: cij.conf.Config) -> int:
     """Main entry point"""
 
     html_fpath = os.path.join(args.output, "testcases.html")
 
     cij.emph("html_fpath: %r" % html_fpath)
 
-    dset = construct_dset(evars)
+    dset = construct_dset(conf)
 
     try:
 
@@ -113,9 +109,9 @@ def main(args, evars):
 
 
 if __name__ == "__main__":
-    ARGS, EVARS = parse_args()
+    ARGS, CONF = parse_args()
 
-    if None in [ARGS, EVARS]:
+    if None in [ARGS, CONF]:
         sys.exit(1)
 
-    sys.exit(main(ARGS, EVARS))
+    sys.exit(main(ARGS, CONF))

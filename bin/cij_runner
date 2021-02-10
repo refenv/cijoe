@@ -49,10 +49,7 @@ def parse_args():
         default=0
     )
 
-    args = prsr.parse_args()
-    dargs = vars(args)
-
-    return {k.upper(): dargs[k] for k in dargs}
+    return prsr.parse_args()
 
 
 def main():
@@ -61,52 +58,50 @@ def main():
     configuration for which to invoke the runner
     """
 
-    evars = cij.paths_from_env("CIJ", [
-        "ROOT", "ENVS", "TESTPLANS", "TESTCASES", "TESTSUITES", "MODULES",
-        "HOOKS"
-    ])
+    conf = cij.conf.from_system()
+    if conf is None:
+        cij.err("rprt: failed retrieving CIJOE configuration")
+        return None
+
     args = parse_args()
 
-    conf = {}
-    conf.update(evars)
-    conf.update(args)
-    conf["TP_FPATH"] = []
-
-    # Setup tplan filepaths
-    for path in conf["TESTPLAN"]:
+    args.testplans = []
+    for path in args.testplan:
         tplan_fpath = cij.util.expand_path(path)
 
         if not os.path.exists(tplan_fpath):
             cij.err("TESTPLAN_FPATH: %r, does not exist" % tplan_fpath)
             return 1
 
-        conf["TP_FPATH"].append(tplan_fpath)
+        args.testplans.append(tplan_fpath)
 
     # Setup path to env script
-    conf["ENV_FPATH"] = cij.util.expand_path(conf["ENV"])
-    if not os.path.exists(conf["ENV_FPATH"]):
-        cij.err("ENV_FPATH: %r, does not exist" % conf["ENV_FPATH"])
-        return 1
-    conf["ENV_FNAME"] = os.path.basename(conf["ENV_FPATH"])
-    conf["ENV_NAME"] = ".".join(conf["ENV_FNAME"].split(".")[:-1])
+    args.env_fpath = cij.util.expand_path(args.env)
 
-    conf["OUTPUT"] = cij.util.expand_path(conf["OUTPUT"])
-    if not os.path.exists(conf["OUTPUT"]):
+    if not os.path.exists(args.env_fpath):
+        cij.err("env_fpath: %r, does not exist" % args.env_fpath)
+        return 1
+
+    args.env_fname = os.path.basename(args.env_fpath)
+    args.env_name = ".".join(args.env_fname.split(".")[:-1])
+    args.output = cij.util.expand_path(args.output)
+
+    if not os.path.exists(args.output):
         try:
-            os.makedirs(conf["OUTPUT"])
+            os.makedirs(args.output)
         except OSError as exc:
             cij.err("rnr: FAILED: makedirs OUTPUT: %r, exc: %r" % (
-                conf["OUTPUT"], exc
+                args.output, exc
             ))
             return 1
 
-    cij.warn("rnr: { OUTPUT: %r }" % conf["OUTPUT"])
+    cij.warn("rnr: { OUTPUT: %r }" % args.output)
 
-    rcode = cij.runner.main(conf)
+    rcode = cij.runner.main(args, conf)
     if rcode:
         cij.err("rnr: rcode: %r" % rcode)
 
-    cij.warn("rnr: { OUTPUT: %r }" % conf["OUTPUT"])
+    cij.warn("rnr: { OUTPUT: %r }" % args.output)
 
     return rcode
 
