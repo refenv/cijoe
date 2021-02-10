@@ -6,11 +6,13 @@ from subprocess import Popen, STDOUT
 from xml.dom import minidom
 import dataclasses
 from typing import List, Optional, Dict, Set
+import argparse
 import shutil
 import copy
 import time
 import os
 import yaml
+import cij.conf
 import cij
 # pylint:disable=unsubscriptable-object
 
@@ -79,7 +81,7 @@ class Runnable:
     def enter(self, trun):
         """Called by runner before invoking the runnable"""
 
-        if trun.conf["VERBOSE"]:
+        if trun.args.verbose:
             cij.emph("rnr:enter { ident: %r }" % self.ident)
 
         self.stamp["begin"] = time.time()
@@ -92,7 +94,7 @@ class Runnable:
 
         self.entered = not rcode
 
-        if trun.conf["VERBOSE"]:
+        if trun.args.verbose:
             cij.emph("rnr:enter { ident: %r, rcode: %r } " % (
                 self.ident, rcode
             ))
@@ -102,7 +104,7 @@ class Runnable:
     def exit(self, trun):
         """Called by runner after invoking the runnable"""
 
-        if trun.conf["VERBOSE"]:
+        if trun.args.verbose:
             cij.emph("rnr:exit: { ident: %r }" % self.ident)
 
         rcode = 0
@@ -116,7 +118,7 @@ class Runnable:
         if self.wallc is None:
             self.wallc = self.stamp["end"] - self.stamp["begin"]
 
-        if trun.conf["VERBOSE"]:
+        if trun.args.verbose:
             cij.emph("rnr:exit: { ident: %r, rcode: %r }" % (
                 self.ident, rcode
             ))
@@ -286,7 +288,12 @@ class TestRun(Runnable):
     # pylint: disable=too-many-instance-attributes
 
     ver: str = ""
-    conf: dict = dataclasses.field(default_factory=dict)
+    args: argparse.Namespace = dataclasses.field(
+        default_factory=argparse.Namespace
+    )
+    conf: cij.conf.Config = dataclasses.field(
+        default_factory=cij.conf.Config
+    )
     counter: int = 0
     progress: dict = dataclasses.field(default_factory=lambda: {
         Status.Pass: 0,
@@ -311,8 +318,18 @@ class TestRun(Runnable):
         """
         Deserialize a trun dict into TestRun
         """
+
+        def args_from_dict(adict: dict) -> argparse.Namespace:
+            """Construct argparse.Namespace from dict"""
+
+            namespace = argparse.Namespace()
+            namespace.__dict__.update(adict)
+
+            return namespace
+
         complex_keys = {
             'testplans': TestPlan.tplans_from_dicts,
+            'args': args_from_dict
         }
 
         trun = TestRun()
@@ -348,7 +365,7 @@ def junit_fpath(output_path):
 def script_run(trun: TestRun, script: Runnable):
     """Execute a script or testcase"""
 
-    if trun.conf["VERBOSE"]:
+    if trun.args.verbose:
         cij.emph("rnr:script:run { script: %s }" % script)
         cij.emph("rnr:script:run:evars: %s" % script.evars)
 
@@ -376,13 +393,13 @@ def script_run(trun: TestRun, script: Runnable):
             'source $CIJ_ROOT/modules/cijoe.sh && '
             'source %s && '
             'CIJ_TEST_RES_ROOT="%s" %s %s ' % (
-                trun.conf["ENV_FPATH"],
+                trun.args.env_fpath,
                 script.res_root,
                 launch,
                 script.fpath
             )
         ]
-        if trun.conf["VERBOSE"] > 1:
+        if trun.args.verbose > 1:
             cij.emph("rnr:script:run { cmd: %r }" % " ".join(cmd))
 
         evars = os.environ.copy()
@@ -401,7 +418,7 @@ def script_run(trun: TestRun, script: Runnable):
         script.stamp["end"] = time.time()
         script.wallc = script.stamp["end"] - script.stamp["begin"]
 
-    if trun.conf["VERBOSE"]:
+    if trun.args.verbose:
         cij.emph("rnr:script:run { wallc: %02f }" % (
             script.wallc if script.wallc is not None else 0.0
         ))
@@ -449,7 +466,7 @@ def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
     for hname in hnames:      # Fill out paths
         for med in HOOK_PATTERNS:
             for ptn in HOOK_PATTERNS[med]:
-                fpath = os.path.join(trun.conf["HOOKS"], ptn % hname)
+                fpath = os.path.join(trun.conf.hooks, ptn % hname)
                 if not os.path.exists(fpath):
                     continue
 
@@ -467,10 +484,17 @@ def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
 def trun_to_file(trun: TestRun, fpath=None):
     """Dump the given trun to file"""
 
-    if fpath is None:
-        fpath = yml_fpath(trun.conf["OUTPUT"])
+    def dict_factory(instance):
+        """Special handling of 'args' using vars() to emit dict"""
 
-    trun_dict = dataclasses.asdict(trun)
+        return dict(
+            (x[0], vars(x[1])) if x[0] == "args" else x for x in instance
+        )
+
+    if fpath is None:
+        fpath = yml_fpath(trun.args.output)
+
+    trun_dict = dataclasses.asdict(trun, dict_factory=dict_factory)
     with open(fpath, 'w') as yml_file:
         data = yaml.dump(
             trun_dict, explicit_start=True, default_flow_style=False
@@ -483,7 +507,7 @@ def trun_to_junitfile(trun: TestRun, fpath=None) -> int:
 
     try:
         if fpath is None:
-            fpath = junit_fpath(trun.conf["OUTPUT"])
+            fpath = junit_fpath(trun.args.output)
 
         doc = minidom.Document()
         doc_testsuites = doc.createElement('testsuites')
@@ -566,16 +590,23 @@ def trun_from_file(fpath) -> TestRun:
 def trun_emph(trun: TestRun):
     """Print essential info on"""
 
-    if trun.conf["VERBOSE"] > 1:               # Print environment variables
-        cij.emph("rnr:CONF {")
-        for cvar in sorted(trun.conf.keys()):
-            cij.emph("  % 16s: %r" % (cvar, trun.conf[cvar]))
+    if trun.args.verbose > 1:               # Print environment variables
+        cij.emph("rnr:conf {")
+        conf_dict = dataclasses.asdict(trun.conf)
+        for var in sorted(conf_dict.keys()):
+            cij.emph("  % 16s: %r" % (var, conf_dict[var]))
         cij.emph("}")
 
-    if trun.conf["VERBOSE"]:
+        cij.emph("rnr:args {")
+        args_dict = vars(trun.args)
+        for var in sorted(args_dict.keys()):
+            cij.emph("  % 16s: %r" % (var, args_dict[var]))
+        cij.emph("}")
+
+    if trun.args.verbose:
         cij.emph("rnr:INFO {")
-        cij.emph("  OUTPUT: %r" % trun.conf["OUTPUT"])
-        cij.emph("  yml_fpath: %r" % yml_fpath(trun.conf["OUTPUT"]))
+        cij.emph("  output: %r" % trun.args.output)
+        cij.emph("  yml_fpath: %r" % yml_fpath(trun.args.output))
         cij.emph("}")
 
 
@@ -588,7 +619,7 @@ def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     case = TestCase()
 
     case.fname = tcase_fname
-    case.fpath_orig = os.path.join(trun.conf["TESTCASES"], case.fname)
+    case.fpath_orig = os.path.join(trun.conf.testcases, case.fname)
 
     if not os.path.exists(case.fpath_orig):
         msg = ("rnr:tcase_setup: file case.fpath_orig does not exist: "
@@ -651,7 +682,7 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     suite.hooks_pr_tcase = declr.get("hooks_pr_tcase", [])
 
     suite.fname = "%s.suite" % suite.name
-    suite.fpath = os.path.join(trun.conf["TESTSUITES"], suite.fname)
+    suite.fpath = os.path.join(trun.conf.testsuites, suite.fname)
 
     #
     # Load testcases from .suite file OR from declaration
@@ -700,7 +731,7 @@ def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
     tplan.name = ".".join(tplan.fname.split(".")[:-1])
     tplan.ident = "%s_%d" % (tplan.name, trun.inc())
 
-    tplan.res_root = os.path.join(trun.conf["OUTPUT"], tplan.ident)
+    tplan.res_root = os.path.join(trun.args.output, tplan.ident)
     tplan.aux_root = os.path.join(tplan.res_root, "_aux")
 
     declr = None
@@ -732,7 +763,7 @@ def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
     return tplan
 
 
-def trun_setup(conf) -> TestRun:
+def trun_setup(args: argparse.Namespace, conf: cij.conf.Config) -> TestRun:
     """
     Setup the testrunner data-structure, embedding the parsed environment
     variables and command-line arguments and continues with setup for
@@ -741,40 +772,41 @@ def trun_setup(conf) -> TestRun:
 
     trun = TestRun()
     trun.ver = cij.VERSION
-    trun.conf = copy.deepcopy(conf)
+    trun.args = args
+    trun.conf = conf
 
-    trun.fpath_orig = conf["OUTPUT"]
+    trun.fpath_orig = args.output
     trun.fpath = trun.fpath_orig
     trun.fname = os.path.basename(trun.fpath)
     trun.name = trun.fname
     trun.ident = trun.name
 
-    trun.res_root = conf["OUTPUT"]
+    trun.res_root = args.output
     trun.aux_root = os.path.join(trun.res_root, "_aux")
 
     os.makedirs(trun.aux_root)
 
     trun.testplans = [
-        tplan_setup(trun, tp_fpath) for tp_fpath in conf["TP_FPATH"]
+        tplan_setup(trun, tp_fpath) for tp_fpath in args.testplans
     ]
 
     return trun
 
 
-def main(conf):
+def main(args, conf):
     """CIJ Test Runner main entry point"""
     # pylint: disable=too-many-branches
     # pylint: disable=too-many-statements
     # There are a lot of branches and statements here... but that is fine.
 
-    fpath = yml_fpath(conf["OUTPUT"])
+    fpath = yml_fpath(args.output)
     if os.path.exists(fpath):   # YAML exists, we exit, it might be RUNNING!
         cij.err("main:FAILED { fpath: %r }, exists" % fpath)
         return 1
 
     trun: TestRun
     try:
-        trun = trun_setup(conf)     # Construct 'trun' from 'conf'
+        trun = trun_setup(args, conf)   # Construct 'trun' from args and conf
     except InitializationError as ex:
         cij.err("main:FAILED to start testrun: %s" % ex)
 
@@ -790,8 +822,8 @@ def main(conf):
             tsuite.enter(trun)
 
             for tcase in (tc for tc in tsuite.testcases if tsuite.entered):
-                tcase_match = conf.get("TESTCASE_MATCH", None)
-                if tcase_match is None or tcase_match in tcase.name:
+                if (args.testcase_match is None
+                        or args.testcase_match in tcase.name):
                     tcase.enter(trun)
                     if tcase.entered:
                         script_run(trun, tcase)
