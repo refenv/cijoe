@@ -31,7 +31,7 @@ setup(
         "pyyaml (>=3.10)", "jinja2 (>=2.0)", "kmdo"
     ],
     zip_safe=False,
-    packages=["cij", "cij.unittests"],
+    packages=["cij", "cij.unittests", "cij.extractors"],
     package_dir={"": "modules"},
     data_files=[
         ("bin", glob.glob("bin/*")),
