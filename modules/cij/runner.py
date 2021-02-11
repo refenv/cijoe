@@ -208,7 +208,7 @@ class TestSuite(Runnable):
     status_preq: str = Status.Unkn
 
     hooks_pr_tcase: list = dataclasses.field(default_factory=list)
-    testcases: list = dataclasses.field(default_factory=list)
+    testcases: List[TestCase] = dataclasses.field(default_factory=list)
 
     log_content: str = ""
 
@@ -251,7 +251,7 @@ class TestPlan(Runnable):
     status_preq: str = Status.Unkn
     log_content: str = ""
 
-    testsuites: list = dataclasses.field(default_factory=list)
+    testsuites: List[TestSuite] = dataclasses.field(default_factory=list)
 
     @staticmethod
     def from_dict(tplan_dict) -> TestPlan:
@@ -302,7 +302,7 @@ class TestRun(Runnable):
         Status.Unkn: 0
     })
 
-    testplans: list = dataclasses.field(default_factory=list)
+    testplans: List[TestPlan] = dataclasses.field(default_factory=list)
 
     status_preq: str = Status.Unkn
     log_content: str = ""
