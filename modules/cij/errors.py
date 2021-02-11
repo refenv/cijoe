@@ -12,3 +12,11 @@ class CIJError(Exception):
 
 class InitializationError(CIJError):
     """ Raised when failing to initialize data structures """
+
+
+class InvalidRangeError(CIJError):
+    """ Raised for range formatting errors """
+
+
+class UnknownUnitError(CIJError):
+    """ Raised when attempting to use unknown units """
