@@ -97,13 +97,21 @@
 
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item">
-          <a class="nav-link active show" href="#TRUN_SUMMARY" data-toggle="tab">Summary</a>
+          <a class="nav-link active show" href="#TRUN_SUMMARY" data-toggle="tab">Testrun: Summary</a>
         </li>
-        <li class="nav-item ml-auto">
-          <a class="nav-link" href="#TRUN_CONF" data-toggle="tab">
-            Runner Conf ({{ dset.conf | length }})
+
+        <li class="nav-item">
+          <a class="nav-link" href="#TRUN_ARGS" data-toggle="tab">
+            Testrun: Args
           </a>
         </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="#TRUN_CONF" data-toggle="tab">
+            Testrun: Conf
+          </a>
+        </li>
+
       </ul>
     </div>
 
@@ -150,11 +158,39 @@
         <div class="card-footer text-muted">&nbsp;</div>
       </div>
 
+      <div class="tab-pane" id="TRUN_ARGS">
+
+        <div class="card-body">
+          <h5 class="card-title">
+          Input given to the runner in the form <b>command-line arguments</b>
+          </h5>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in dset.args.__dict__ | dictsort  %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="card-footer text-muted">&nbsp;</div>
+      </div>
+
       <div class="tab-pane" id="TRUN_CONF">
 
         <div class="card-body">
           <h5 class="card-title">
-          Input given to the runner in the form <b>command-line arguments</b> and <b>environment variables</b>
+          Configuration of the CIJOE installation
           </h5>
         </div>
 
@@ -192,7 +228,7 @@
 
 <div class="jumbotron jumbotron-fluid">
   <div class="container">
-    <h2 class="display-8">Testplan {{ tplan.name }} ( {{ tplan.ident }} )</h2>
+    <h2 class="display-8"></h2>
   </div>
 </div>
 
@@ -201,7 +237,9 @@
     <div class="card-header">
       <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
         <li class="nav-item no-gutters">
-          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">TESTPLAN <b>{{ tplan.status }}</b></a>
+          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }} text-left">
+            TESTPLAN: <b>{{ tplan.name }}</b> ( {{ tplan.fname }} / {{ tplan.ident }} )
+          </a>
         </li>
       </ul>
     </div>
@@ -209,27 +247,28 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item">
-          <a class="nav-link active show" href="#TPLAN_SUMMARY_{{ tplan.ident }}" data-toggle="tab">Summary</a>
+          <a class="nav-link active show" href="#TPLAN_SUMMARY_{{ tplan.ident }}"
+            data-toggle="tab">Testplan: Summary</a>
         </li>
 
         <li class="nav-item ml-auto">
           <a class="nav-link" href="#TPLAN_EVARS_{{ tplan.ident }}" data-toggle="tab">
-            Evars ({{ tplan.evars | length }})
+            Testplan: Evars ({{ tplan.evars | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#TPLAN_HOOKS_{{ tplan.ident }}" data-toggle="tab">
-            Hooks ({{ tplan.hnames | length }})
+            Testplan: Hooks ({{ tplan.hnames | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#TPLAN_AUX_{{ tplan.ident }}" data-toggle="tab">
-            Aux ({{ tplan.aux_list | length }})
+            Testplan: Aux ({{ tplan.aux_list | length }})
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#TPLAN_LOG_{{ tplan.ident }}" data-toggle="tab">
-            Log ({{ tplan.log_content.splitlines() | length }})
+            Testplan: Log ({{ tplan.log_content.splitlines() | length }})
           </a>
         </li>
       </ul>
@@ -354,7 +393,7 @@
     <ul class="nav nav-pills  nav-fill card-header-pills row.no-gutters">
       <li class="nav-item">
         <a class="nav-link bg-{{ tsuite_bg_color }} text-{{ tsuite_color }} text-left">
-          TESTSUITE: <b>{{ tsuite.alias if tsuite.alias else tsuite.name }}</b> ({{ tsuite.name }}.suite)
+          TESTSUITE: <b>{{ tsuite.alias if tsuite.alias else tsuite.name }}</b> ({{ tsuite.fname }} / {{ tsuite.ident }})
         </a>
       </li>
     </ul>
@@ -367,22 +406,22 @@
       </li>
       <li class="nav-item ml-auto">
         <a class="nav-link" href="#EVARS_{{ tsuite.ident }}" data-toggle="tab">
-          Evars ({{ tsuite.evars | length }})
+          Testsuite: Evars ({{ tsuite.evars | length }})
         </a>
       </li>
       <li class="nav-item ml">
         <a class="nav-link" href="#HOOKS_{{ tsuite.ident }}" data-toggle="tab">
-          Hooks ({{ tsuite.hnames | length }})
+          Testsuite: Hooks ({{ tsuite.hnames | length }})
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#AUX_{{ tsuite.ident }}" data-toggle="tab">
-          Aux ({{ tsuite.aux_list | length }})
+          Testsuite: Aux ({{ tsuite.aux_list | length }})
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#LOG_{{ tsuite.ident }}" data-toggle="tab">
-          Log ({{ tsuite.log_content.splitlines() | length }})
+          Testsuite: Log ({{ tsuite.log_content.splitlines() | length }})
         </a>
       </li>
     </ul>
