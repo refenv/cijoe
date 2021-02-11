@@ -123,6 +123,23 @@ def runlogs_to_html(run_root):
     return content
 
 
+def analysislog_to_html(fpath):
+    """
+    Returns contents of the given 'fpath' with HTML annotations, currently
+    simply a conversion of ANSI color codes to HTML elements
+    """
+
+    if not os.path.exists(fpath):
+        return "CANNOT_LOCATE_ANALYSIS_LOGFILES"
+
+    content = ""
+    with open(fpath, "r") as logf:
+        content += f"# BEGIN: analysis-log from log_fpath: {fpath}\n"
+        content += logf.read()
+        content += f"# END: analysis-log from log_fpath: {fpath}\n\n"
+    return content
+
+
 def src_to_html(fpath):
     """
     Returns content of the given 'fpath' with HTML annotations for syntax
@@ -169,6 +186,7 @@ def process_tcase(tcase):
 
     tcase.src_content = src_to_html(tcase.fpath)
     tcase.log_content = runlogs_to_html(tcase.res_root)
+    tcase.analysis_content = analysislog_to_html(tcase.analysis_log_fpath)
     tcase.aux_list = aux_listing(tcase.aux_root)
     tcase.descr, tcase.descr_long = tcase_parse_descr(tcase)
     tcase.hnames = extract_hook_names(tcase)

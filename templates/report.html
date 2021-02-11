@@ -416,6 +416,18 @@
             <span style="font-family: monospace;">{{ tcase.status }}:</span>
             <span style="font-family: monospace; font-weight: bold;"> {{ tcase.name }}</span>
           </button>
+
+          <!-- Set performance requirement status -->
+          {% set show_preq = tcase.status_preq and tcase.status_preq != "UNKN" %}
+          {% if show_preq %}
+            {% set preq_color = "secondary" %}
+            {% set preq_color = "success" if tcase.status_preq == "PASS" else preq_color %}
+            {% set preq_color = "danger" if tcase.status_preq == "FAIL" else preq_color %}
+            <button class="btn btn-{{ preq_color }}" type="button" disabled="disabled">
+              <span style="font-family: monospace;">Performance: {{ tcase.status_preq }}</span>
+            </button>
+          {% endif %}
+
           <div class="btn-group float-right" role="group">
 
             {% if tcase.wallc %}
@@ -457,6 +469,12 @@
                                                           data-target="#LOG_{{ ident }}"
                                                           aria-controls="LOG_{{ ident }}"
                                                           aria-expanded="false" >LOG</button>
+            {% if show_preq %}
+              <button class="btn btn-primary" type="button" data-toggle="collapse"
+                                                            data-target="#ANALYSIS_{{ ident }}"
+                                                            aria-controls="ANALYSIS_{{ ident }}"
+                                                            aria-expanded="false" >ANALYSIS</button>
+            {% endif %}
           </div>
 
           <div class="collapse" id="DESCR_{{ ident }}" data-parent="#results">
@@ -484,7 +502,7 @@
 
           <!-- TCASE: HOOKS-SNIPPET -->
           <div class="collapse" id="HOOKS_{{ ident }}" data-parent="#results">
-            <p class="m-2">A total of <b>{{ tcase.hnames | length }}</b> hooks are run 
+            <p class="m-2">A total of <b>{{ tcase.hnames | length }}</b> hooks are run
               before/after the testcase</p>
 
             <ul class="list-group">
@@ -513,6 +531,14 @@
 
             <pre><code class="runlog nohighlight">{{ tcase.log_content | safe }}</code></pre>
           </div>
+
+          {% if show_preq %}
+            <div class="collapse runlog" id="ANALYSIS_{{ ident }}" data-parent="#results">
+              <p class="m-2">Log of output from testcase analysis</p>
+
+              <pre><code class="runlog nohighlight">{{ tcase.analysis_content | safe }}</code></pre>
+            </div>
+          {% endif %}
 
         </li>
         {% endfor %}
