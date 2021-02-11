@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+"""
+ CIJOE test extractor
+"""
+from __future__ import print_function
+import argparse
+import sys
+import os
+
+import cij.extractor
+import cij.runner
+import cij.util
+import cij
+
+
+def parse_args():
+    """Parse command-line arguments for cij_extractor"""
+
+    cij_evars = cij.paths_from_env("CIJ", ["TEMPLATES"])
+    for key, val in cij_evars.items():
+        if val is None:
+            cij.err(
+                f"rprtr:rprtr: failed parsing environment variable 'CIJ_{key}'"
+            )
+            return None
+
+    # Parse the Command-Line
+    prsr = argparse.ArgumentParser(
+        description='cij_extractor - CIJOE Test data extractor',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    prsr.add_argument(
+        '--output',
+        help="Path to test output",
+        default=os.getcwd()
+    )
+    prsr.register('action', 'custom_extend', cij.util.ExtendAction)
+    prsr.add_argument(
+        "--extractor",
+        help="Name of, or path to, one or more extractor(s)",
+        action="custom_extend",
+        choices=[e.name for e in cij.extractor.find_extractors()],
+        nargs="+",
+        required=True,
+        type=str
+    )
+
+    args = prsr.parse_args()
+
+    args.output = cij.util.expand_path(args.output)
+    if not os.path.exists(args.output):
+        cij.err(f"rprtr:output: {args.output}, does not exist")
+        return None
+
+    args.trun_fpath = cij.runner.yml_fpath(args.output)
+    if not os.path.exists(args.trun_fpath):
+        cij.err(f"rprtr:trun_fpath: {args.trun_fpath}")
+        return None
+
+    return args
+
+
+def main():
+    """
+    Parse environment variables and command-line arguments constructing a
+    configuration for which to invoke the extractor
+    """
+
+    args = parse_args()
+    if args is None:
+        cij.err("rprtr: failed parsing command-line args")
+        return 1
+
+    rcode = cij.extractor.main(args)
+    if rcode:
+        cij.err(f"rprtr: rcode: {rcode}, error while analysing {args.output}")
+
+    return rcode
+
+
+if __name__ == "__main__":
+    sys.exit(main())
