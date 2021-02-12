@@ -197,6 +197,8 @@ def postprocess(trun):
     plog.append(("trun", process_trun(trun)))
 
     for tplan in trun.testplans:
+        plog.append(("tplan", process_tplan(tplan)))
+
         for tsuite in tplan.testsuites:
             plog.append(("tsuite", process_tsuite(tsuite)))
 
