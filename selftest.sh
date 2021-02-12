@@ -59,6 +59,18 @@ main() {
     res=$(( res + 1 ))
   fi
 
+  # Extract metrics
+  if ! cij_extractor --extractor fio_json_read --output "$res_dpath"; then
+    cij::err "cij_extractor encountered an error"
+    res=$(( res + 1 ))
+  fi
+
+  # Analyse metrics
+  if ! cij_analyser --preqs "${CIJ_TESTFILES}/example.preqs" "$res_dpath"; then
+    cij::err "cij_analyser encountered an error"
+    res=$(( res + 1 ))
+  fi
+
   # Create test report
   if ! cij_reporter "$res_dpath"; then
     cij::err "cij_reporter encountered an error"
