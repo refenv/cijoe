@@ -1,8 +1,10 @@
 import unittest
+from unittest.mock import patch
 from collections import namedtuple
 
+from cij.runner import TestRun, TestPlan, TestSuite, TestCase, Status
 from cij.analyser import (Range, InvalidRangeError, UnknownUnitError,
-                          to_base_unit)
+                          to_base_unit, analyse_prequirements)
 
 RangeTest = namedtuple("RangeTest", ["rng", "n", "expected"])
 
@@ -223,3 +225,60 @@ class TestToBaseUnit(unittest.TestCase):
             msg = f"Expected {test.unit} to be invalid"
             with self.assertRaises(test.expected, msg=msg):
                 to_base_unit(test.val, test.unit)
+
+
+AnalysePrequirementsTest = namedtuple("AnalysePrequirementsTest",
+                                      ["metrics",
+                                      "status_trun", "status_tplan",
+                                      "status_tsuite", "status_tcase"])
+
+
+class TestAnalysePrequirements(unittest.TestCase):
+
+    @patch("builtins.open")
+    def test_analyse_prequirements_global_preq_single_testcase(self, _):
+        """
+        Verifies that analyse_prequirements uses global metrics for testcases
+        and sets the expected status_preq at all levels in the TestRun struct.
+        """
+        preqs = {"global": {"metrics": {"bwps": "[100; 500]"}}}
+
+        tests = {
+            "within range": AnalysePrequirementsTest(
+                metrics=[{"bwps": 250}],
+                status_trun=Status.Pass,
+                status_tplan=Status.Pass,
+                status_tsuite=Status.Pass,
+                status_tcase=Status.Pass,
+            ),
+            "outside range": AnalysePrequirementsTest(
+                metrics=[{"bwps": 501}],
+                status_trun=Status.Fail,
+                status_tplan=Status.Fail,
+                status_tsuite=Status.Fail,
+                status_tcase=Status.Fail,
+            ),
+            "no metrics": AnalysePrequirementsTest(
+                metrics=[],
+                status_trun=Status.Pass,
+                status_tplan=Status.Pass,
+                status_tsuite=Status.Pass,
+                status_tcase=Status.Unkn,
+            ),
+        }
+
+        for tname, test in tests.items():
+            tcase = TestCase(name="tcase")
+            tsuite = TestSuite(name="tsuite", testcases=[tcase])
+            tplan = TestPlan(name="tplan", testsuites=[tsuite])
+            trun = TestRun(name="trun", testplans=[tplan])
+
+            with patch('cij.analyser._get_metrics', lambda _: test.metrics):
+                msg = f"test '{tname}' failed"
+                err = analyse_prequirements(trun, preqs)
+                self.assertFalse(err, msg)
+
+                self.assertEqual(test.status_trun, trun.status_preq, msg)
+                self.assertEqual(test.status_tplan, tplan.status_preq, msg)
+                self.assertEqual(test.status_tsuite, tsuite.status_preq, msg)
+                self.assertEqual(test.status_tcase, tcase.status_preq, msg)
