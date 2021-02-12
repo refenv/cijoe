@@ -12,26 +12,6 @@ import cij
 from cij.util import rehome
 
 
-def extract_hook_names(ent):
-    """Extract hook names from the given entity"""
-
-    hnames = []
-    for hook in ent.hooks["enter"] + ent.hooks["exit"]:
-        hname = os.path.basename(hook.fpath_orig)
-        hname = os.path.splitext(hname)[0]
-        hname = hname.strip()
-        hname = hname.replace("_enter", "")
-        hname = hname.replace("_exit", "")
-        if hname in hnames:
-            continue
-
-        hnames.append(hname)
-
-    hnames.sort()
-
-    return hnames
-
-
 def tcase_comment(tcase):
     """
     Extract testcase comment section / testcase description
@@ -176,7 +156,6 @@ def process_tsuite(tsuite):
 
     tsuite.log_content = runlogs_to_html(tsuite.res_root)
     tsuite.aux_list = aux_listing(tsuite.aux_root)
-    tsuite.hnames = extract_hook_names(tsuite)
 
     return True
 
@@ -189,7 +168,6 @@ def process_tcase(tcase):
     tcase.analysis_content = analysislog_to_html(tcase.analysis_log_fpath)
     tcase.aux_list = aux_listing(tcase.aux_root)
     tcase.descr, tcase.descr_long = tcase_parse_descr(tcase)
-    tcase.hnames = extract_hook_names(tcase)
 
     return True
 
@@ -199,7 +177,6 @@ def process_tplan(tplan):
 
     tplan.log_content = runlogs_to_html(tplan.res_root)
     tplan.aux_list = aux_listing(tplan.aux_root)
-    tplan.hnames = extract_hook_names(tplan)
 
     return True
 
