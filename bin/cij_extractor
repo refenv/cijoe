@@ -16,14 +16,6 @@ import cij
 def parse_args():
     """Parse command-line arguments for cij_extractor"""
 
-    cij_evars = cij.paths_from_env("CIJ", ["TEMPLATES"])
-    for key, val in cij_evars.items():
-        if val is None:
-            cij.err(
-                f"rprtr:rprtr: failed parsing environment variable 'CIJ_{key}'"
-            )
-            return None
-
     # Parse the Command-Line
     prsr = argparse.ArgumentParser(
         description='cij_extractor - CIJOE Test data extractor',
