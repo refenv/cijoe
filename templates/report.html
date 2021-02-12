@@ -317,7 +317,7 @@
 
         <ul class="list-group list-files">
         {% for aux in tplan.aux_list %}
-        <li class="list-group-item"><a href="./{{ tplan.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+        <li class="list-group-item"><a href="./{{ tplan.aux_root[dset.res_root|length:] }}/{{ aux }}">{{ aux }}</a></li>
         {% endfor %}
         </ul>
 
@@ -501,7 +501,7 @@
 
             <ul class="list-group">
             {% for aux in tcase.aux_list %}
-            <li class="list-group-item"><a href="./{{ tcase.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+            <li class="list-group-item"><a href="./{{ tcase.aux_root[dset.res_root|length:] }}/{{ aux }}">{{ aux }}</a></li>
             {% endfor %}
             </ul>
 
@@ -564,7 +564,7 @@
 
       <ul class="list-group">
       {% for aux in tsuite.aux_list %}
-      <li class="list-group-item"><a href="./{{ tsuite.aux_root[dset.conf.OUTPUT|length:] }}/{{ aux }}">{{ aux }}</a></li>
+      <li class="list-group-item"><a href="./{{ tsuite.aux_root[dset.res_root|length:] }}/{{ aux }}">{{ aux }}</a></li>
       {% endfor %}
       </ul>
     </div>
