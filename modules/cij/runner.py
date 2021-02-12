@@ -448,28 +448,32 @@ def hook_setup(parent, hook_fpath) -> Hook:
     return hook
 
 
-def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
+def hooks_setup(trun: TestRun, instance: Runnable, hnames=None):
     """
-    Setup test-hooks
-    @returns dict of hook filepaths {"enter": [], "exit": []}
-    """
+    Setup hooks on the given 'instance' on the form:
 
+      .hooks: {"enter": [], "exit": []}
+      .hnames: ["hook1", "hook2"]
+
+    """
     hooks: Dict[str, List[Hook]] = {
         "enter": [],
         "exit": []
     }
 
-    if hnames is None:       # Nothing to do, just return the struct
-        return hooks
+    if hnames is None:          # Setup empty hooks
+        instance.hnames = []
+        instance.hooks = hooks
+        return
 
-    for hname in hnames:      # Fill out paths
+    for hname in hnames:        # Fill out paths
         for med in HOOK_PATTERNS:
             for ptn in HOOK_PATTERNS[med]:
                 fpath = os.path.join(trun.conf.hooks, ptn % hname)
                 if not os.path.exists(fpath):
                     continue
 
-                hook = hook_setup(parent, fpath)
+                hook = hook_setup(instance, fpath)
                 hooks[med].append(hook)
 
         if not hooks["enter"] + hooks["exit"]:
@@ -477,7 +481,8 @@ def hooks_setup(trun: TestRun, parent, hnames=None) -> Dict[str, List[Hook]]:
             cij.err(msg)
             raise InitializationError(msg)
 
-    return hooks
+    instance.hooks = hooks
+    instance.hnames = hnames
 
 
 def trun_to_file(trun: TestRun, fpath=None):
@@ -644,7 +649,7 @@ def tcase_setup(trun: TestRun, parent, tcase_fname) -> TestCase:
     shutil.copyfile(case.fpath_orig, case.fpath)  # Copy testcase
 
     # Initialize hooks
-    case.hooks = hooks_setup(trun, case, parent.hooks_pr_tcase)
+    hooks_setup(trun, case, parent.hooks_pr_tcase)
 
     return case
 
@@ -676,7 +681,7 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     os.makedirs(suite.aux_root)
 
     # Setup testsuite-hooks
-    suite.hooks = hooks_setup(trun, suite, declr.get("hooks"))
+    hooks_setup(trun, suite, declr.get("hooks"))
 
     # Forward from declaration
     suite.hooks_pr_tcase = declr.get("hooks_pr_tcase", [])
@@ -751,7 +756,7 @@ def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
     os.makedirs(tplan.aux_root)
 
     # Setup top-level hooks
-    tplan.hooks = hooks_setup(trun, tplan, declr.get("hooks", []))
+    hooks_setup(trun, tplan, declr.get("hooks", []))
 
     for enum, declr in enumerate(declr["testsuites"]):  # Setup testsuites
         tsuite = tsuite_setup(trun, tplan, declr, enum)
