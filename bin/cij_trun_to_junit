@@ -21,7 +21,7 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     prsr.add_argument(
-        'output',
+        '--output',
         help="Path to cij_runner results directory",
         default=os.getcwd()
     )
