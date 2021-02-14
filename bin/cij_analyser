@@ -29,7 +29,7 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     prsr.add_argument(
-        'output',
+        '--output',
         help="Path to test output",
         default=os.getcwd()
     )
