@@ -33,6 +33,7 @@ def extract_metrics(tcase: TestCase) -> List[dict]:
                 fname=os.path.basename(fpath),
                 job_id=n,
             )
+            ctx["evars"] = tcase.evars
 
             metrics.append({
                 "ctx": ctx,
