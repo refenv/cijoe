@@ -12,6 +12,8 @@ HEAD can be subject to a git rebase.
 
 ## 0.1.42
 
+* Add tool ``cij_plotter`` capable of producing plots based of metrics extraced from testcases
+
 * Add tools for testcase metric extraction and analysis
 
 * Support for using the Python tools without entering the CIJOE shell
