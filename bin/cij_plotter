@@ -80,12 +80,12 @@ def metrics_to_pdata(args, metrics):
         pdata[ident]["yvals"].append(yval)
         pdata[ident]["xvals"].append(xval)
 
-    for lbl in pdata:
+    for ident in pdata:
         xvals, yvals = (list(t) for t in (
-            zip(*sorted(zip(pdata[lbl]["xvals"], pdata[lbl]["yvals"])))
+            zip(*sorted(zip(pdata[ident]["xvals"], pdata[ident]["yvals"])))
         ))
-        pdata[lbl]["xvals"] = xvals
-        pdata[lbl]["yvals"] = yvals
+        pdata[ident]["xvals"] = xvals
+        pdata[ident]["yvals"] = yvals
 
     return pdata
 
