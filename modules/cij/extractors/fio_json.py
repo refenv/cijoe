@@ -16,8 +16,8 @@ from cij.runner import TestCase
 import cij
 
 
-def make_context(fio_obj: dict, extr_name: str, fname: str, job_id: int
-                ) -> dict:
+def make_context(fio_obj: dict, extr_name: str, fname: str, job_id: int,
+                 evars: dict) -> dict:
     """ Make a context dict for fio json output files. """
     opt = fio_obj["global options"]
     opt.update(fio_obj["jobs"][job_id]["job options"])  # override job-specific opts
@@ -32,8 +32,8 @@ def make_context(fio_obj: dict, extr_name: str, fname: str, job_id: int
         "fname": fname,
         "job_id": job_id,
         "extractor_name": extr_name,
+        "evars": evars,
     }
-
 
 
 def get_fio_output_files(tcase: TestCase) -> List[str]:
