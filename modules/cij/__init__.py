@@ -25,6 +25,7 @@ EXTS = {
     "TSUITES": [".suite"],
     "TCASES": [".py", ".sh"],
     "HOOKS": [".py", ".sh"],
+    "PREQS": [".preqs"],
 }
 
 
