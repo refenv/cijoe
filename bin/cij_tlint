@@ -20,7 +20,7 @@ import cij
 
 
 def _load_tplans(ident, roots, fnames):
-    """Returns a list of successfully loadable testplans and a lost of
+    """Returns a list of successfully loadable testplans and a list of
     violations for those that failed"""
 
     tplans = {}
