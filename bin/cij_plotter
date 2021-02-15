@@ -10,6 +10,7 @@ import sys
 import os
 import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
+import jinja2
 import yaml
 import cij.analyser
 import cij.util
@@ -35,6 +36,17 @@ KEY_DESCR = {
     "bs": "Block-Size",
     "iodepth": "I/O-Depth"
 }
+
+
+def labelizer(ctx, fmt):
+    """Produces a label based on the given context, and format-string"""
+
+    tmpl = jinja2.Environment(
+        autoescape=True,
+        loader=jinja2.BaseLoader()
+    ).from_string(fmt)
+
+    return tmpl.render(**ctx)
 
 
 def collect_metrics(args):
@@ -75,7 +87,11 @@ def metrics_to_pdata(args, metrics):
         ).hexdigest()[:8]
 
         if ident not in pdata:
-            pdata[ident] = {"yvals": [], "xvals": [], "ctx": ctx}
+            pdata[ident] = {
+                "yvals": [], "xvals": [], "ctx": ctx, "label": ident
+            }
+            if args.label_fmt:  # overwrite default-label with user-template
+                pdata[ident]["label"] = labelizer(ctx, args.label_fmt)
 
         pdata[ident]["yvals"].append(yval)
         pdata[ident]["xvals"].append(xval)
@@ -93,11 +109,11 @@ def metrics_to_pdata(args, metrics):
 def plot_line(args, pdata):
     """Produce a line-plot of the given pdata"""
 
-    for marker, (ident, dset) in zip(MARKERS, pdata.items()):
+    for marker, (_, dset) in zip(MARKERS, pdata.items()):
         plt.plot(
             dset["xvals"],
             dset["yvals"],
-            label=ident,
+            label=dset["label"],
             marker=marker
         )
 
@@ -197,6 +213,11 @@ def parse_args():
         nargs="*",
         choices=["png", "pdf"],
         default=["png"]
+    )
+
+    prsr.add_argument(
+        "--label-fmt",
+        help="Provide a label format-string using jinja2 template syntax"
     )
 
     prsr.add_argument(
