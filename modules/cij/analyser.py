@@ -74,12 +74,7 @@ class Range:
                 f"{rng_start} <= {rng_end}"
             )
 
-        if match["unit"] not in UNITS:
-            raise UnknownUnitError(
-                f"unexpected unit '{match['unit']}', "
-                f"supported units are: {list(UNITS.keys())}"
-            )
-
+        # NOTE: _rng_re enforces that match["unit"] exists in UNITS.
         unit_val = UNITS[match["unit"]]
 
         self._rng_start = rng_start
