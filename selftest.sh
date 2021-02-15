@@ -66,13 +66,13 @@ main() {
   fi
 
   # Analyse metrics
-  if ! cij_analyser --preqs "${CIJ_TESTFILES}/example.preqs" "$res_dpath"; then
+  if ! cij_analyser --preqs "${CIJ_TESTFILES}/example.preqs" --output "$res_dpath"; then
     cij::err "cij_analyser encountered an error"
     res=$(( res + 1 ))
   fi
 
   # Create test report
-  if ! cij_reporter "$res_dpath"; then
+  if ! cij_reporter --output "$res_dpath"; then
     cij::err "cij_reporter encountered an error"
     res=$(( res + 1 ))
   fi
