@@ -64,7 +64,7 @@ class Range:
     def __init__(self, rng: str):
         match = self._rng_re.match(rng)
         if not match:
-            raise InvalidRangeError(f"invalid range \"{rng}\"")
+            raise InvalidRangeError(f"invalid syntax or unit for \"{rng}\"")
 
         rng_start = float(match["rstart"])
         rng_end = float(match["rend"])
