@@ -14,9 +14,12 @@ from __future__ import print_function
 import argparse
 import sys
 import os
+import copy
 import yaml
 import cij.conf
 import cij
+from cij.analyser import Range
+from cij.errors import CIJError
 
 
 def _load_tplans(ident, roots, fnames):
@@ -50,6 +53,41 @@ def _load_tplans(ident, roots, fnames):
         tplans[tp_fname] = tplan
 
     return tplans, violations
+
+
+def _load_preqs(ident, roots, fnames):
+    """
+    Returns a list of successfully loadable preqs (performance requirements)
+    files and a list of violations for those that failed.
+    """
+
+    preqs = {}
+    violations = []
+
+    for preq_fname in fnames["PREQS"]:
+        preq_fpath = os.path.join(roots["PREQS"], preq_fname)
+
+        preq = None
+        try:
+            with open(preq_fpath) as tp_fd:
+                preq = yaml.safe_load(tp_fd)
+        except yaml.YAMLError:
+            violations.append(MESSAGES[ident] % (preq_fname, "invalid YAML"))
+            continue
+        except IOError:
+            violations.append(MESSAGES[ident] % (preq_fname, "IO error"))
+            continue
+
+        if not isinstance(preq, dict):
+            violations.append(MESSAGES[ident] % (
+                preq_fname,
+                "could not be parsed as dictionary"
+            ))
+            continue
+
+        preqs[preq_fname] = preq
+
+    return preqs, violations
 
 
 def tsuitefile_testcases_exists(ident, roots, fnames):
@@ -230,18 +268,99 @@ def tplans_content(ident, roots, fnames):
     return violations
 
 
+def _fname_to_name(fname):
+    return os.path.splitext(os.path.basename(fname))[0]
+
+
+def preqs_content(ident, roots, fnames):
+    """
+    Verifies that the testsuites and testcases referenced in .preqs files
+    exist. Also verifies that the ranges specified for given metrics are valid.
+
+    @returns list of violations messages for this check
+    """
+    # pylint: disable=too-many-locals
+
+    preqs, violations = _load_preqs(ident, roots, fnames)
+
+    global_fields = {"metrics", "testcases"}
+
+    tsuite_names = {_fname_to_name(fname) for fname in fnames["TSUITES"]}
+    tcase_names = {_fname_to_name(fname) for fname in fnames["TCASES"]}
+
+    def validate_range(fname, rng):
+        try:
+            Range(rng)
+        except (TypeError, CIJError) as ex:
+            violations.append(MESSAGES[ident] % (
+                fname,
+                "range: '%s' is invalid: %s" % (rng, ex),
+            ))
+
+    for preq_fname, preq in preqs.items():
+        root_keys = copy.deepcopy(preq)
+        global_ = root_keys.pop("global", {})
+
+        # check if invalid keys are used in global
+        for invalid_key in set(global_) - global_fields:
+            violations.append(MESSAGES[ident] % (
+                preq_fname,
+                "global: key %r not valid" % invalid_key,
+            ))
+
+        # check that global.metric ranges are valid
+        for rng in global_.get("metrics", {}).values():
+            validate_range(preq_fname, rng)
+
+        # check that referenced global.testcases exist
+        global_testcases = global_.get("testcases", {})
+        for nonexisting_tcase in set(global_testcases) - tcase_names:
+            violations.append(MESSAGES[ident] % (
+                preq_fname,
+                "tcase: %r does not exist" % nonexisting_tcase,
+            ))
+
+        # check that global.testcases ranges are valid
+        for metrics in global_testcases.values():
+            for rng in metrics.values():
+                validate_range(preq_fname, rng)
+
+        # check if referenced root testsuites exist
+        for nonexisting_tsuite in set(root_keys) - tsuite_names:
+            violations.append(MESSAGES[ident] % (
+                preq_fname,
+                "tsuite: %r does not exist" % nonexisting_tsuite,
+            ))
+
+        # check if referenced root testsuites.testcases exist
+        for tcases in root_keys.values():
+            for nonexisting_tcase in set(tcases) - tcase_names:
+                violations.append(MESSAGES[ident] % (
+                    preq_fname,
+                    "tcase: %r does not exist" % nonexisting_tcase,
+                ))
+
+            # check that root testsuites.testcases ranges are valid
+            for preqs in tcases.values():
+                for rng in preqs.values():
+                    validate_range(preq_fname, rng)
+
+    return violations
+
+
 MESSAGES = {
     "E0100": "Use of non-existent testcase(%s) in testsuite(%s)",
     "E0200": "Invalid testplan(%s) msg: %r",
     "E0210": "Invalid testplan(%s) content: %r",
+    "E0300": "Invalid performance requirements(%s) msg: %r",
     "W0100": "Unused testcase(%s) msg: %r",
-
 }
 
 CHECKERS = {
     "E0100": tsuitefile_testcases_exists,
     "E0200": tplans_format,
     "E0210": tplans_content,
+    "E0300": preqs_content,
     "W0100": testcase_unused
 }
 
@@ -292,7 +411,8 @@ if __name__ == "__main__":
         "TPLANS": CONF.testplans,
         "TSUITES": CONF.testsuites,
         "TCASES": CONF.testcases,
-        "HOOKS": CONF.hooks
+        "HOOKS": CONF.hooks,
+        "PREQS": CONF.testfiles,
     }
 
     sys.exit(main(ROOTS))
