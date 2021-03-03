@@ -9,9 +9,11 @@ Contents:
    :includehidden:
 
    quickstart.rst
-   docker.rst
    envs.rst
+   testcases.rst
    packages.rst
+   ssh.rst
+   docker.rst
 
 Indices and tables
 ==================

@@ -1,3 +1,5 @@
+.. _sec-ssh:
+
 ====================
  Secure SHell (ssh)
 ====================
@@ -5,7 +7,7 @@
 CIJOE utilizes ``SSH`` to run commands remotely. This section provides a couple
 of setup notes which makes it a pleasant experience.
 
-Generating Key-pairs
+Generating Key-Pairs
 ====================
 
 Run::
@@ -19,15 +21,23 @@ This will produce the following key-pair::
 
 Located in ``$HOME/.ssh/``.
 
-SSH-agent
+SSH Agent
 =========
 
-...
+Add the key to the ssh-agent::
+
+  ssh-add $HOME/.ssh/cijoe.key
+
+SSH Config
+==========
+
+... describe how to use ``$HOME/.ssh/config`` to provide the default username
+and key to use with a given hostname ...
 
 Deploying the public-key
 ========================
 
-Deploy the "cijoe" public-key to remote host 'hostname'::
+Deploy the public-key to remote host 'hostname'::
 
   ssh-copy-id -i $HOME/.ssh/cijoe.key.pub hostname
 
@@ -50,4 +60,15 @@ using your package-manager, e.g.::
 For the specific host that you have deployed keys to, create a mountpoint::
 
   mkdir $HOME/sshfs/testbox
-  sshfs -o allow_other,default_permissions,IdentityFile=$HOME/.ssh/cijoe.key
+
+Mount it using::
+
+  sudo sshfs \
+    -o allow_other,default_permissions,IdentityFile=$HOME/.ssh/cijoe.key \
+    user@hostname:/ $HOME/sshfs/testbox
+
+And unmount using::
+
+  sudo umount $HOME/sshfs/testbox
+
+.. _SshKeys: https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
