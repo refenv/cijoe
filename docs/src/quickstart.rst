@@ -4,37 +4,57 @@
  Quick Start
 =============
 
-First, install ``pip`` locally using the pip installer.
+**cijoe** seeks to be minimally intrusive, however, it does require the
+following to operate properly:
+
+* `Python`_ (>= 3.7)
+* `pip` (matching Python >= 3.7)
+* `Bash`_ (>=4.2)
+* An **SSH** client, and keybased auth. configured for your test-target.
+
+You can inspect the output of the commands commands:
 
 .. code-block:: bash
 
-    curl https://bootstrap.pypa.io/get-pip.py | python --user
+  python3 --version
+  pip3 --version
+  bash --version
 
-Change your environment to include your Python binaries. This enables your
-environment to find the local instance of ``pip`` and the **cijoe** binaries.
+To check that you have the required versions. If not, then install them via
+your systems package manager or however software is best installed on your
+system.
 
-.. code-block:: bash
+For the SSH setup, see the xyz section.
 
-    echo "export PATH=\"$PATH:$(python -m site --user-base)/bin\"" >> ~/.bash_aliases
+Installation
+------------
 
 Install **cijoe** via pip:
 
 .. code-block:: bash
 
-  pip install --user cijoe
+  pip3 install --user cijoe
 
-The ``--user`` isolates the installation to the current account, instead of
-installing it system wide and potentially colliding with system packages.
+The ``--user`` isolates the installation to the current user account, instead
+of installing it system wide and potentially colliding with system packages.
 
+Check that it installed correctly, by running:
 
-**cijoe** seeks to be minimally intrusive, however, it does require the
-following to operate properly:
+.. code-block:: bash
 
-* `Python`_ (>= 3.7)
-* `Bash`_ (>=4.2)
-* `ShellCheck`_
-* `Pylint`_
-* An **SSH** client and ssh-key pairs setup, more on this in the Usage section
+  cij_runner --help
+
+If this does not produce the usage-page of the runner, then your system is
+probably not configured to look for binaries in the location that ``pip3``
+installs them to.
+
+For example, on Linux then the output of ``python -m site --user-base`` is not
+in your environment-variable ``$PATH``. You can quickly fix this by adding it
+to your shell, e.g. for Bash do:
+
+.. code-block:: bash
+
+    echo "export PATH=\"$PATH:$(python -m site --user-base)/bin\"" >> ~/.bash_profile
 
 Usage
 =====
@@ -68,12 +88,12 @@ Invoke the test runner, generate report and inspect the result:
 
   # Run the testplan example
   cij_runner \
-      $CIJ_TESTPLANS/example_01_usage.plan \
-      target_env.sh \
+      --testplan $CIJ_TESTPLANS/example_01_usage.plan \
+      --env target_env.sh \
       --output $RESULTS
 
   # Create test report
-  cij_reporter $RESULTS
+  cij_reporter --output $RESULTS
 
   # Inspect the test-report
   xdg-open $RESULTS/report.html
@@ -102,18 +122,5 @@ when the testcase is executed via the runner.
 Often, it is simpler to just copy the testplan and change it to only hold the
 single testcase of interest.
 
-Python Version
-==============
-
-It is recommended that you use **cijoe** with a Python version that is not
-end-of-life, as **cijoe** is only tested on active python versions on Travis CI.
-See, the build-status for Python version recommendations.
-
-Additionally, some of the libraries which **cijoe** depend on, explicit does
-not support certain versions of Python.
-
 .. _Bash: https://www.gnu.org/software/bash/
-.. _Pylint: https://www.pylint.org/
 .. _Python: https://www.python.org/
-.. _ShellCheck: https://www.shellcheck.net/
-.. _SshKeys: https://www.digitalocean.com/community/tutorials/how-to-configure-ssh-key-based-authentication-on-a-linux-server
