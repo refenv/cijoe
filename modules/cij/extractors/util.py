@@ -4,6 +4,7 @@ from typing import Sequence, List
 
 import yaml
 
+from cij.util import rehome
 from cij.runner import TestRun
 import cij
 
@@ -28,9 +29,12 @@ def parse_args_load_trun(name: str) -> TestRun:
     )
 
     args = prsr.parse_args()
-    trun_fpath = cij.runner.yml_fpath(args.output)
 
-    return cij.runner.trun_from_file(trun_fpath)
+    trun_fpath = cij.runner.yml_fpath(args.output)
+    trun = cij.runner.trun_from_file(trun_fpath)
+    rehome(trun.args.output, args.output, trun)
+
+    return trun
 
 
 def dump_metrics_to_file(metrics: List[dict], aux_root: str):
