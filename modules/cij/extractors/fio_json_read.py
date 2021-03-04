@@ -50,7 +50,7 @@ def extract_metrics(tcase: TestCase) -> List[dict]:
 
 if __name__ == "__main__":
     """ Extract metrics if invoked directly """
-    trun = parse_args_load_trun("fio_json_read")
+    trun = parse_args_load_trun(_MY_NAME)
     for tplan in trun.testplans:
         for tsuite in tplan.testsuites:
             for tcase in tsuite.testcases:
