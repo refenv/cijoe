@@ -380,8 +380,8 @@ qemu::run() {
   fi
 
   # NOTE: how does this behave when cpu=host and the host is e.g. a Ryzen?
-  if [[ -v QEMU_GUEST_IOMMU ]]; then
-    _args="$_args -device intel-iommu,pt,intremap=on"
+  if [[ -v QEMU_GUEST_IOMMU && "$QEMU_GUEST_IOMMU" != "0" ]]; then
+    _args="$_args -device intel-iommu,pt=on,intremap=on"
   fi
 
   _args="$_args -m ${QEMU_GUEST_MEM}"
