@@ -163,6 +163,7 @@ fio::run() {
     FIO_ARGS="$FIO_ARGS --output=$FIO_OUTPUT"
   fi
   if [[ -n "$FIO_FSYNC" ]]; then
+    # shellcheck disable=SC2153
     FIO_ARGS="$FIO_ARGS --fsync=$FIO_SYNC"
   fi
   if [[ -n "$FIO_END_FSYNC" ]]; then
