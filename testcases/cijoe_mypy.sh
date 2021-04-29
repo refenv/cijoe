@@ -19,6 +19,11 @@ if [[ -z "$CIJ_PKG_REPOS" ]]; then
   test::fail "Please set 'CIJ_PKG_REPOS'"
 fi
 
+if [[ ! -d "${CIJ_PKG_REPOS}/modules/cij" ]]; then
+  cij::warn "No Python source to check"
+  test::pass
+fi
+
 # shellcheck disable=SC2086
 if ! mypy "${CIJ_PKG_REPOS}/modules/cij" ; then
   popd || true

@@ -26,12 +26,16 @@ for path in {bin,hooks,testcases}/* "${CIJ_PKG_REPOS}/modules/cij/"*.py "${CIJ_P
   if [[ -d "$path" ]]; then
     continue
   fi
+  if [[ ! -f "$path" ]]; then
+    continue
+  fi
 
   if grep "^#.*python" "$path" > /dev/null || [[ $path == *.py ]]; then
     paths="$paths $path"
   fi
 done
 
+cij::info "checking: '$paths'"
 if [[ -z "$paths" ]]; then
   cij::warn "No Python source to check"
   popd || true
