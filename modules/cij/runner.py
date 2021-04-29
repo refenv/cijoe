@@ -404,18 +404,18 @@ def script_run(trun: TestRun, script: Runnable):
         evars = os.environ.copy()
         evars.update({k: str(script.evars[k]) for k in script.evars})
 
-        process = Popen(
-            cmd,
-            stdout=log_fd,
-            stderr=STDOUT,
-            cwd=script.res_root,
-            env=evars
-        )
-        process.wait()
+        with Popen(
+                cmd,
+                stdout=log_fd,
+                stderr=STDOUT,
+                cwd=script.res_root,
+                env=evars
+        ) as process:
+            process.wait()
 
-        script.rcode = process.returncode
-        script.stamp["end"] = time.time()
-        script.wallc = script.stamp["end"] - script.stamp["begin"]
+            script.rcode = process.returncode
+            script.stamp["end"] = time.time()
+            script.wallc = script.stamp["end"] - script.stamp["begin"]
 
     if trun.args.verbose:
         cij.emph("rnr:script:run { wallc: %02f }" % (

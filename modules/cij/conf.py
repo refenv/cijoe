@@ -57,16 +57,16 @@ def from_system() -> Optional[Config]:
         return conf
 
     # Setup configuration using 'cij_root'
-    proc = Popen(["cij_root"], stdout=PIPE)
-    out, _ = proc.communicate()
-    if proc.returncode:
-        return None
+    with Popen(["cij_root"], stdout=PIPE) as proc:
+        out, _ = proc.communicate()
+        if proc.returncode:
+            return None
 
-    cij_root = out.decode("utf-8").strip()
-    if not os.path.exists(cij_root):
-        return None
+        cij_root = out.decode("utf-8").strip()
+        if not os.path.exists(cij_root):
+            return None
 
-    for field in CFG_FIELDS:
-        setattr(conf, field, os.path.join(cij_root, field))
+        for field in CFG_FIELDS:
+            setattr(conf, field, os.path.join(cij_root, field))
 
     return conf

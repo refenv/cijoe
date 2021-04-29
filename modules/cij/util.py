@@ -59,11 +59,11 @@ def execute(cmd=None, shell=True, echo=True):
         if shell:
             cmd = " ".join(cmd)
 
-        proc = Popen(
-            cmd, stdout=PIPE, stderr=PIPE, shell=shell, close_fds=True
-        )
-        stdout, stderr = proc.communicate()
-        rcode = proc.returncode
+        with Popen(
+                cmd, stdout=PIPE, stderr=PIPE, shell=shell, close_fds=True
+        ) as proc:
+            stdout, stderr = proc.communicate()
+            rcode = proc.returncode
 
     if rcode and echo:
         cij.warn("cij.util.execute: stdout: %s" % stdout)

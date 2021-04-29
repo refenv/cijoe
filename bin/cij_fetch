@@ -28,15 +28,18 @@ def md5_create(path):
 
     cmd = ['md5sum', path]
 
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    out, _ = process.communicate()
+    rcode = 0
+    with Popen(cmd, stdout=PIPE, stderr=PIPE) as process:
+        out, _ = process.communicate()
 
-    if process.returncode == 0:
-        dst = "%s.md5" % path
-        with open(dst, 'w') as md5_fd:
-            md5_fd.write(out)
+        if process.returncode == 0:
+            dst = "%s.md5" % path
+            with open(dst, 'w') as md5_fd:
+                md5_fd.write(out)
 
-    return process.returncode
+        rcode = process.returncode
+
+    return rcode
 
 
 def meta_local(path):
