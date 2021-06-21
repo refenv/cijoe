@@ -52,7 +52,7 @@ def parse_args():
     return prsr.parse_args()
 
 
-def main():
+def main(args):
     """
     Parse environment variables and command-line arguments constructing a
     configuration for which to invoke the runner
@@ -62,8 +62,6 @@ def main():
     if conf is None:
         cij.err("rprt: failed retrieving CIJOE configuration")
         return None
-
-    args = parse_args()
 
     args.testplans = []
     for path in args.testplan:
@@ -107,10 +105,12 @@ def main():
 
 
 if __name__ == "__main__":
+    ARGS = parse_args()
+
     FNAME = os.path.join(tempfile.gettempdir(), "cijoe.lock")
     try:
         with open(FNAME, "x") as fd:
-            RES = main()
+            RES = main(ARGS)
         os.remove(FNAME)
 
         sys.exit(RES)
