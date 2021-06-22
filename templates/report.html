@@ -388,7 +388,7 @@
 {% set tsuite_color = "black" if tsuite.status == "PASS" else tsuite_color %}
 {% set tsuite_color = "black" if tsuite.status == "FAIL" else tsuite_color %}
 
-<div class="card mb-3 border-secondary" id="{{ tsuite.ident }}">
+<div class="card mb-3 border-secondary" id="{{ tplan.ident }}_{{ tsuite.ident }}">
   <div class="card-header bg-secondary">
     <ul class="nav nav-pills  nav-fill card-header-pills row.no-gutters">
       <li class="nav-item">
@@ -401,26 +401,26 @@
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active show" href="#TESTCASES_{{ tsuite.ident }}"
+        <a class="nav-link active show" href="#TESTCASES_{{ tplan.ident }}_{{ tsuite.ident }}"
           data-toggle="tab">Testcases ({{ tsuite.testcases | length }})</a>
       </li>
       <li class="nav-item ml-auto">
-        <a class="nav-link" href="#EVARS_{{ tsuite.ident }}" data-toggle="tab">
+        <a class="nav-link" href="#EVARS_{{ tplan.ident }}_{{ tsuite.ident }}" data-toggle="tab">
           Testsuite: Evars ({{ tsuite.evars | length }})
         </a>
       </li>
       <li class="nav-item ml">
-        <a class="nav-link" href="#HOOKS_{{ tsuite.ident }}" data-toggle="tab">
+        <a class="nav-link" href="#HOOKS_{{ tplan.ident }}_{{ tsuite.ident }}" data-toggle="tab">
           Testsuite: Hooks ({{ tsuite.hnames | length }})
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#AUX_{{ tsuite.ident }}" data-toggle="tab">
+        <a class="nav-link" href="#AUX_{{ tplan.ident }}_{{ tsuite.ident }}" data-toggle="tab">
           Testsuite: Aux ({{ tsuite.aux_list | length }})
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#LOG_{{ tsuite.ident }}" data-toggle="tab">
+        <a class="nav-link" href="#LOG_{{ tplan.ident }}_{{ tsuite.ident }}" data-toggle="tab">
           Testsuite: Log ({{ tsuite.log_content.splitlines() | length }})
         </a>
       </li>
@@ -431,7 +431,7 @@
   <div class="tab-content">
 
     <!-- TESTCASES-BGN -->
-    <div class="tab-pane active" id="TESTCASES_{{ tsuite.ident }}">
+    <div class="tab-pane active" id="TESTCASES_{{ tplan.ident }}_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
         The <b>{{ tsuite.name }}</b> testsuite contains {{ tsuite.testcases | length }} testcases.
@@ -587,7 +587,7 @@
     <!-- TESTCASES-END -->
 
     <!-- TSUITE: EVAR-SNIPPET -->
-    <div class="collapse" id="EVARS_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+    <div class="collapse" id="EVARS_{{ tplan.ident }}_{{ tsuite.ident }}" data-parent="#{{ tplan.ident }}_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
           A total of <b>{{ tsuite.evars | length }}</b> environment vars are defined for this
@@ -603,7 +603,7 @@
     </div>
 
     <!-- TSUITE: HOOKS-SNIPPET -->
-    <div class="collapse" id="HOOKS_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+    <div class="collapse" id="HOOKS_{{ tplan.ident }}_{{ tsuite.ident }}" data-parent="#{{ tplan.ident }}_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
           A total of <b>{{ tsuite.hnames | length }}</b> hooks per test suite. That is, these hooks
@@ -619,7 +619,7 @@
     </div>
 
     <!-- TSUITE: AUX-SNIPPET -->
-    <div class="collapse" id="AUX_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+    <div class="collapse" id="AUX_{{ tplan.ident }}_{{ tsuite.ident }}" data-parent="#{{ tplan.ident }}_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
           A total of <b>{{ tsuite.aux_list | length }}</b> auxilary files produced by testsuite
@@ -635,7 +635,7 @@
     </div>
 
     <!-- TSUITE: RUN-LOG -->
-    <div class="collapse runlog" id="LOG_{{ tsuite.ident }}" data-parent="#{{ tsuite.ident }}">
+    <div class="collapse runlog" id="LOG_{{ tplan.ident }}_{{ tsuite.ident }}" data-parent="#{{ tplan.ident }}_{{ tsuite.ident }}">
       <div class="card-body">
         <p class="card-text">
         Output produced by executing testsuite hooks is provided below
