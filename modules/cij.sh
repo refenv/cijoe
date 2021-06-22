@@ -213,9 +213,13 @@ cij::push() {
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
     ssh::push "${_src}" "${_dst}"
     return $?
-  else
+  elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     cp -r "${_src}" "${_dst}"
     return $?
+  else
+    cij::err "cij.pull: missing SSH configuration or not explicitly set to run locally"
+    cij::err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    return 1
   fi
 }
 
@@ -238,9 +242,13 @@ cij::pull() {
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
     ssh::pull "${_src}" "${_dst}"
     return $?
-  else
+  elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     cp -r "${_src}" "${_dst}"
     return $?
+  else
+    cij::err "cij.pull: missing SSH configuration or not explicitly set to run locally"
+    cij::err "cij.pull: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    return 1
   fi
 }
 
@@ -248,8 +256,12 @@ cij::cmd() {
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
     ssh::cmd "$@"
     return $?
-  else
+  elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     "$@"
     return $?
+  else
+    cij::err "cij.cmd: missing SSH configuration or not explicitly set to run locally"
+    cij::err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    return 1
   fi
 }
