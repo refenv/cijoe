@@ -84,8 +84,8 @@
   {% set trun_color = "black" if dset.status == "PASS" else trun_color %}
   {% set trun_color = "black" if dset.status == "FAIL" else trun_color %}
 
-  <div class="card mb-3">
-    <div class="card-header">
+  <div class="card mb-3 border-primary">
+    <div class="card-header bg-primary">
       <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
         <li class="nav-item no-gutters">
           <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }}">TESTRUN <b>{{ dset.status }}</b></a>
@@ -233,8 +233,8 @@
 </div>
 
 <div class="container">
-  <div class="card mb-3">
-    <div class="card-header">
+  <div class="card mb-3 border-info">
+    <div class="card-header bg-info">
       <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
         <li class="nav-item no-gutters">
           <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }} text-left">
@@ -388,8 +388,8 @@
 {% set tsuite_color = "black" if tsuite.status == "PASS" else tsuite_color %}
 {% set tsuite_color = "black" if tsuite.status == "FAIL" else tsuite_color %}
 
-<div class="card mb-3" id="{{ tsuite.ident }}">
-  <div class="card-header">
+<div class="card mb-3 border-secondary" id="{{ tsuite.ident }}">
+  <div class="card-header bg-secondary">
     <ul class="nav nav-pills  nav-fill card-header-pills row.no-gutters">
       <li class="nav-item">
         <a class="nav-link bg-{{ tsuite_bg_color }} text-{{ tsuite_color }} text-left">
