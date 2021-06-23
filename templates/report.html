@@ -453,7 +453,7 @@
       <ul class="list-group list-testcases">
         <!-- TCASE-BGN -->
         {% for tcase in tsuite.testcases %}
-        {% set ident = tcase.ident %}
+        {% set ident = tplan.ident +"_"+ tcase.ident %}
         {% set tcase_color = "secondary" %}
         {% set tcase_color = "success" if tcase.status == "PASS" else tcase_color %}
         {% set tcase_color = "danger" if tcase.status == "FAIL" else tcase_color %}
