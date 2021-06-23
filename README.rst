@@ -1,17 +1,17 @@
 cijoe: tools for systems development and testing
 ================================================
 
-.. image:: https://travis-ci.com/refenv/cijoe.svg?branch=master
+.. image:: https://img.shields.io/pypi/v/cijoe.svg
+   :target: https://pypi.org/project/cijoe
+   :alt: PyPI
+
+.. image:: https://github.com/refenv/cijoe/workflows/selftest/badge.svg
    :target: https://travis-ci.com/refenv/cijoe
    :alt: Build Status
 
 .. image:: https://readthedocs.org/projects/cijoe/badge/?version=latest
    :target: https://cijoe.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-
-.. image:: https://img.shields.io/pypi/v/cijoe.svg
-   :target: https://pypi.org/project/cijoe
-   :alt: PyPI
 
 Tools for systems development and testing.
 
