@@ -226,6 +226,13 @@
 
 {% for tplan in dset.testplans %}
 
+{% set tplan_bg_color = "secondary" %}
+{% set tplan_bg_color = "success" if tplan.status == "PASS" else tplan_bg_color %}
+{% set tplan_bg_color = "danger" if tplan.status == "FAIL" else tplan_bg_color %}
+{% set tplan_color = "white" %}
+{% set tplan_color = "black" if tplan.status == "PASS" else tplan_color %}
+{% set tplan_color = "black" if tplan.status == "FAIL" else tplan_color %}
+
 <div class="jumbotron jumbotron-fluid">
   <div class="container">
     <h2 class="display-8"></h2>
@@ -237,7 +244,7 @@
     <div class="card-header bg-info">
       <ul class="nav nav-pills nav-fill card-header-pills no-gutters">
         <li class="nav-item no-gutters">
-          <a class="nav-link bg-{{ trun_bg_color }} text-{{ trun_color }} text-left">
+          <a class="nav-link bg-{{ tplan_bg_color }} text-{{ tplan_color }} text-left">
             TESTPLAN: <b>{{ tplan.name }}</b> ( {{ tplan.fname }} / {{ tplan.ident }} )
           </a>
         </li>
