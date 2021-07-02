@@ -7,6 +7,7 @@
 # ssh::env       - Sets default vars for ssh wrapping
 # ssh::cmd <CMD> - Execute <CMD> using optional "SSH_CMD_TIMEOUT"
 # ssh::shell     - Get the regular shell using current environment
+# ssh::setup_unprompted() - Setup unprompted ssh connection to host
 #
 # REQUIRED variables:
 #
@@ -32,6 +33,48 @@
 #                         * SSH_CMD_TIME=0
 #                         * SSH_CMD_ECHO=0
 
+ssh::setup_unprompted() {
+  local _prefix="";
+  local _args="";
+  local _cmd="";
+
+  if [[ -v SSH_CMD_TIMEOUT && $SSH_CMD_TIMEOUT -gt 0 ]]; then
+    _prefix="timeout $SSH_CMD_TIMEOUT $_prefix "
+  fi
+  if [[ -v SSH_CMD_TIME && $SSH_CMD_TIME -eq 1 ]]; then
+    _prefix="/usr/bin/time $_prefix "
+  fi
+
+  if [[ -v SSH_KEY && -n "$SSH_KEY" ]]; then
+    _args="$_args -i $SSH_KEY"
+  fi
+  if [[ -v SSH_PORT && -n "$SSH_PORT" ]]; then
+    _args="$_args -p $SSH_PORT"
+  fi
+  _args="$_args $SSH_USER@$SSH_HOST"
+
+  _cmd="$_prefix $SSH_COPY_ID_BIN $_args"
+  if [[ -v SSH_COPY_ID_CMD_ECHO && $SSH_COPY_ID_CMD_ECHO -eq 1 ]]; then
+    cij::emph "ssh_copy_id:cmd: $_cmd"
+  fi
+
+  eval "$_cmd"
+  _cmd_ret=$?
+
+#  Here we should put a message that the user can see when executing.
+#  if [ $_cmd_ret -ne 0 ] ; then
+#    cij::emph "ssh copy id command failed to setup unprompted connection"
+#    if [ "$SSH_USER" == "root" ] ; then
+#      cij::emph "This is most likely due to the host not allowing ssh login"
+#      cij::emph "to the root user. Excecute the following line in the host :"
+#      cij::emph  "echo \"PermitRootLogin yes\" >> /etc/ssh/sshd_config"
+#      echo "tests " 1>&2
+#    fi
+#  fi
+
+  return $_cmd_ret
+}
+
 ssh::env() {
   if [[ -v SSH_KEY && -n "$SSH_KEY" && ! -f "$SSH_KEY" ]]; then
     cij::err "ssh::env: Invalid SSH_KEY($SSH_KEY)"
@@ -43,6 +86,7 @@ ssh::env() {
     return 1
   fi
 
+  : "${SSH_COPY_ID_BIN:=ssh-copy-id}"
   : "${SSH_BIN:=ssh}"
   : "${SSH_NO_CHECKS:=0}"
   : "${SSH_USER:=root}"
@@ -56,8 +100,16 @@ ssh::env() {
     SSH_CMD_TIME=0
   fi
 
+  if [[ -v SSH_SETUP_UNPROMPTED && $SSH_SETUP_UNPROMPTED -eq 1 ]]; then
+    if ! ssh::setup_unprompted; then
+      cij::err "ssh::env - Could not setup unprompted"
+      return 1
+    fi
+  fi
+
   return 0
 }
+
 
 ssh::cmd() {
   if [[ -z "$1" ]]; then
