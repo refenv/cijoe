@@ -19,7 +19,7 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 project = u'cijoe'
-copyright = u'2018, SAFL'
+copyright = u'2021, SAFL'
 version = cij.VERSION
 release = cij.VERSION
 
