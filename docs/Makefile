@@ -4,7 +4,7 @@ default: doc doc-view-html
 
 .PHONY: deps
 deps:
-	pip install -r requirements.txt --user
+	pip3 install -r requirements.txt --user
 
 .PHONY: clean
 clean:
