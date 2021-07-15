@@ -19,7 +19,10 @@ def tcase_comment(tcase):
     @returns the testcase-comment from the tcase.fpath as a list of strings
     """
 
-    src = open(tcase.fpath).read()
+    src = ""
+    with open(tcase.fpath) as tcase_f:
+        src = tcase_f.read()
+
     if len(src) < 3:
         cij.err("rprtr::tcase_comment: invalid src, tcase: %r" % tcase.name)
         return None
@@ -131,7 +134,8 @@ def src_to_html(fpath):
 
     # NOTE: Do SYNTAX highlight?
 
-    return open(fpath, "r").read()
+    with open(fpath, "r") as fpath_file:
+        return fpath_file.read()
 
 
 def aux_listing(aux_root):
