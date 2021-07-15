@@ -1,0 +1,15 @@
+~/.local/share/cijoe ~/git/cijoe/docs/src/shell
+~/git/cijoe/docs/src/shell
+CIJ_MODULES=/home/safl/.local/share/cijoe/modules
+CIJ_TESTFILES=/home/safl/.local/share/cijoe/testfiles
+CIJ_ENVS=/home/safl/.local/share/cijoe/envs
+CIJ_TESTPLANS=/home/safl/.local/share/cijoe/testplans
+CIJ_TEMPLATES=/home/safl/.local/share/cijoe/templates
+CIJ_ECHO_TIME_STAMP=1
+CIJ_PKG_ROOT=/home/safl/.local/share/cijoe
+CIJ_EMPH_DEFAULT=
+CIJ_TESTSUITES=/home/safl/.local/share/cijoe/testsuites
+CIJ_TESTCASES=/home/safl/.local/share/cijoe/testcases
+CIJ_ROOT=/home/safl/.local/share/cijoe
+CIJ_HOOKS=/home/safl/.local/share/cijoe/hooks
+

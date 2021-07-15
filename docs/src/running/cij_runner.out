@@ -1,0 +1,18 @@
+usage: cij_runner [-h] --testplan TESTPLAN [TESTPLAN ...] --env ENV
+                  [--output OUTPUT] [--testcase-match TESTCASE_MATCH] [-v]
+
+cij_runner - CIJOE Test Runner
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --testplan TESTPLAN [TESTPLAN ...]
+                        Path to one or more testplan(s) to run (default: None)
+  --env ENV             Path to the environment definition (default: None)
+  --output OUTPUT       Path to directory in which to store runner output
+                        (default: /tmp/trun-f43df4d7)
+  --testcase-match TESTCASE_MATCH
+                        run only testcases matching the given string (default:
+                        None)
+  -v, --verbose         increase output verbosity, 0 = quiet, 1 = some, 1 >
+                        alot (default: 0)
+

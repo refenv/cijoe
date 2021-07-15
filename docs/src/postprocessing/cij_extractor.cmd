@@ -1,0 +1,1 @@
+cij_extractor --help

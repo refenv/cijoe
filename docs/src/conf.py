@@ -5,6 +5,7 @@ import cij
 import sys
 import os
 
+numfig = True
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 extensions = [
@@ -50,6 +51,8 @@ if not on_rtd:
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+numfig = True
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
@@ -67,7 +70,7 @@ if not on_rtd:
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+#html_logo = "_static/logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
