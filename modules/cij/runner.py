@@ -837,6 +837,8 @@ def main(args, conf):
                     tcase.status = Status.Pass
                     if tcase.rcode is None or tcase.rcode:
                         tcase.status = Status.Fail
+                        cij.err(f"main:{tcase.ident} failed.")
+                        cij.err(f"See log: `less {tcase.log_fpath}`")
 
                     tsuite.progress[Status.Unkn] -= 1   # Update progress
                     tplan.progress[Status.Unkn] -= 1
