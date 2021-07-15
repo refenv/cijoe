@@ -32,11 +32,15 @@ def construct_dset(conf: cij.conf.Config) -> dict:
 
         fpath = os.path.join(conf.testcases, fname)
 
+        src_content = ""
+        with open(fpath, "r") as src_file:
+            src_content = src_file.read()
+
         tcase = TestCase(
             fpath=fpath,
             name=fname,
             fname=fname,
-            src_content=open(fpath, "r").read(),
+            src_content=src_content,
         )
 
         descr, descr_long = tcase_parse_descr(tcase)
