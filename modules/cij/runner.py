@@ -467,8 +467,8 @@ def hooks_setup(trun: TestRun, instance: Runnable, hnames=None):
         return
 
     for hname in hnames:        # Fill out paths
-        for med in HOOK_PATTERNS:
-            for ptn in HOOK_PATTERNS[med]:
+        for med, patterns in HOOK_PATTERNS.items():
+            for ptn in patterns:
                 fpath = os.path.join(trun.conf.hooks, ptn % hname)
                 if not os.path.exists(fpath):
                     continue
