@@ -96,12 +96,12 @@ def metrics_to_pdata(args, metrics):
         pdata[ident]["yvals"].append(yval)
         pdata[ident]["xvals"].append(xval)
 
-    for ident in pdata:
+    for val in pdata.values():
         xvals, yvals = (list(t) for t in (
-            zip(*sorted(zip(pdata[ident]["xvals"], pdata[ident]["yvals"])))
+            zip(*sorted(zip(val["xvals"], val["yvals"])))
         ))
-        pdata[ident]["xvals"] = xvals
-        pdata[ident]["yvals"] = yvals
+        val["xvals"] = xvals
+        val["yvals"] = yvals
 
     return pdata
 
