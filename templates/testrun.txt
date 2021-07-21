@@ -1,0 +1,13 @@
+Status: {{ dset.status }}
+Passed: {{ dset.progress.PASS }}
+Failed {{ dset.progress.FAIL }}
+Unknown: {{ dset.progress.UNKN }}
+{% for tplan in dset.testplans -%}
+TESTPLAN: {{ tplan.name }} ({{ tplan.fname }} / {{ tplan.ident }})
+{% for tsuite in tplan.testsuites %}
+  TESTSUITE: {{ tsuite.alias if tsuite.alias else tsuite.name }} ({{ tsuite.fname }} / {{ tsuite.ident }})
+{% for tcase in tsuite.testcases %}
+  - {{ tcase.name }}: {{ tcase.status }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
