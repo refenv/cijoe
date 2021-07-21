@@ -259,7 +259,9 @@ def main(args):
     cij.emph("main: reports are uses tmpl_fpath: %r" % args.tmpl_fpath)
     cij.emph("main: reports are here args.output: %r" % args.output)
 
-    html_fpath = os.path.join(args.output, "%s.html" % args.tmpl_name)
+    _, ext = os.path.splitext(args.tmpl_fpath)
+
+    html_fpath = os.path.join(args.output, "".join([args.tmpl_name, ext]))
     cij.emph("html_fpath: %r" % html_fpath)
     try:                                    # Create and store HTML report
         with open(html_fpath, 'w') as html_file:
