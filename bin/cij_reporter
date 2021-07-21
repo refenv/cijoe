@@ -50,7 +50,7 @@ def parse_args():
 
     args.trun_fpath = cij.runner.yml_fpath(args.output)
     if not os.path.exists(args.trun_fpath):
-        cij.err("rprtr:trun_fpath: %r" % args.trun_fpath)
+        cij.err("rprtr:trun_fpath: path: %r does not exist" % args.trun_fpath)
         return None
 
     args.template = cij.util.expand_path(args.template)
