@@ -114,12 +114,13 @@ if __name__ == "__main__":
         os.remove(FNAME)
 
         sys.exit(RES)
-    except FileExistsError:
+    except FileExistsError as e:
         cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
         cij.warn("Looks like CIJOE is already running")
         cij.warn("or, a previous run did unclean exit")
         cij.warn("Clean up the target-system-under-test reboot / provision")
         cij.warn("Then remove '%s' and start the runner again" % FNAME)
+        cij.warn(e)
         cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
     except KeyboardInterrupt:
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
