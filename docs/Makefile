@@ -25,7 +25,7 @@ sphinx:
 
 # Produce the sphinx stuff
 .PHONY: doc
-doc: clean deps configure kmdo sphinx
+doc: clean deps configure sphinx
 	@echo "# DONE"
 
 .PHONY: doc-view-html
