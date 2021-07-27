@@ -789,7 +789,11 @@ def trun_setup(args: argparse.Namespace, conf: cij.conf.Config) -> TestRun:
     trun.res_root = args.output
     trun.aux_root = os.path.join(trun.res_root, "_aux")
 
-    os.makedirs(trun.aux_root)
+    try:
+        os.makedirs(trun.aux_root)
+    except CIJError as ex:
+        cij.err("trun_setup: FAILED: makedirs. Error: %r" % ex)
+        raise Exception()
 
     trun.testplans = [
         tplan_setup(trun, tp_fpath) for tp_fpath in args.testplans
