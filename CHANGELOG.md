@@ -10,6 +10,40 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## UPCOMING
+
+* Remove all Linux-specifics, and provide **cijoe-pkg-linux** package replacing it
+  - hooks: ``dmesg_{enter,exit}.sh``, ``sysinf.sh``
+  - modules: ``xfstests.sh``, ``blktests.sh``, ``ipmi.sh``, ``fs.sh``, ``kmemleak.sh``, ``pci.sh``
+  - testcases: ``extc_02_fs.sh``, ``extc_03_blktests.sh``, ``extc_04_xfstests.sh``
+
+* Remove fio-specifics and provide a **cijoe-pkg-fio** package
+  - testcases: ``extc_05_fio.sh``
+
+* Remove qemu-specifics and provide **cijoe-pkg-qemu** package replacing it
+  - envs: ``localhost-qemu.sh``
+  - hooks: ``qemu_{enter,exit}.sh``
+  - modules: ``qemu.sh``
+
+* Remove RocksDB specific, and consider providing a **cijoe-pkg-rocksdb** package
+  - modules: ``rbench.sh``
+
+## 0.2.0
+
+* Replaced the ``::`` module-seperator with ``.``
+
+* Removed all examples and provided them in an example package 'cijoe-pkg-example'
+
+* Removed deprecated Bash-module named ``board``
+
+* Removed deprecated reference environment ``refenv-u1604``
+
+* A complete overhaul of the documentation
+
+* ``extractor:fio_json_read``: add 'name' and 'stddev' to metric-context
+
+* ``bin:cij_metric_dump``: tool to collect all metrics and dump them to stdout
+
 ## 0.1.42
 
 * Add tool ``cij_plotter`` capable of producing plots based of metrics extraced from testcases
