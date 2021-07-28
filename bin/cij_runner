@@ -136,3 +136,8 @@ if __name__ == "__main__":
         cij.warn(" 2) Remove the lock: '%s'" % FNAME)
         cij.warn(" 3) Start the runner")
         cij.err("---------============{[ UNCLEAN EXIT ]}===========---------")
+    except Exception as e:
+        cij.err("---------==========={[ CIJOE ERROR ]}==========---------")
+        cij.warn("There was an unhandled exception: ")
+        cij.warn(e)
+        cij.err("---------==========={[ CIJOE ERROR ]}==========---------")

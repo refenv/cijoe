@@ -14,7 +14,7 @@ import os
 import yaml
 import cij.conf
 import cij
-from cij.errors import CIJError, InitializationError
+from cij.errors import CIJError, InitializationError, InvalidResultAuxPath
 # pylint:disable=unsubscriptable-object
 
 HOOK_PATTERNS = {
@@ -791,9 +791,9 @@ def trun_setup(args: argparse.Namespace, conf: cij.conf.Config) -> TestRun:
 
     try:
         os.makedirs(trun.aux_root)
-    except CIJError as ex:
-        cij.err("trun_setup: FAILED: makedirs. Error: %r" % ex)
-        raise Exception()
+    except FileExistsError as ex:
+        cij.err("trun_setup:FAILED os.makedirs(). %s" % ex)
+        raise InvalidResultAuxPath("failed makedir %s" % trun.aux_root) from ex
 
     trun.testplans = [
         tplan_setup(trun, tp_fpath) for tp_fpath in args.testplans
@@ -818,6 +818,7 @@ def main(args, conf):
         trun = trun_setup(args, conf)   # Construct 'trun' from args and conf
     except CIJError as ex:
         cij.err("main:FAILED to start testrun: %s" % ex)
+        return 1
 
     trun_to_file(trun)              # Persist trun
     trun_to_junitfile(trun)         # Persist as jUNIT XML

@@ -20,3 +20,7 @@ class InvalidRangeError(CIJError):
 
 class UnknownUnitError(CIJError):
     """ Raised when attempting to use unknown units """
+
+
+class InvalidResultAuxPath(CIJError):
+    """ Raised when an invalid result is encountered with an auxuliary path """
