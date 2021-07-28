@@ -4,9 +4,9 @@
 #
 # Functions:
 #
-# ssh::env       - Sets default vars for ssh wrapping
-# ssh::cmd <CMD> - Execute <CMD> using optional "SSH_CMD_TIMEOUT"
-# ssh::shell     - Get the regular shell using current environment
+# ssh.env       - Sets default vars for ssh wrapping
+# ssh.cmd <CMD> - Execute <CMD> using optional "SSH_CMD_TIMEOUT"
+# ssh.shell     - Get the regular shell using current environment
 #
 # REQUIRED variables:
 #
@@ -21,7 +21,7 @@
 #                         DEFAULT=1, DISABLE=0, ENABLE=1
 # SSH_CMD_TIME          - Measure wall-clock using "/usr/bin/time"
 #                         DEFAULT=1, DISABLE=0, ENABLE=1
-# SSH_CMD_TIMEOUT       - Max wall-clock for ssh::cmd
+# SSH_CMD_TIMEOUT       - Max wall-clock for ssh.cmd
 #                         DEFAULT=0, DISABLE=0, ENABLE=N seconds
 #
 # OPTIONAL variables:
@@ -32,14 +32,14 @@
 #                         * SSH_CMD_TIME=0
 #                         * SSH_CMD_ECHO=0
 
-ssh::env() {
+ssh.env() {
   if [[ -v SSH_KEY && -n "$SSH_KEY" && ! -f "$SSH_KEY" ]]; then
-    cij::err "ssh::env: Invalid SSH_KEY($SSH_KEY)"
+    cij.err "ssh.env: Invalid SSH_KEY($SSH_KEY)"
     return 1
   fi
 
   if [[ ! -v SSH_HOST || -z "$SSH_HOST" ]]; then
-    cij::err "ssh::env: SSH_HOST is not set or is empty"
+    cij.err "ssh.env: SSH_HOST is not set or is empty"
     return 1
   fi
 
@@ -59,13 +59,13 @@ ssh::env() {
   return 0
 }
 
-ssh::cmd() {
+ssh.cmd() {
   if [[ -z "$1" ]]; then
-    cij::err "ssh::cmd - No command given."
+    cij.err "ssh.cmd - No command given."
     return 1
   fi
-  if ! ssh::env; then
-    cij::err "ssh::cmd - Invalid ENV."
+  if ! ssh.env; then
+    cij.err "ssh.cmd - Invalid ENV."
     return 1
   fi
 
@@ -98,24 +98,24 @@ ssh::cmd() {
   # Construct ssh-command
   _cmd="$_prefix $SSH_BIN $_args '$1'"                          # Create CMD
   if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
-    cij::emph "ssh:cmd: $_cmd"
+    cij.emph "ssh:cmd: $_cmd"
   fi
 
   eval "$_cmd"                                                  # Execute CMD
   return $?
 }
 
-ssh::cmd_output() {
-  SSH_CMD_QUIET=1 ssh::cmd "$1"
+ssh.cmd_output() {
+  SSH_CMD_QUIET=1 ssh.cmd "$1"
 }
 
-ssh::cmd_t() {
-  SSH_EXTRA_ARGS="-t" ssh::cmd "$1"
+ssh.cmd_t() {
+  SSH_EXTRA_ARGS="-t" ssh.cmd "$1"
 }
 
-ssh::shell() {
-  if ! ssh::env; then
-    cij::err "ssh::shell - Invalid ENV."
+ssh.shell() {
+  if ! ssh.env; then
+    cij.err "ssh.shell - Invalid ENV."
     return 1
   fi
 
@@ -141,28 +141,28 @@ ssh::shell() {
 
   _cmd="$_prefix $SSH_BIN $_args"                               # Create CMD
   if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
-    cij::emph "ssh:cmd: $_cmd"
+    cij.emph "ssh:cmd: $_cmd"
   fi
 
   eval "$_cmd"                                                  # Execute CMD
 }
 
-ssh::push() {
+ssh.push() {
   local _src=$1
   local _dst=$2
   local _args=""
   local _cmd=""
 
   if [[ ! -v _src ]]; then
-    cij::err "ssh::push: local path _src: '$_src'"
+    cij.err "ssh.push: local path _src: '$_src'"
     return 1
   fi
   if [[ ! -v _dst ]]; then
-    cij::err "ssh::push: remote path _dst: '$_dst'"
+    cij.err "ssh.push: remote path _dst: '$_dst'"
     return 1
   fi
-  if ! ssh::env; then
-    cij::err "ssh::push: invalid environment"
+  if ! ssh.env; then
+    cij.err "ssh.push: invalid environment"
     return 1
   fi
 
@@ -180,28 +180,28 @@ ssh::push() {
 
   _cmd="scp $_args $_src ${SSH_USER}@${SSH_HOST}:$_dst"
   if [[ -v SSH_CMD_ECHO && $SSH_CMD_ECHO -eq 1 ]]; then         # Print CMD
-    cij::emph "ssh:push:cmd: $_cmd"
+    cij.emph "ssh:push:cmd: $_cmd"
   fi
 
   eval "$_cmd"
 }
 
-ssh::pull() {
+ssh.pull() {
   local _src=$1
   local _dst=$2
   local _args=""
   local _cmd=""
 
   if [[ ! -v _src ]]; then
-    cij::err "ssh::pull: local path _src: '$_src'"
+    cij.err "ssh.pull: local path _src: '$_src'"
     return 1
   fi
   if [[ ! -v _dst ]]; then
-    cij::err "ssh::pull: remote path _dst: '$_dst'"
+    cij.err "ssh.pull: remote path _dst: '$_dst'"
     return 1
   fi
-  if ! ssh::env; then
-    cij::err "ssh::pull: invalid environment"
+  if ! ssh.env; then
+    cij.err "ssh.pull: invalid environment"
     return 1
   fi
 
@@ -222,77 +222,12 @@ ssh::pull() {
   eval "$_cmd"
 }
 
-ssh::check() {
-  if ! ssh::env; then
-    cij::err "ssh::check: invalid environment"
+ssh.check() {
+  if ! ssh.env; then
+    cij.err "ssh.check: invalid environment"
     return 1
   fi
 
-  ssh::cmd 'hostname'
+  ssh.cmd "hostname"
   return $?
-}
-
-
-ssh::shutdown() {
-  if ! ssh::env; then
-    cij::err "ssh::shutdown: invalid environment"
-    return 1
-  fi
-
-  ssh::cmd 'shutdown now'
-}
-
-ssh::reboot() {
-  if ! ssh::env; then
-    cij::err "ssh::reboot: invalid environment"
-    return 1
-  fi
-
-  if [[ -z $1 ]]; then
-    cij::err "ssh::reboot - No Timeout."
-    return 1
-  fi
-
-  SSH_CMD_TIMEOUT_BACKUP=$SSH_CMD_TIMEOUT
-  SSH_CMD_TIMEOUT=3
-  SSH_REBOOT_START_TIME=$(/bin/date +%s)
-  SSH_REBOOT_CONNECT_TIMEOUT=$1
-
-  if ! SSH_REBOOT_LAST_BOOT_TIME=$(ssh::cmd '/usr/bin/uptime -s'); then
-    cij::err "ssh::reboot cannot get the target boot time."
-    SSH_CMD_TIMEOUT=$SSH_CMD_TIMEOUT_BACKUP
-    return 1
-  fi
-
-  cij::emph "ssh::reboot: Reboot TARGET($CIJ_TEST_HOST)..."
-  ssh::cmd 'reboot'
-
-  while :
-  do
-    sleep 1
-
-    SSH_REBOOT_CURRENT_TIME=$(/bin/date +%s)
-    SSH_REBOOT_TIME_ELAPSED=$(( SSH_REBOOT_CURRENT_TIME - SSH_REBOOT_START_TIME))
-    if [[ $SSH_REBOOT_TIME_ELAPSED -gt $SSH_REBOOT_CONNECT_TIMEOUT ]]; then
-      SSH_REBOOT_RCODE=1
-      cij::err "ssh::reboot - Timeout: $SSH_REBOOT_TIME_ELAPSED seconds."
-      break
-    fi
-
-    if ! ssh::cmd 'exit' 2&> /dev/null; then
-      if ! SSH_REBOOT_CURRENT_BOOT_TIME=$(ssh::cmd_output '/usr/bin/uptime -s'); then
-        continue    # Cannot get the boot time, continue waiting
-      fi
-      if [[ "$SSH_REBOOT_LAST_BOOT_TIME" == "$SSH_REBOOT_CURRENT_BOOT_TIME" ]]; then
-        continue    # Not reboot completely, continue waiting
-      fi
-
-      SSH_REBOOT_RCODE=0
-      cij::emph "ssh::reboot: Time elapsed: $SSH_REBOOT_TIME_ELAPSED seconds."
-      break
-    fi
-  done
-
-  SSH_CMD_TIMEOUT=$SSH_CMD_TIMEOUT_BACKUP
-  return $SSH_REBOOT_RCODE
 }

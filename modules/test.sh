@@ -9,8 +9,8 @@
 # script
 #
 
-test::usage() {
-  cij::emph "Test contract -- Usage"
+test.usage() {
+  cij.emph "Test contract -- Usage"
 
   echo ""
   echo "This should contain useful information on how to write and run a test"
@@ -18,18 +18,18 @@ test::usage() {
   echo ""
 }
 
-test::enter() {
+test.enter() {
   # Verify the test output directories exists
   if [[ -z "$CIJ_TEST_RES_ROOT" ]]; then
-    test::usage
-    test::fail "invalid directory CIJ_TEST_RES_ROOT: '$CIJ_TEST_RES_ROOT'"
+    test.usage
+    test.fail "invalid directory CIJ_TEST_RES_ROOT: '$CIJ_TEST_RES_ROOT'"
     exit 1
   fi
 
   export CIJ_TEST_AUX_ROOT="$CIJ_TEST_RES_ROOT/_aux"
   if [[ ! -d "$CIJ_TEST_AUX_ROOT" ]]; then
     if ! mkdir "$CIJ_TEST_AUX_ROOT"; then
-      test::fail "could not create CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
+      test.fail "could not create CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
     fi
   fi
 
@@ -40,15 +40,15 @@ test::enter() {
   export CIJ_TEST_ARB
 
   if [[ -z "$CIJ_TEST_NAME" ]]; then
-    test::fail "CIJ_TEST_NAME is not set"
+    test.fail "CIJ_TEST_NAME is not set"
   fi
-  cij::emph "test::enter: CIJ_TEST_NAME: '$CIJ_TEST_NAME'"
-  cij::emph "test::enter: CIJ_TEST_ARB: '$CIJ_TEST_ARB'"
-  cij::emph "test::enter: CIJ_TEST_RES_ROOT: '$CIJ_TEST_RES_ROOT'"
-  cij::emph "test::enter: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
+  cij.emph "test.enter: CIJ_TEST_NAME: '$CIJ_TEST_NAME'"
+  cij.emph "test.enter: CIJ_TEST_ARB: '$CIJ_TEST_ARB'"
+  cij.emph "test.enter: CIJ_TEST_RES_ROOT: '$CIJ_TEST_RES_ROOT'"
+  cij.emph "test.enter: CIJ_TEST_AUX_ROOT: '$CIJ_TEST_AUX_ROOT'"
 }
 
-test::exit() {
+test.exit() {
   RVAL=$1
   MSG=$2
 
@@ -56,7 +56,7 @@ test::exit() {
   unset CIJ_TEST_NAME
 
   if [[ -z "$RVAL" ]]; then     # Incorrect usage => ERR
-    cij::err "test::exit: FAILED: no return value, this is always failure!"
+    cij.err "test.exit: FAILED: no return value, this is always failure!"
     exit 1
   fi
 
@@ -65,14 +65,14 @@ test::exit() {
   fi
 
   if [[ $RVAL -eq 0 ]]; then    # Annotate the exit message
-    cij::good "test::exit: $MSG"
+    cij.good "test.exit: $MSG"
   else
-    cij::err "test::exit: $MSG"
+    cij.err "test.exit: $MSG"
   fi
   exit "$RVAL"                    # Exit
 }
 
-test::skip() {
+test.skip() {
   MSG=$1
   if [[ -z "$MSG" ]]; then
     MSG="SKIPPED"
@@ -80,10 +80,10 @@ test::skip() {
     MSG="SKIPPED: $MSG"
   fi
 
-  test::exit 2 "$MSG"
+  test.exit 2 "$MSG"
 }
 
-test::fail() {
+test.fail() {
   MSG=$1
   if [[ -z "$MSG" ]]; then
     MSG="FAILED"
@@ -91,10 +91,10 @@ test::fail() {
     MSG="FAILED: $MSG"
   fi
 
-  test::exit 1 "$MSG"
+  test.exit 1 "$MSG"
 }
 
-test::pass() {
+test.pass() {
   MSG=$1
   if [[ -z "$MSG" ]]; then
     MSG="PASSED"
@@ -102,10 +102,10 @@ test::pass() {
     MSG="PASSED: $MSG"
   fi
 
-  test::exit 0 "$MSG"
+  test.exit 0 "$MSG"
 }
 
-test::info() {
-  cij::emph "test::info: $1"
+test.info() {
+  cij.emph "test.info: $1"
 }
 

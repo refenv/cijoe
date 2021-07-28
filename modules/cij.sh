@@ -2,20 +2,20 @@
 #
 # cij.sh - Miscellaneous helper functions
 #
-# cij::info   - Prints an information message to stdout
-# cij::good   - Prints an 'good'/'success' message to stdout
-# cij::warn   - Print a warning message to stdout
-# cij::err    - Prints an error message to stderr
-# cij::emph   - Prints an emphasized message to stdout
+# cij.info   - Prints an information message to stdout
+# cij.good   - Prints an 'good'/'success' message to stdout
+# cij.warn   - Print a warning message to stdout
+# cij.err    - Prints an error message to stderr
+# cij.emph   - Prints an emphasized message to stdout
 #
-# cij::throttle - Equivalent of `sleep` except it emits "." each second
+# cij.throttle - Equivalent of `sleep` except it emits "." each second
 #
-# cij::watchf           - Tails a path indefinitely
-# cij::watchf_for       - Tails a file until it contains a "$1"
+# cij.watchf           - Tails a path indefinitely
+# cij.watchf_for       - Tails a file until it contains a "$1"
 #
-# cij::repeat   - Repeat the given command the given number of times
+# cij.repeat   - Repeat the given command the given number of times
 #
-# cij::isint    - Determine whether given input is an integer
+# cij.isint    - Determine whether given input is an integer
 #
 
 #
@@ -45,7 +45,7 @@ export CIJ_ECHO_TIME_STAMP
 : "${CIJ_EMPH_DEFAULT:=}"
 export CIJ_EMPH_DEFAULT
 
-cij::info() {
+cij.info() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_EMPH_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -53,7 +53,7 @@ cij::info() {
   fi
 }
 
-cij::good() {
+cij.good() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_GOOD_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -61,7 +61,7 @@ cij::good() {
   fi
 }
 
-cij::warn() {
+cij.warn() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_WARN_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -69,7 +69,7 @@ cij::warn() {
   fi
 }
 
-cij::err() {
+cij.err() {
   if [[ $CIJ_ECHO_TIME_STAMP -eq 1 ]]; then
     echo -e "${PR_ERR_CC}# [$(/bin/date '+%F %T')] $1${PR_NC}"
   else
@@ -77,17 +77,17 @@ cij::err() {
   fi
 }
 
-cij::emph() {
+cij.emph() {
   if [[ -z ${2+x} ]]; then
-    cij::info "$1"
+    cij.info "$1"
   elif [[ $2 -eq 0 ]]; then
-    cij::good "$1"
+    cij.good "$1"
   else
-    cij::err "$1"
+    cij.err "$1"
   fi
 }
 
-cij::throttle() {
+cij.throttle() {
   local remaining="$1"
 
   if [[ "$remaining" -gt 0 ]]; then
@@ -101,16 +101,16 @@ cij::throttle() {
   fi
 }
 
-cij::watchf() {
+cij.watchf() {
   if [[ -z ${1+x} ]]; then
-    cij::err "cij::watchf: missing first argument"
+    cij.err "cij.watchf: missing first argument"
     return 0
   fi
 
   local watchf_file="$1"
 
   if [[ -z "$watchf_file" || ! -f "$watchf_file" ]]; then
-    cij::err "cij::watchf: Invalid file."
+    cij.err "cij.watchf: Invalid file."
     return 0
   fi
 
@@ -120,9 +120,9 @@ cij::watchf() {
 #
 # Watch a file until a message appear or timing out
 #
-# cij::watchf_for /tmp/jazz "foo" 10
+# cij.watchf_for /tmp/jazz "foo" 10
 #
-cij::watchf_for() {
+cij.watchf_for() {
   local watchf_file=$1
   local watchf_msg=$2
   local watchf_timeout=$3
@@ -130,11 +130,11 @@ cij::watchf_for() {
   local nlines
 
   if [[ -z "$watchf_file" || ! -f "$watchf_file" ]]; then
-    cij::err "cij::watchf_for: Invalid file: '$watchf_file'"
+    cij.err "cij.watchf_for: Invalid file: '$watchf_file'"
     return 0
   fi
   if [[ -z "$watchf_msg" ]]; then
-    cij::err "cij::watchf_for: No message provided"
+    cij.err "cij.watchf_for: No message provided"
     return 0
   fi
   : "${watchf_timeout:=60}"
@@ -154,22 +154,22 @@ cij::watchf_for() {
   done
 
   echo ""
-  cij::err "cij::watchf_for: timeout($watchf_timeout) exceeded."
+  cij.err "cij.watchf_for: timeout($watchf_timeout) exceeded."
   return 0
 }
 
 # Repeat the given command the given number of times, e.g.:
 #
-# cij::repeat 10 echo "Hello There"
+# cij.repeat 10 echo "Hello There"
 #
-cij::repeat() {
+cij.repeat() {
   if [[ -z ${1+x} ]]; then
-    cij::err "cij::repeat: missing first argument"
+    cij.err "cij.repeat: missing first argument"
     return 0
   fi
 
   if [[ -z ${2+x} ]]; then
-    cij::err "cij::repeat: missing command argument"
+    cij.err "cij.repeat: missing command argument"
     return 0
   fi
 
@@ -184,9 +184,9 @@ cij::repeat() {
 # Determine whether given input is an integer
 #
 # returncode 0 when input is an integer, 1 when it is not
-cij::isint() {
+cij.isint() {
   if [[ -z ${1+x} ]]; then
-    cij::err "no input given"
+    cij.err "no input given"
     return 0
   fi
 
@@ -197,28 +197,28 @@ cij::isint() {
 #
 # Transform files from cijoe-local storage to target
 #
-cij::push() {
+cij.push() {
   local _src=$1
   local _dst=$2
 
   if [[ ! -v _src ]]; then
-    cij::err "cij.push: missing first argument (src)"
+    cij.err "cij.push: missing first argument (src)"
     return 1
   fi
   if [[ ! -v _dst ]]; then
-    cij::err "cij.push: missing second argument (dst)"
+    cij.err "cij.push: missing second argument (dst)"
     return 1
   fi
 
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
-    ssh::push "${_src}" "${_dst}"
+    ssh.push "${_src}" "${_dst}"
     return $?
   elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     cp -r "${_src}" "${_dst}"
     return $?
   else
-    cij::err "cij.pull: missing SSH configuration or not explicitly set to run locally"
-    cij::err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    cij.err "cij.pull: missing SSH configuration or not explicitly set to run locally"
+    cij.err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
     return 1
   fi
 }
@@ -226,42 +226,42 @@ cij::push() {
 #
 # Transform files from target to cijoe-local storage
 #
-cij::pull() {
+cij.pull() {
   local _src=$1
   local _dst=$2
 
   if [[ ! -v _src ]]; then
-    cij::err "cij.pull: missing first argument (src)"
+    cij.err "cij.pull: missing first argument (src)"
     return 1
   fi
   if [[ ! -v _dst ]]; then
-    cij::err "cij.pull: missing second argument (dst)"
+    cij.err "cij.pull: missing second argument (dst)"
     return 1
   fi
 
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
-    ssh::pull "${_src}" "${_dst}"
+    ssh.pull "${_src}" "${_dst}"
     return $?
   elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     cp -r "${_src}" "${_dst}"
     return $?
   else
-    cij::err "cij.pull: missing SSH configuration or not explicitly set to run locally"
-    cij::err "cij.pull: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    cij.err "cij.pull: missing SSH configuration or not explicitly set to run locally"
+    cij.err "cij.pull: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
     return 1
   fi
 }
 
-cij::cmd() {
+cij.cmd() {
   if [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "ssh" ]] || [[ -v SSH_HOST ]]; then
-    ssh::cmd "$@"
+    ssh.cmd "$@"
     return $?
   elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
     "$@"
     return $?
   else
-    cij::err "cij.cmd: missing SSH configuration or not explicitly set to run locally"
-    cij::err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
+    cij.err "cij.cmd: missing SSH configuration or not explicitly set to run locally"
+    cij.err "cij.cmd: SSH_HOST: '${SSH_HOST}', CIJ_TARGET_TRANSPORT: '${CIJ_TARGET_TRANSPORT}'"
     return 1
   fi
 }
