@@ -1,0 +1,6 @@
+cijoe_pylint.sh
+cijoe_flake8.sh
+cijoe_mypy.sh
+cijoe_shellcheck.sh
+cijoe_tlint.sh
+cijoe_unittests.sh
