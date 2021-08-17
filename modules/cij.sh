@@ -265,3 +265,8 @@ cij.cmd() {
     return 1
   fi
 }
+
+cij::cmd_output() {
+  SSH_CMD_QUIET=1 cij::cmd "$@"
+  return $?
+}
