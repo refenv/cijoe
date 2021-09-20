@@ -8,6 +8,7 @@
 # To access the QEMU host an explicit "QEMU_HOST" and utility functions are
 # provided by the "qemu::" module
 #
+export CIJ_TARGET_TRANSPORT="ssh"
 
 # CIJOE: QEMU_* environment variables
 : "${QEMU_HOST:=localhost}"; export QEMU_HOST

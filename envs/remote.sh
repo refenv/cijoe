@@ -6,5 +6,6 @@
 #
 
 # Adjust the lines below to suit your environment
+export CIJ_TARGET_TRANSPORT="ssh"
 export SSH_HOST=your-remote-host
 export SSH_USER=root
