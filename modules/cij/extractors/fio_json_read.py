@@ -43,6 +43,7 @@ def extract_metrics(tcase: TestCase) -> List[dict]:
                 "iops": to_base_unit(job["read"]["iops_mean"], ""),
                 "bwps": to_base_unit(job["read"]["bw_mean"], "KiB"),
                 "lat": to_base_unit(job["read"]["lat_ns"]["mean"], "nsec"),
+                "stddev": to_base_unit(job["read"]["lat_ns"]["stddev"], ""),
             })
 
     if metrics:  # Only dump non-empty metrics
