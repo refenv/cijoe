@@ -34,6 +34,9 @@ def extract_metrics(tcase: TestCase) -> List[dict]:
                 job_id=n,
                 evars=tcase.evars,
             )
+            foo = "/".join(tcase.ident.split("/")[:-1])
+            foo = "_".join(foo.split("_")[:-1])
+            ctx["tsuite_name"] = foo
 
             metrics.append({
                 "ctx": ctx,
