@@ -133,6 +133,7 @@ def main(args):
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
 
+    # pylint: disable=no-member
     rehome(trun.args.output, args.output, trun)
 
     err = 0
