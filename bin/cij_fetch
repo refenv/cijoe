@@ -33,8 +33,7 @@ def md5_create(path):
         out, _ = process.communicate()
 
         if process.returncode == 0:
-            dst = "%s.md5" % path
-            with open(dst, 'w') as md5_fd:
+            with open(f"{path}.md5", 'w', encoding="UTF-8") as md5_fd:
                 md5_fd.write(out)
 
         rcode = process.returncode
@@ -54,7 +53,7 @@ def meta_local(path):
 
     md5 = None
     try:
-        with open("%s.md5" % path) as md5_fd:
+        with open("%s.md5" % path, encoding="UTF-8") as md5_fd:
             md5, _, _ = md5_fd.read().split(" ")
     except Exception as exc:
         _, _, exc_tb = sys.exc_info()

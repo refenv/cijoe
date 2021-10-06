@@ -380,7 +380,7 @@ def script_run(trun: TestRun, script: Runnable):
 
     launch = launchers[ext]
 
-    with open(script.log_fpath, "a") as log_fd:
+    with open(script.log_fpath, "a", encoding="UTF-8") as log_fd:
         log_fd.write("# script_fpath: %r\n" % script.fpath)
         log_fd.flush()
 
@@ -499,7 +499,7 @@ def trun_to_file(trun: TestRun, fpath=None):
         fpath = yml_fpath(trun.args.output)
 
     trun_dict = dataclasses.asdict(trun, dict_factory=dict_factory)
-    with open(fpath, 'w') as yml_file:
+    with open(fpath, 'w', encoding="UTF-8") as yml_file:
         data = yaml.dump(
             trun_dict, explicit_start=True, default_flow_style=False
         )
@@ -573,7 +573,7 @@ def trun_to_junitfile(trun: TestRun, fpath=None) -> int:
 
                 doc_testsuites.appendChild(doc_tsuite)
 
-        with open(fpath, "w") as junitf:
+        with open(fpath, "w", encoding="UTF-8") as junitf:
             junitf.write(doc.toprettyxml(indent="  "))
 
     except Exception as ex:     # pylint: disable=broad-except
@@ -586,7 +586,7 @@ def trun_to_junitfile(trun: TestRun, fpath=None) -> int:
 def trun_from_file(fpath) -> TestRun:
     """Returns trun from the given fpath"""
 
-    with open(fpath, 'r') as yml_file:
+    with open(fpath, 'r', encoding="UTF-8") as yml_file:
         trun_dict = yaml.safe_load(yml_file)
         return TestRun.from_dict(trun_dict)
 
@@ -694,7 +694,7 @@ def tsuite_setup(trun: TestRun, tplan: TestPlan, declr, enum) -> TestSuite:
     #
     tcase_fpaths: List[str] = []                 # Load testcase fpaths
     if os.path.exists(suite.fpath):              # From suite-file
-        with open(suite.fpath) as sfd:
+        with open(suite.fpath, encoding="UTF-8") as sfd:
             suite_lines = (
                 line.strip() for line in sfd.read().splitlines()
             )
@@ -741,7 +741,7 @@ def tplan_setup(trun: TestRun, tplan_fpath) -> TestPlan:
 
     declr = None
     try:
-        with open(tplan.fpath) as declr_fd:
+        with open(tplan.fpath, encoding="UTF-8") as declr_fd:
             declr = yaml.safe_load(declr_fd)
     except AttributeError as exc:
         cij.err("rnr: %r" % exc)

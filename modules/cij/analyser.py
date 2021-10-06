@@ -146,7 +146,7 @@ def to_base_unit(val: float, unit: str = "") -> float:
 def preqs_from_file(fpath):
     """ Read yaml-formatted performance requirements from fpath """
 
-    with open(fpath, 'r') as preqf:
+    with open(fpath, 'r', encoding="UTF-8") as preqf:
         return yaml.safe_load(preqf)
 
 
@@ -263,7 +263,7 @@ def tcase_check_preqs(tcase: TestCase, preqs: dict, tsuite_name: str
         return tc_err, True
 
     # Check performance requirements against measured metrics
-    with open(tcase.analysis_log_fpath, 'w') as alog:
+    with open(tcase.analysis_log_fpath, 'w', encoding="UTF-8") as alog:
         for metrics in test_metrics:
             checked_preqs = check_preqs(preqs, metrics)
             for cpreq in checked_preqs:
@@ -281,7 +281,7 @@ def _get_metrics(aux_root: str) -> List[dict]:
     if not os.path.exists(fpath):
         return []
 
-    with open(fpath, 'r') as yml_file:
+    with open(fpath, 'r', encoding="UTF-8") as yml_file:
         return yaml.safe_load(yml_file)
 
 

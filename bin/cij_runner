@@ -110,7 +110,7 @@ if __name__ == "__main__":
     LOCK_NAME = os.path.basename(ARGS.env).replace('.', '_')
     FNAME = os.path.join(tempfile.gettempdir(), LOCK_NAME + "_cijoe.lock")
     try:
-        with open(FNAME, "x") as fd:
+        with open(FNAME, "x", encoding="UTF-8") as fd:
             RES = main(ARGS)
         os.remove(FNAME)
 

@@ -8,10 +8,10 @@ import argparse
 def main(args):
     """Main entry-point of config_add_opts"""
 
-    with open(args.cfg_fn, 'r') as cfg_fd:
+    with open(args.cfg_fn, 'r', encoding="UTF-8") as cfg_fd:
         config = cfg_fd.read().split("\n")
 
-    with open(args.opt_fn, 'r') as opt_fd:
+    with open(args.opt_fn, 'r', encoding="UTF-8") as opt_fd:
         for oline in opt_fd:
             option, value = oline.strip().split("=")
 
@@ -27,7 +27,7 @@ def main(args):
             if not added:
                 config.append(conf_addition)
 
-    with open(args.cfg_fn, 'w') as cfg_fd:
+    with open(args.cfg_fn, 'w', encoding="UTF-8") as cfg_fd:
         cfg_fd.write("\n".join(config))
 
 

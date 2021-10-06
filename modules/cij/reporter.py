@@ -20,7 +20,7 @@ def tcase_comment(tcase):
     """
 
     src = ""
-    with open(tcase.fpath) as tcase_f:
+    with open(tcase.fpath, encoding="UTF-8") as tcase_f:
         src = tcase_f.read()
 
     if len(src) < 3:
@@ -98,7 +98,7 @@ def runlogs_to_html(run_root):
 
     content = ""
     for fpath in hook_enter + tcase + hook_exit:
-        with open(fpath, "r") as logf:
+        with open(fpath, "r", encoding="UTF-8") as logf:
             content += "# BEGIN: run-log from log_fpath: %s\n" % fpath
             content += logf.read()
             content += "# END: run-log from log_fpath: %s\n\n" % fpath
@@ -116,7 +116,7 @@ def analysislog_to_html(fpath):
         return "CANNOT_LOCATE_ANALYSIS_LOGFILES"
 
     content = ""
-    with open(fpath, "r") as logf:
+    with open(fpath, "r", encoding="UTF-8") as logf:
         content += f"# BEGIN: analysis-log from log_fpath: {fpath}\n"
         content += logf.read()
         content += f"# END: analysis-log from log_fpath: {fpath}\n\n"
@@ -134,7 +134,7 @@ def src_to_html(fpath):
 
     # NOTE: Do SYNTAX highlight?
 
-    with open(fpath, "r") as fpath_file:
+    with open(fpath, "r", encoding="UTF-8") as fpath_file:
         return fpath_file.read()
 
 
@@ -264,7 +264,7 @@ def main(args):
     html_fpath = os.path.join(args.output, "".join([args.tmpl_name, ext]))
     cij.emph("html_fpath: %r" % html_fpath)
     try:                                    # Create and store HTML report
-        with open(html_fpath, 'w') as html_file:
+        with open(html_fpath, 'w', encoding="UTF-8") as html_file:
             html_file.write(dset_to_html(trun, args.tmpl_fpath))
     except (IOError, OSError, ValueError) as exc:
         traceback.print_exc()

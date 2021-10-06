@@ -34,7 +34,7 @@ def _load_tplans(ident, roots, fnames):
 
         tplan = None
         try:
-            with open(tp_fpath) as tp_fd:
+            with open(tp_fpath, encoding="UTF-8") as tp_fd:
                 tplan = yaml.safe_load(tp_fd)
         except yaml.YAMLError:
             violations.append(MESSAGES[ident] % (tp_fname, "invalid YAML"))
@@ -69,7 +69,7 @@ def _load_preqs(ident, roots, fnames):
 
         preq = None
         try:
-            with open(preq_fpath) as tp_fd:
+            with open(preq_fpath, encoding="UTF-8") as tp_fd:
                 preq = yaml.safe_load(tp_fd)
         except yaml.YAMLError:
             violations.append(MESSAGES[ident] % (preq_fname, "invalid YAML"))
@@ -99,7 +99,7 @@ def tsuitefile_testcases_exists(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:    # Search .suite files
         ts_fpath = os.path.join(roots["TSUITES"], ts_fname)
-        with open(ts_fpath) as tsfd:
+        with open(ts_fpath, encoding="UTF-8") as tsfd:
             ts_lines_all = (
                 line.strip() for line in tsfd.read().splitlines()
             )
@@ -128,7 +128,7 @@ def testcase_unused(ident, roots, fnames):
 
     for ts_fname in fnames["TSUITES"]:  # Testcases from suite-files
         ts_fpath = os.path.join(roots["TSUITES"], ts_fname)
-        with open(ts_fpath) as tsfd:
+        with open(ts_fpath, encoding="UTF-8") as tsfd:
             ts_lines_all = (
                 line.strip() for line in tsfd.read().splitlines()
             )

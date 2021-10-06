@@ -58,7 +58,7 @@ def collect_metrics(args):
         if not (root.endswith(".sh") and os.path.exists(yml_fpath)):
             continue
 
-        with open(yml_fpath, 'r') as yml_file:
+        with open(yml_fpath, 'r', encoding="UTF-8") as yml_file:
             metrics.extend(yaml.safe_load(yml_file))
 
     return metrics
@@ -261,7 +261,7 @@ def main():
     plot_name = f"{args.plot}-{args.metric}"
 
     if args.save:                           # Store plot-data and plot
-        with open(os.path.join(args.output, f"{plot_name}.yml"), 'w') as yfd:
+        with open(os.path.join(args.output, f"{plot_name}.yml"), 'w', encoding="UTF-8") as yfd:
             yfd.write(yaml.dump(
                 pdata, explicit_start=True, default_flow_style=False
             ))

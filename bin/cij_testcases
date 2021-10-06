@@ -33,7 +33,7 @@ def construct_dset(conf: cij.conf.Config) -> dict:
         fpath = os.path.join(conf.testcases, fname)
 
         src_content = ""
-        with open(fpath, "r") as src_file:
+        with open(fpath, "r", encoding="UTF-8") as src_file:
             src_content = src_file.read()
 
         tcase = TestCase(
@@ -101,7 +101,7 @@ def main(args: argparse.Namespace, conf: cij.conf.Config) -> int:
 
     try:
 
-        with open(html_fpath, 'w') as html_fd:
+        with open(html_fpath, 'w', encoding="UTF-8") as html_fd:
             html = dset_to_html(dset, args.tmpl_fpath)
             html_fd.write(html)
 
