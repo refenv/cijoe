@@ -6,6 +6,8 @@
 # find it $CIJ_PKG_REPOS. The intent is to use this on CIJOE as well as CIJOE
 # packages.
 #
+# The 'consider-using-f-string' check is disabled, since it is just a "nice-to-have"
+#
 # shellcheck disable=SC2119
 #
 CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
@@ -43,7 +45,7 @@ if [[ -z "$paths" ]]; then
 fi
 
 # shellcheck disable=SC2086
-if ! pylint $paths --disable=duplicate-code ; then
+if ! pylint $paths --disable=duplicate-code,consider-using-f-string ; then
   popd || true
   test::fail
 fi
