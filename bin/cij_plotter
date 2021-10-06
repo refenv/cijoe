@@ -261,7 +261,8 @@ def main():
     plot_name = f"{args.plot}-{args.metric}"
 
     if args.save:                           # Store plot-data and plot
-        with open(os.path.join(args.output, f"{plot_name}.yml"), 'w', encoding="UTF-8") as yfd:
+        yfname = os.path.join(args.output, f"{plot_name}.yml")
+        with open(yfname, 'w', encoding="UTF-8") as yfd:
             yfd.write(yaml.dump(
                 pdata, explicit_start=True, default_flow_style=False
             ))
