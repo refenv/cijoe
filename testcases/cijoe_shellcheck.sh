@@ -11,15 +11,15 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::enter
+test.enter
 
-cij::info "CIJ_PKG_REPOS: 'CIJ_PKG_REPOS'"
-cij::info "SHELLCHECK_OPTS: 'SHELLCHECK_OPTS'"
+cij.info "CIJ_PKG_REPOS: 'CIJ_PKG_REPOS'"
+cij.info "SHELLCHECK_OPTS: 'SHELLCHECK_OPTS'"
 
 if [[ -z "$CIJ_PKG_REPOS" ]]; then
-  test::fail "Please set 'CIJ_PKG_REPOS'"
+  test.fail "Please set 'CIJ_PKG_REPOS'"
 fi
-pushd "$CIJ_PKG_REPOS" || test::fail "Invalid 'CIJ_PKG_REPOS'"
+pushd "$CIJ_PKG_REPOS" || test.fail "Invalid 'CIJ_PKG_REPOS'"
 
 paths=""
 for path in {bin,envs,hooks,testcases,modules}/*; do
@@ -33,16 +33,16 @@ for path in {bin,envs,hooks,testcases,modules}/*; do
 done
 
 if [[ -z "$paths" ]]; then
-  cij::warn "No SHELL source code to check"
+  cij.warn "No SHELL source code to check"
   popd || true
-  test::pass
+  test.pass
 fi
 
 # shellcheck disable=SC2086
 if ! shellcheck $paths ; then
   popd || true
-  test::fail
+  test.fail
 fi
 
 popd || true
-test::pass
+test.pass

@@ -14,14 +14,14 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::enter
+test.enter
 
-cij::info "CIJ_PKG_REPOS: '${CIJ_PKG_REPOS}'"
+cij.info "CIJ_PKG_REPOS: '${CIJ_PKG_REPOS}'"
 
 if [[ -z "$CIJ_PKG_REPOS" ]]; then
-  test::fail "Please set 'CIJ_PKG_REPOS'"
+  test.fail "Please set 'CIJ_PKG_REPOS'"
 fi
-pushd "$CIJ_PKG_REPOS" || test::fail "Invalid 'CIJ_PKG_REPOS'"
+pushd "$CIJ_PKG_REPOS" || test.fail "Invalid 'CIJ_PKG_REPOS'"
 
 paths=""
 for path in {bin,hooks,testcases}/* "${CIJ_PKG_REPOS}/modules/cij/"*.py "${CIJ_PKG_REPOS}/setup.py"; do
@@ -37,18 +37,18 @@ for path in {bin,hooks,testcases}/* "${CIJ_PKG_REPOS}/modules/cij/"*.py "${CIJ_P
   fi
 done
 
-cij::info "checking: '$paths'"
+cij.info "checking: '$paths'"
 if [[ -z "$paths" ]]; then
-  cij::warn "No Python source to check"
+  cij.warn "No Python source to check"
   popd || true
-  test::pass
+  test.pass
 fi
 
 # shellcheck disable=SC2086
 if ! pylint $paths --disable=duplicate-code,consider-using-f-string ; then
   popd || true
-  test::fail
+  test.fail
 fi
 
 popd || true
-test::pass
+test.pass

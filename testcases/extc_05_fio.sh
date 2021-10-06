@@ -21,7 +21,7 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::enter
+test.enter
 
 : "${FIO_BIN:=fio}"
 
@@ -52,14 +52,14 @@ main() {
 
         _args="${_args} --output-format=normal,json --output=${_target_fpath}"
 
-        cij::info "run: ${i}/${FIO_NRUNS}"
-        if ! cij::cmd "${FIO_BIN} ${FIO_ARGS} ${_args}"; then
+        cij.info "run: ${i}/${FIO_NRUNS}"
+        if ! cij.cmd "${FIO_BIN} ${FIO_ARGS} ${_args}"; then
           return 1
         fi
 
         # Download the output
-        if ! cij::pull "${_target_fpath}" "${_output_fpath}"; then
-          cij::err "xnvme::fioe: failed pulling down fio output-file"
+        if ! cij.pull "${_target_fpath}" "${_output_fpath}"; then
+          cij.err "xnvme.fioe: failed pulling down fio output-file"
           return 1
         fi
 
@@ -73,7 +73,7 @@ main() {
 }
 
 if main; then
-  test::pass "That went well; see aux-files for output."
+  test.pass "That went well; see aux-files for output."
 else
-  test::fail
+  test.fail
 fi

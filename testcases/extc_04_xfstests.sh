@@ -27,27 +27,27 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::enter
+test.enter
 
 # Create and define a mount-point
-if ! FS_MOUNT_POINT=$(ssh::cmd_output "mktemp -d \"XFSMP_XXXXXX\" -p /tmp"); then
-  test::fail
+if ! FS_MOUNT_POINT=$(ssh.cmd_output "mktemp -d \"XFSMP_XXXXXX\" -p /tmp"); then
+  test.fail
 fi
 
 export FS_MOUNT_POINT
 
-if ! xfstests::prepare; then
-  test::fail
+if ! xfstests.prepare; then
+  test.fail
 fi
 
-if ! xfstests::run "generic/001"; then
-  xfstests::cleanup
+if ! xfstests.run "generic/001"; then
+  xfstests.cleanup
 
-  test::fail
+  test.fail
 fi
 
-if ! xfstests::cleanup; then
-  test::fail
+if ! xfstests.cleanup; then
+  test.fail
 fi
 
-test::pass
+test.pass

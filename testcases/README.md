@@ -21,13 +21,13 @@ contract. The contract is described in the following.
    ensure that the SSH-utility is satisfied.
 
 2. Whenever possible, testcases must use framework modules, e.g. utilize
-   "test::pass" to exit a test upon success and use "test::fail" to exit a test
+   "test.pass" to exit a test upon success and use "test.fail" to exit a test
    indicating failure. When implementing a test, inspect the available modules
    to see what functionality can be re-used/expanded.
 
 3. stdout and stderr, should never be redirected. Additionally, when a test
-   produces output it should produce it *annotated* via the `cij::emph`,
-   `cij::info`, `cij::err`, `cij::warn` module functions. This allows for
+   produces output it should produce it *annotated* via the `cij.emph`,
+   `cij.info`, `cij.err`, `cij.warn` module functions. This allows for
    post-processing to distinguish between output from the testcase itself in
    contrast to the output produce by the commands executed by the testcase.
 
@@ -37,5 +37,5 @@ the `$CIJ_TEST_AUX_ROOT`.
 Always check the return values of executed commands, even the simplest
 expressions can lead to unexpected behavior when not succeeding. Additionally,
 when checking return values, provide a meaningful informational message via
-`cij::err`. Checking and providing meaningful annotated error-messages makes
+`cij.err`. Checking and providing meaningful annotated error-messages makes
 reading log-files from testcases a lot easier and accelerates troubleshooting.

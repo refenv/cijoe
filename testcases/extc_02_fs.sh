@@ -20,26 +20,26 @@ CIJ_TEST_NAME=$(basename "${BASH_SOURCE[0]}")
 export CIJ_TEST_NAME
 # shellcheck source=modules/cijoe.sh
 source "$CIJ_ROOT/modules/cijoe.sh"
-test::enter
+test.enter
 
 FS_DEV_PATH=$BLOCK_DEV_PATH
 FS_TYPE=ext4
-FS_MOUNT_POINT=$(ssh::cmd_output "mktemp -d \"FSMP_XXXXXX\" -p /tmp")
+FS_MOUNT_POINT=$(ssh.cmd_output "mktemp -d \"FSMP_XXXXXX\" -p /tmp")
 
-if ! ssh::cmd "[[ -d \"$FS_MOUNT_POINT\" ]]"; then
-  test::fail "could not create fs mount-point"
+if ! ssh.cmd "[[ -d \"$FS_MOUNT_POINT\" ]]"; then
+  test.fail "could not create fs mount-point"
 fi
 
-if ! fs::create; then
-  test::fail "failed creating '$FS_TYPE' on '$FS_DEV_PATH'"
+if ! fs.create; then
+  test.fail "failed creating '$FS_TYPE' on '$FS_DEV_PATH'"
 fi
 
-if ! fs::mount; then
-  test::fail "failed mounting '$FS_TYPE' on '$FS_MOUNT_POINT'"
+if ! fs.mount; then
+  test.fail "failed mounting '$FS_TYPE' on '$FS_MOUNT_POINT'"
 fi
 
-if ! fs::umount; then
-  test::fail "failed unmounting '$FS_TYPE' on '$FS_MOUNT_POINT'"
+if ! fs.umount; then
+  test.fail "failed unmounting '$FS_TYPE' on '$FS_MOUNT_POINT'"
 fi
 
-test::pass
+test.pass
