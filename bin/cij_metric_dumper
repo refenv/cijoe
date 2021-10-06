@@ -120,7 +120,7 @@ def main():
         dset[ident]["stddev"].append(int(metric["stddev"]))
         dset[ident]["dist"] = max(dset[ident]["lat"]) - min(dset[ident]["lat"])
 
-    for ident in dset:
+    for ident in dset.items():
         sample = dset[ident]
         print("%s: { lat: [%s], stddev: [%s], dist: [%s], min: %d}" % (
             ident,
