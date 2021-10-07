@@ -28,6 +28,12 @@ HEAD can be subject to a git rebase.
 * Remove RocksDB specific, and consider providing a **cijoe-pkg-rocksdb** package
   - modules: ``rbench.sh``
 
+## 0.2.1
+
+* Replaced the ``::`` module-separator with ``.`` in hooks and modules.
+
+* Fix to quick-start documentation
+
 ## 0.2.0
 
 * Replaced the ``::`` module-seperator with ``.``
