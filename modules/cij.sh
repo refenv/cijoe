@@ -266,7 +266,7 @@ cij.cmd() {
   fi
 }
 
-cij::cmd_output() {
-  SSH_CMD_QUIET=1 cij::cmd "$@"
+cij.cmd_output() {
+  SSH_CMD_QUIET=1 cij.cmd "$@"
   return $?
 }

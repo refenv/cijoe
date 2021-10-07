@@ -4,8 +4,8 @@
 #
 # Functions:
 #
-# fio::env              - Setup basic variables
-# fio::run              - Translate ENV. VARS. into FIO_ARGS and run fio
+# fio.env              - Setup basic variables
+# fio.run              - Translate ENV. VARS. into FIO_ARGS and run fio
 #
 #
 ## Variables EXPORTED by module:
@@ -14,11 +14,11 @@
 # FIO_SSH               - Whether or not to use SSH as tranport (DEFAULT 1)
 #                         1: Run remotely, 0: Run locally
 #
-## Variables REQUIRED by fio::run:
+## Variables REQUIRED by fio.run:
 #
 # FIO_FILENAME          - Absolute path to block device
 #
-## Variables OPTIONAL by fio::run
+## Variables OPTIONAL by fio.run
 #
 # FIO_READWRITE
 # FIO_BLOCKSIZE
@@ -45,12 +45,12 @@
 #
 # FIO_DOLOGS            - 1: Do a bunch of magic
 #
-# Variables EXPORTED by fio::run:
+# Variables EXPORTED by fio.run:
 #
 # FIO_ARGS              - Complete set of arguments for fio command
 #
 
-fio::env() {
+fio.env() {
   # DEFAULT variables
   FIO_BIN=${FIO_BIN:-/usr/local/bin/fio}
   FIO_SSH=${FIO_SSH:-1}
@@ -70,15 +70,15 @@ fio::env() {
   return 0
 }
 
-fio::run() {
-  if ! fio::env; then
-    cij::err "fio::env failed"
+fio.run() {
+  if ! fio.env; then
+    cij.err "fio.env failed"
     return 1
   fi
 
   # REQUIRED variables
   if [[ -z "$FIO_FILENAME" ]]; then
-    cij::err "fio::run: FIO_FILENAME is not set"
+    cij.err "fio.run: FIO_FILENAME is not set"
     return 1
   fi
 
@@ -174,7 +174,7 @@ fio::run() {
   fi
 
   if [[ $FIO_SSH -eq 1 ]]; then
-    ssh::cmd "$FIO_BIN $FIO_ARGS"
+    ssh.cmd "$FIO_BIN $FIO_ARGS"
     return $?
   fi
 
@@ -182,36 +182,36 @@ fio::run() {
   return $?
 }
 
-fio::run_jobfile() {
+fio.run_jobfile() {
   FIO_JOBFILE=$1
   if [[ -z "$FIO_JOBFILE" ]]; then
-    cij::err "fio::run_jobfile: No jobfile provided"
+    cij.err "fio.run_jobfile: No jobfile provided"
     return 1
   fi
 
   if [[ ! -f "$FIO_JOBFILE" ]]; then
-    cij::err "fio::run_jobfile: Invalid FIO_JOBFILE: $FIO_JOBFILE"
+    cij.err "fio.run_jobfile: Invalid FIO_JOBFILE: $FIO_JOBFILE"
     return 1
   fi
 
-  if ! fio::env; then
-    cij::err "fio::env failed"
+  if ! fio.env; then
+    cij.err "fio.env failed"
     return 1
   fi
 
   local fio_jobfile_fname
   fio_jobfile_fname=$(basename "$FIO_JOBFILE")
 
-  cij::emph "fio_jobfile_fname: '$fio_jobfile_fname'"
+  cij.emph "fio_jobfile_fname: '$fio_jobfile_fname'"
 
   local show_cmd=""                                     # Grab args. from file
   if [[ $FIO_SSH -eq 1 ]]; then
     local remote_fname
 
-    remote_fname=$(ssh::cmd_output tempfile)
-    cij::emph "remote_fname: '$remote_fname'"
-    ssh::push "$FIO_JOBFILE" "$remote_fname"
-    show_cmd=$(ssh::cmd_output "$FIO_BIN --showcmd $remote_fname")
+    remote_fname=$(ssh.cmd_output tempfile)
+    cij.emph "remote_fname: '$remote_fname'"
+    ssh.push "$FIO_JOBFILE" "$remote_fname"
+    show_cmd=$(ssh.cmd_output "$FIO_BIN --showcmd $remote_fname")
   else
     show_cmd=$("$FIO_BIN --showcmd $FIO_JOBFILE")
   fi
@@ -220,7 +220,7 @@ fio::run_jobfile() {
   FIO_ADRGS_EXTRA_BU="$FIO_ARGS_EXTRA"
   FIO_ARGS_EXTRA="$FIO_ARGS_EXTRA $show_cmd"
 
-  fio::run
+  fio.run
   local rcode="$?"
 
   FIO_ARGS_EXTRA="$FIO_ADRGS_EXTRA_BU"

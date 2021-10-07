@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# rbench::env - Checks environment for needed variables
+# rbench.env - Checks environment for needed variables
 #
 # Variables REQUIRED by module
 #/
@@ -10,24 +10,24 @@
 # $RBENCH_NUM
 #
 
-rbench::env() {
-  if ! ssh::env; then
-    cij::err "rbench::env - Invalid SSH ENV."
+rbench.env() {
+  if ! ssh.env; then
+    cij.err "rbench.env - Invalid SSH ENV."
     return 1
   fi
 
   # Mandatory ENV. VAR> definitions
   if [[ -z "$RBENCH_BIN" ]]; then
-    cij::err "rbench::env: RBENCH_BIN is not defined"
+    cij.err "rbench.env: RBENCH_BIN is not defined"
     return 1
   fi
 
   return 0
 }
 
-rbench::run() {
-  if ! rbench::env; then
-    cij::err "rbench::run - Invalid SSH ENV."
+rbench.run() {
+  if ! rbench.env; then
+    cij.err "rbench.run - Invalid SSH ENV."
     return 1
   fi
 
@@ -176,14 +176,14 @@ rbench::run() {
     RBENCH_CMD="$RBENCH_CMD $RBENCH_CMD_POSTFIX"
   fi
 
-  if ! ssh::cmd "ulimit -n 100000"; then
-    cij::err "rbench::run setting ulimit failed"
+  if ! ssh.cmd "ulimit -n 100000"; then
+    cij.err "rbench.run setting ulimit failed"
     return 1
   fi
 
-  cij::emph "Running: $RBENCH_CMD"
-  if ! ssh::cmd "$RBENCH_CMD"; then
-    cij::err "rbench::run db_bench returned with an error"
+  cij.emph "Running: $RBENCH_CMD"
+  if ! ssh.cmd "$RBENCH_CMD"; then
+    cij.err "rbench.run db_bench returned with an error"
     return 1
   fi
 }

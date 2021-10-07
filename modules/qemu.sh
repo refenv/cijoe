@@ -5,27 +5,27 @@
 # Tools required:
 #
 # * ssh, the SSH cli
-# * cloud-localds, for provisioning cloud-images via 'qemu::img_from_url'
+# * cloud-localds, for provisioning cloud-images via 'qemu.img_from_url'
 # * minicom, for interactive text-console
 #
 # Functions:
 #
-# qemu::run                     - Run qemu
-# qemu::kill                    - Send SIGTERM to qemu
-# qemu::poweroff                - Send poweroff via qemu-monitor
-# qemu::reset                   - Send reset via qemu-monitor
-# qemu::env                     - Sets default vars for qemu wrapping
-# qemu::console                 - Displays guest console monitor
-# qemu::monitor                 - ?
+# qemu.run                     - Run qemu
+# qemu.kill                    - Send SIGTERM to qemu
+# qemu.poweroff                - Send poweroff via qemu-monitor
+# qemu.reset                   - Send reset via qemu-monitor
+# qemu.env                     - Sets default vars for qemu wrapping
+# qemu.console                 - Displays guest console monitor
+# qemu.monitor                 - ?
 #
-# qemu::hostcmd                 - Execute a command on the qemu-host
-# qemu::hostcmd_output          - Retrieve output from command on qemu-host
-# qemu::host_push               - Push to qemu-host
-# qemu::provision_kernel        - Push kernel to qemu-host
-# qemu::is_running              - Check whether the guest is running
-# qemu::wait                    - Wait for QEMU to stop running
+# qemu.hostcmd                 - Execute a command on the qemu-host
+# qemu.hostcmd_output          - Retrieve output from command on qemu-host
+# qemu.host_push               - Push to qemu-host
+# qemu.provision_kernel        - Push kernel to qemu-host
+# qemu.is_running              - Check whether the guest is running
+# qemu.wait                    - Wait for QEMU to stop running
 #
-# qemu::img_from_url
+# qemu.img_from_url
 #
 # Guest configuration and QEMU arguments are managed via variables. Define them
 # as exported environment variables or make sure they are in scope.
@@ -71,25 +71,25 @@
 #
 # QEMU_GUEST_HOST_SHARE         - Set to an absolute path to share with guest
 #
-qemu::env() {
+qemu.env() {
   if [[ ! -v QEMU_HOST ]]; then
-    cij::err "qemu::env: QEMU_HOST not set"
+    cij.err "qemu.env: QEMU_HOST not set"
     return 1
   fi
   if [[ ! -v QEMU_HOST_USER ]]; then
-    cij::err "qemu::env: QEMU_HOST_USER not set"
+    cij.err "qemu.env: QEMU_HOST_USER not set"
     return 1
   fi
   # set host defaults
   : "${QEMU_HOST_PORT:=22}"
 
   if [[ ! -v QEMU_GUESTS ]]; then
-    cij::info "QEMU_GUESTS is unset using '/tmp/guests'"
+    cij.info "QEMU_GUESTS is unset using '/tmp/guests'"
     : "${QEMU_GUESTS:=/tmp/guests}"
   fi
 
   if [[ ! -v QEMU_GUEST_NAME ]]; then
-    cij::info "QEMU_GUESTS is unset using 'default-guest'"
+    cij.info "QEMU_GUESTS is unset using 'default-guest'"
     : "${QEMU_GUEST_NAME=default-guest}"
   fi
 
@@ -129,32 +129,32 @@ qemu::env() {
   return 0
 }
 
-qemu::hostcmd() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.hostcmd() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
 
-  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::cmd "$1"
+  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh.cmd "$1"
 }
 
-qemu::hostcmd_output() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.hostcmd_output() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
 
-  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::cmd_output "$1"
+  SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh.cmd_output "$1"
 }
 
-qemu::host_push() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.host_push() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
 
-  if ! SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh::push "$1" "$2"; then
-    cij::err "qemu::host_push failed"
+  if ! SSH_USER=${QEMU_HOST_USER} SSH_HOST=${QEMU_HOST} SSH_PORT=${QEMU_HOST_PORT} ssh.push "$1" "$2"; then
+    cij.err "qemu.host_push failed"
     return 1
   fi
 
@@ -162,10 +162,10 @@ qemu::host_push() {
 }
 
 # Copy from path into guest, e.g.
-# > qemu::provision_kernel "/path/to/kernel/bzImage"
-qemu::provision_kernel() {
-  if ! qemu::env; then
-    cij::err "qemu::provision_kernel failed"
+# > qemu.provision_kernel "/path/to/kernel/bzImage"
+qemu.provision_kernel() {
+  if ! qemu.env; then
+    cij.err "qemu.provision_kernel failed"
     return 1
   fi
 
@@ -175,25 +175,25 @@ qemu::provision_kernel() {
   bzi_src=$1
   bzi_dst="${QEMU_GUEST_PATH}/bzImage"
 
-  if ! qemu::host_push "$bzi_src" "${bzi_dst}"; then
-    cij::err "qemu:provision_kernel failed"
+  if ! qemu.host_push "$bzi_src" "${bzi_dst}"; then
+    cij.err "qemu:provision_kernel failed"
     return 1
   fi
 }
 
-qemu::kill() {
-  if ! qemu::env; then
-    cij::err "qemu::kill failed"
+qemu.kill() {
+  if ! qemu.env; then
+    cij.err "qemu.kill failed"
     return 1
   fi
 
-  if ! qemu_pid=$(qemu::hostcmd_output "cat \"$QEMU_GUEST_PIDFILE\""); then
-    cij::err "qemu::kill: failed to get qemu pid"
+  if ! qemu_pid=$(qemu.hostcmd_output "cat \"$QEMU_GUEST_PIDFILE\""); then
+    cij.err "qemu.kill: failed to get qemu pid"
     return 1
   fi
 
-  if ! qemu::hostcmd "kill $qemu_pid"; then
-    cij::err "qemu::kill: failed to kill qemu guest"
+  if ! qemu.hostcmd "kill $qemu_pid"; then
+    cij.err "qemu.kill: failed to kill qemu guest"
     return 1
   fi
 
@@ -201,48 +201,48 @@ qemu::kill() {
 }
 
 # Returns 0 if qemu is running, 1 if it fails to determine status or not running
-qemu::is_running() {
-  if ! qemu::env; then
-    cij::err "qemu::is_running failed"
+qemu.is_running() {
+  if ! qemu.env; then
+    cij.err "qemu.is_running failed"
     return 1
   fi
 
-  if ! qemu::hostcmd "[[ -f \"${QEMU_GUEST_PIDFILE}\" ]]"; then
-    cij::info "qemu::is_running: no pidfile, assuming it is not running"
+  if ! qemu.hostcmd "[[ -f \"${QEMU_GUEST_PIDFILE}\" ]]"; then
+    cij.info "qemu.is_running: no pidfile, assuming it is not running"
     return 1
   fi
 
   PID=""
-  if ! PID=$(qemu::hostcmd_output "cat \"${QEMU_GUEST_PIDFILE}\""); then
-    cij::err "qemu::is_running: failed getting pid from '${QEMU_GUEST_PIDFILE}'"
+  if ! PID=$(qemu.hostcmd_output "cat \"${QEMU_GUEST_PIDFILE}\""); then
+    cij.err "qemu.is_running: failed getting pid from '${QEMU_GUEST_PIDFILE}'"
     return 1
   fi
 
   if [[ -z "$PID" ]]; then
-    cij::info "qemu::is_running: no qemu/pid($PID), probably not running"
+    cij.info "qemu.is_running: no qemu/pid($PID), probably not running"
     return 1
   fi
 
-  if qemu::hostcmd "ps -p \"$PID\" > /dev/null"; then
-    cij::info "qemu::is_running: qemu/pid($PID) seems to be running"
+  if qemu.hostcmd "ps -p \"$PID\" > /dev/null"; then
+    cij.info "qemu.is_running: qemu/pid($PID) seems to be running"
     return 0
   else
-    cij::info "qemu::is_running: qemu/pid($PID) does not seem to be running"
+    cij.info "qemu.is_running: qemu/pid($PID) does not seem to be running"
     return 1
   fi
 }
 
 # Wait for qemu to stop running, or fail trying...
-qemu::wait() {
-  if ! qemu::env; then
-    cij::err "qemu::wait: env failed"
+qemu.wait() {
+  if ! qemu.env; then
+    cij.err "qemu.wait: env failed"
     return 1
   fi
 
   local timeout=$1
   local count=0
 
-  while qemu::is_running; do
+  while qemu.is_running; do
     sleep 1
     count=$(( count + 1))
     if [[ -n "$timeout" && "$count" -gt "$timeout" ]]; then
@@ -253,59 +253,59 @@ qemu::wait() {
   return 0
 }
 
-qemu::poweroff() {
-  if ! qemu::env; then
-    cij::err "qemu::poweroff: env failed"
+qemu.poweroff() {
+  if ! qemu.env; then
+    cij.err "qemu.poweroff: env failed"
     return 1
   fi
 
-  qemu::hostcmd "echo system_powerdown | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
+  qemu.hostcmd "echo system_powerdown | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
-qemu::reset() {
-  if ! qemu::env; then
-    cij::err "qemu::reset: env failed"
+qemu.reset() {
+  if ! qemu.env; then
+    cij.err "qemu.reset: env failed"
     return 1
   fi
 
-  qemu::hostcmd "echo system_reset | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
+  qemu.hostcmd "echo system_reset | socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
-qemu::monitor() {
-  if ! qemu::env; then
-    cij::err "qemu::monitor: failed"
+qemu.monitor() {
+  if ! qemu.env; then
+    cij.err "qemu.monitor: failed"
     return 1
   fi
 
-  qemu::hostcmd "socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
+  qemu.hostcmd "socat - UNIX-CONNECT:${QEMU_GUEST_MONITOR}"
   return $?
 }
 
 # watch the console monitor output
 # interactive usage
-qemu::console() {
-  if ! qemu::env; then
-    cij::err "qemu::console: qemu::env failed"
+qemu.console() {
+  if ! qemu.env; then
+    cij.err "qemu.console: qemu.env failed"
     return 1
   fi
 
   case ${QEMU_GUEST_CONSOLE} in
   sock)
-    SSH_EXTRA_ARGS="-t" qemu::hostcmd "minicom -D unix#${QEMU_GUEST_PATH}/serial.sock"
+    SSH_EXTRA_ARGS="-t" qemu.hostcmd "minicom -D unix#${QEMU_GUEST_PATH}/serial.sock"
     ;;
   file)
-    qemu::hostcmd "tail -n 1000 -f ${QEMU_GUEST_PATH}/serial.txt"
+    qemu.hostcmd "tail -n 1000 -f ${QEMU_GUEST_PATH}/serial.txt"
     ;;
   esac
 
   return $?
 }
 
-qemu::img() {
-  if ! qemu::env; then
-    cij::err "qemu::img: qemu::env failed"
+qemu.img() {
+  if ! qemu.env; then
+    cij.err "qemu.img: qemu.env failed"
     return 1
   fi
 
@@ -313,23 +313,23 @@ qemu::img() {
 
   _cmd="${QEMU_HOST_IMG_BIN} $*"
 
-  qemu::hostcmd "${_cmd}"
+  qemu.hostcmd "${_cmd}"
   return $?
 }
 
-qemu::guest_dev_exists() {
-  if ! qemu::env; then
-    cij::err "qemu::guest_dev_exists: qemu::env failed"
+qemu.guest_dev_exists() {
+  if ! qemu.env; then
+    cij.err "qemu.guest_dev_exists: qemu.env failed"
     return 1
   fi
 
-  qemu::hostcmd "[[ -f ${QEMU_DEV_IMAGE_FPATH} ]]"
+  qemu.hostcmd "[[ -f ${QEMU_DEV_IMAGE_FPATH} ]]"
   return $?
 }
 
-qemu::img_create() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.img_create() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
 
@@ -343,30 +343,30 @@ qemu::img_create() {
 
   local _img="${QEMU_GUEST_PATH}/${_ident}.img"
 
-  if qemu::hostcmd "[[ -f ${_img} ]]"; then
+  if qemu.hostcmd "[[ -f ${_img} ]]"; then
     return 0
   fi
 
-  qemu::img "create -f ${_fmt} ${_img} ${_size}"
+  qemu.img "create -f ${_fmt} ${_img} ${_size}"
   return $?
 }
 
-qemu::run() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.run() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
-  if qemu::is_running; then
-    cij::err "qemu::run: looks like qemu is already running"
+  if qemu.is_running; then
+    cij.err "qemu.run: looks like qemu is already running"
     return 1
   fi
-  cij::info "Guests: ${QEMU_GUESTS} Name: ${QEMU_GUEST_NAME} Path: ${QEMU_GUEST_PATH}"
-  if ! qemu::hostcmd "[[ -f ${QEMU_GUEST_BOOT_IMG} ]]"; then
-    cij::err "qemu::run: missing: ${QEMU_GUEST_BOOT_IMG}"
+  cij.info "Guests: ${QEMU_GUESTS} Name: ${QEMU_GUEST_NAME} Path: ${QEMU_GUEST_PATH}"
+  if ! qemu.hostcmd "[[ -f ${QEMU_GUEST_BOOT_IMG} ]]"; then
+    cij.err "qemu.run: missing: ${QEMU_GUEST_BOOT_IMG}"
     return 1
   fi
 
-  # Setup arguments, `qemu::env` provides sensible defaults for the
+  # Setup arguments, `qemu.env` provides sensible defaults for the
   # non-optional arguments
   local _args=""
   local _cmd=""
@@ -396,7 +396,7 @@ qemu::run() {
   _args="$_args -device virtio-blk-pci,drive=boot"
 
   # network interface with a single port-forward
-  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp::${QEMU_GUEST_SSH_FWD_PORT}-:22"
+  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp.${QEMU_GUEST_SSH_FWD_PORT}-:22"
   _args="$_args -device virtio-net-pci,netdev=n1"
 
   # pidfile
@@ -441,9 +441,9 @@ qemu::run() {
     _cmd="${_cmd} ${QEMU_ARGS_EXTRA}"
   fi
 
-  cij::info "Starting QEMU with commandline: $_cmd"
-  if ! qemu::hostcmd "$_cmd"; then
-    cij::err "qemu::run Failed to start qemu"
+  cij.info "Starting QEMU with commandline: $_cmd"
+  if ! qemu.hostcmd "$_cmd"; then
+    cij.err "qemu.run Failed to start qemu"
     return 1
   fi
 
@@ -453,11 +453,11 @@ qemu::run() {
 #
 # Downloads a cloud-image and executes first-boot
 #
-# qemu::img_from_url "https://cloud.cdimage.com/.../debian-generic.qcow2"
+# qemu.img_from_url "https://cloud.cdimage.com/.../debian-generic.qcow2"
 #
-qemu::img_from_url() {
-  if ! qemu::env; then
-    cij::err "qemu::img_from_url failed"
+qemu.img_from_url() {
+  if ! qemu.env; then
+    cij.err "qemu.img_from_url failed"
     return 1
   fi
 
@@ -470,44 +470,44 @@ qemu::img_from_url() {
   boot_img_url="$1"
 
   # Check that files for cloud-image seeding are available on qemu-host
-  if ! qemu::hostcmd "[[ -f \"${data_file}\" ]]"; then
-    cij::err "qemu::img_from_url: missing: ${data_file}"
+  if ! qemu.hostcmd "[[ -f \"${data_file}\" ]]"; then
+    cij.err "qemu.img_from_url: missing: ${data_file}"
     return 1
   fi
-  if ! qemu::hostcmd "[[ -f \"${meta_file}\" ]]"; then
-    cij::err "qemu::img_from_url: missing: ${meta_file}"
+  if ! qemu.hostcmd "[[ -f \"${meta_file}\" ]]"; then
+    cij.err "qemu.img_from_url: missing: ${meta_file}"
     return 1
   fi
 
   # Create seed-image on qemu-host
-  if ! qemu::hostcmd "cloud-localds -v ${seed_img} ${data_file} ${meta_file}"; then
-    cij::err "qemu::img_from_url: failed producing ${seed_img}"
+  if ! qemu.hostcmd "cloud-localds -v ${seed_img} ${data_file} ${meta_file}"; then
+    cij.err "qemu.img_from_url: failed producing ${seed_img}"
     return 1
   fi
 
   # Download the seed image on qemu-host
-  if ! qemu::hostcmd "[[ -f ${boot_img_bck} ]]"; then
-    if ! qemu::hostcmd "wget -O ${boot_img_bck} ${boot_img_url}"; then
-      cij::err "qemu::img_from_url: failed downloading: ${boot_img_url}"
+  if ! qemu.hostcmd "[[ -f ${boot_img_bck} ]]"; then
+    if ! qemu.hostcmd "wget -O ${boot_img_bck} ${boot_img_url}"; then
+      cij.err "qemu.img_from_url: failed downloading: ${boot_img_url}"
       return 1
     fi
   fi
 
   # Copy from backup
-  if ! qemu::hostcmd "cp ${boot_img_bck} ${boot_img}"; then
-    cij::err "qemu::img_from_url: failed copying"
+  if ! qemu.hostcmd "cp ${boot_img_bck} ${boot_img}"; then
+    cij.err "qemu.img_from_url: failed copying"
     return 1
   fi
 
   # Spin it up for first-boot
   : "${QEMU_ARGS_EXTRA:=-drive file=${seed_img},if=virtio,format=raw}"
-  if ! qemu::run; then
-    cij::err "qemu:img_from_url: failed starting qemu"
+  if ! qemu.run; then
+    cij.err "qemu:img_from_url: failed starting qemu"
     return 1
   fi
 
   # TODO: wait for it spin up, init, configure and then then shut it down
-  qemu::wait 600
+  qemu.wait 600
 
   return 0
 }
@@ -515,9 +515,9 @@ qemu::img_from_url() {
 #
 # Helper function, creating a "-drive" args loving in QEMU_GUEST_PATH
 #
-qemu::args_drive() {
-  if ! qemu::env; then
-    cij::err "qemu::env failed"
+qemu.args_drive() {
+  if ! qemu.env; then
+    cij.err "qemu.env failed"
     return 1
   fi
 

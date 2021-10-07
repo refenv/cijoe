@@ -5,17 +5,17 @@
 # Implement it using the SSH module
 #
 
-function kmemleak::cat
+function kmemleak.cat
 {
   cat /sys/kernel/debug/kmemleak
 }
 
-function kmemleak::clear
+function kmemleak.clear
 {
   echo clear > /sys/kernel/debug/kmemleak
 }
 
-function kmemleak::scan
+function kmemleak.scan
 {
   echo scan > /sys/kernel/debug/kmemleak
 }
