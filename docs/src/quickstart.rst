@@ -25,7 +25,7 @@ Run the following commands in your shell:
 
   # Invoke the CIJOE runner, running a *testplan* in your *environment*
   cij_runner \
-      --testplan $CIJ_TESTPLANS/example_01_usage.plan \
+      --testplan $CIJ_TESTPLANS/example_01.plan \
       --env target_env.sh \
       --output $RESULTS
 
