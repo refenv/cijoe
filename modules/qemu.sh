@@ -396,7 +396,7 @@ qemu.run() {
   _args="$_args -device virtio-blk-pci,drive=boot"
 
   # network interface with a single port-forward
-  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp.${QEMU_GUEST_SSH_FWD_PORT}-:22"
+  _args="$_args -netdev user,id=n1,ipv6=off,hostfwd=tcp::${QEMU_GUEST_SSH_FWD_PORT}-:22"
   _args="$_args -device virtio-net-pci,netdev=n1"
 
   # pidfile
