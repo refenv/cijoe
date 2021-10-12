@@ -20,7 +20,7 @@ def read(*parts):
 
 setup(
     name="cijoe",
-    version="0.2.1",
+    version="0.2.2.dev1",
     description="Tools for systems development and testing",
     long_description=read('README.rst'),
     author="Simon A. F. Lund",
