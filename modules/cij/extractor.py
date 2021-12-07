@@ -10,9 +10,11 @@ import dataclasses
 import cij.runner
 from cij.runner import TestRun, TestCase
 from cij.errors import CIJError, InitializationError
-from cij.util import rehome
+from cij.util import rehome, list_dir
 
 # pylint:disable=unsubscriptable-object
+
+_EXTRACTORS_IMPORT_PATH = "cijoe_extractors"
 
 
 class Extractor:
@@ -49,22 +51,21 @@ def extract_metrics(trun: TestRun, extractors: List[Extractor]) -> int:
     return 0
 
 
-def _get_extractor(name: str) -> Optional[Extractor]:
+def _get_extractor(fpath: str, name: str) -> Optional[Extractor]:
     """
     Import an extractor by name or filepath
     """
     try:
-        spec = importlib.util.find_spec("cij.extractors.%s" % name)
+        spec = importlib.util.find_spec(f"{_EXTRACTORS_IMPORT_PATH}.{name}")
     except ModuleNotFoundError:
         spec = None
 
-    name = cij.util.expand_path(name)
     if spec is None:
-        spec = importlib.util.spec_from_file_location("", name)
-    if spec is None:
-        spec = importlib.util.spec_from_file_location("", "%s.py" % name)
+        spec = importlib.util.spec_from_file_location("", fpath)
+    if spec is None and not fpath.endswith(".py"):
+        spec = importlib.util.spec_from_file_location("", "%s.py" % fpath)
     if not spec or not spec.loader:
-        cij.err("Cannot find: %r" % name)
+        cij.err(f"Cannot find: {name} ({fpath})")
         return None
 
     assert isinstance(spec.loader, importlib.abc.Loader)  # help mypy
@@ -91,29 +92,28 @@ class ExtractorMeta:
 
 
 def find_extractors() -> List[ExtractorMeta]:
-    """ Search cij.extractors.* for available extractors and return
+    """ Search cijoe_extractors.* for available extractors and return
     a list of their names and docstrings.
     """
 
     try:
-        spec = importlib.util.find_spec("cij.extractors")
+        spec = importlib.util.find_spec(_EXTRACTORS_IMPORT_PATH)
     except ModuleNotFoundError:
         return []
 
-    assert spec and spec.loader
-    assert isinstance(spec.loader, importlib.abc.Loader)  # help mypy
-    assert isinstance(spec.loader, importlib.abc.ResourceReader)  # help mypy
+    if spec is None:
+        return []
 
-    extractor_fpaths = [
-        spec.loader.resource_path(k)
-        for k in spec.loader.contents() if not k.startswith('__')
-    ]
+    extractor_fpaths = []
+    assert spec.submodule_search_locations
+    for dir_ in spec.submodule_search_locations:
+        extractor_fpaths += list(list_dir(dir_, recursive=True, ext=".py"))
 
     emeta = []
     for fpath in extractor_fpaths:
         name = os.path.splitext(os.path.basename(fpath))[0]
         try:
-            extractor = _get_extractor(name)
+            extractor = _get_extractor(fpath, name)
         except InitializationError:
             continue
 
@@ -138,7 +138,7 @@ def main(args):
 
     err = 0
     try:
-        extractors = [_get_extractor(ename) for ename in args.extractor]
+        extractors = [_get_extractor("", ename) for ename in args.extractor]
         err += extract_metrics(trun, extractors)
         cij.info("Metrics extracted")
     except CIJError as ex:

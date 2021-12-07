@@ -7,6 +7,7 @@ import argparse
 import dataclasses
 import os
 import re
+import stat
 import cij
 
 
@@ -108,3 +109,40 @@ def rehome(old, new, struct):
                 continue
             elif "root" in key or "path" in key:
                 setattr(struct, key, val.replace(old, new))
+
+
+def _list_dir(path, dirs, files, ext):
+    for fname in os.listdir(path):
+        fpath = os.path.join(path, fname)
+        mode = os.stat(fpath).st_mode
+
+        isdir = stat.S_ISDIR(mode)
+        isfile = stat.S_ISREG(mode)
+
+        dir_ = dirs and isdir
+        file_ = files and isfile and (ext is None or
+                                      os.path.splitext(fname)[1] == ext)
+
+        if dir_ or file_:
+            yield fpath
+
+
+def list_dir(path='.', dirs=False, files=True, ext=None, recursive=False):
+    """ List the contents of a directory.
+    If recursive is set to True, list_dir will recurse through sub-dirs as
+    well.
+    Returns directories if dirs is set to True.
+    Returns files if files is set True.
+    Returns only files with the given extension if ext is set. Note that
+    the extension includes the dot, i.e. '.jpg'.
+    """
+    if not recursive:
+        yield from _list_dir(path, dirs, files, ext)
+        return
+
+    yield from _list_dir(path, dirs=False, files=True, ext=ext)
+
+    for dir_ in _list_dir(path, dirs=True, files=False, ext=None):
+        if dirs:
+            yield dir_
+        yield from list_dir(dir_, dirs, files, ext, recursive=True)
