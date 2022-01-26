@@ -38,13 +38,13 @@ main() {
   rmdir "$res_dpath" || echo "Cannot remove => That is OK"
   mkdir "$res_dpath"
 
-  cij::info "# pkg_selftest: '$pkg_selftest'"
-  cij::info "# open_reports: '$open_reports'"
-  cij::info "# res_dpath: '$res_dpath'"
+  cij.info "# pkg_selftest: '$pkg_selftest'"
+  cij.info "# open_reports: '$open_reports'"
+  cij.info "# res_dpath: '$res_dpath'"
 
-  cij::info "# res_dpath: '$res_dpath'"
-  cij::info "# tplan_fpath: '$tplan_fpath'"
-  cij::info "# env_fpath: '$env_fpath'"
+  cij.info "# res_dpath: '$res_dpath'"
+  cij.info "# tplan_fpath: '$tplan_fpath'"
+  cij.info "# env_fpath: '$env_fpath'"
 
   # Create the environment
   cat "$CIJ_ENVS/localhost.sh" > "$env_fpath"
@@ -55,31 +55,31 @@ main() {
 
   # Start the runner
   if ! cij_runner --testplan "$tplan_fpath" --env "$env_fpath" --output "$res_dpath" -vvv; then
-    cij::err "cij_runner encountered an error"
+    cij.err "cij_runner encountered an error"
     res=$(( res + 1 ))
   fi
 
   # Extract metrics
   if ! cij_extractor --extractor fio_json_read --output "$res_dpath"; then
-    cij::err "cij_extractor encountered an error"
+    cij.err "cij_extractor encountered an error"
     res=$(( res + 1 ))
   fi
 
   # Analyse metrics
   if ! cij_analyser --preqs "${CIJ_TESTFILES}/example.preqs" --output "$res_dpath"; then
-    cij::err "cij_analyser encountered an error"
+    cij.err "cij_analyser encountered an error"
     res=$(( res + 1 ))
   fi
 
   # Create test report
   if ! cij_reporter --output "$res_dpath"; then
-    cij::err "cij_reporter encountered an error"
+    cij.err "cij_reporter encountered an error"
     res=$(( res + 1 ))
   fi
 
   # Create testcases report
   if ! cij_testcases --output "$res_dpath"; then
-    cij::err "cij_testcases encountered an error"
+    cij.err "cij_testcases encountered an error"
     res=$(( res + 1 ))
   fi
 
@@ -90,7 +90,7 @@ main() {
     (xdg-open "$res_dpath/report.html" || open "$res_dpath/report.html") &
   fi
 
-  cij::info "res: '$res'"
+  cij.info "res: '$res'"
 
   exit $res
 }
