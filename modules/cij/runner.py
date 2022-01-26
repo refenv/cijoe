@@ -374,7 +374,7 @@ def script_run(trun: TestRun, script: Runnable):
     }
 
     ext = os.path.splitext(script.fpath)[-1]
-    if ext not in launchers.keys():
+    if ext not in launchers:
         cij.err("rnr:script:run { invalid script.fpath: %r }" % script.fpath)
         return 1
 
