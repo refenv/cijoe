@@ -119,10 +119,12 @@ def _list_dir(path, dirs, files, ext):
         isdir = stat.S_ISDIR(mode)
         isfile = stat.S_ISREG(mode)
 
-        d = dirs and isdir
-        f = files and isfile and (ext is None or os.path.splitext(fname)[1] == ext)
+        dcond = dirs and isdir
+        fcond = files and isfile and (
+            ext is None or os.path.splitext(fname)[1] == ext
+        )
 
-        if d or f:
+        if dcond or fcond:
             yield fpath
 
 
@@ -141,7 +143,7 @@ def list_dir(path='.', dirs=False, files=True, ext=None, recursive=False):
 
     yield from _list_dir(path, dirs=False, files=True, ext=ext)
 
-    for d in _list_dir(path, dirs=True, files=False, ext=None):
+    for dpath in _list_dir(path, dirs=True, files=False, ext=None):
         if dirs:
-            yield d
-        yield from list_dir(d, dirs, files, ext, recursive=True)
+            yield dpath
+        yield from list_dir(dpath, dirs, files, ext, recursive=True)

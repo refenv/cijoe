@@ -16,6 +16,7 @@ from cij.util import rehome, list_dir
 
 _EXTRACTORS_IMPORT_PATH = "cijoe_extractors"
 
+
 class Extractor:
     """ Type declaration for extractors. Used to help mypy. """
 
@@ -97,15 +98,14 @@ def find_extractors() -> List[ExtractorMeta]:
 
     try:
         spec = importlib.util.find_spec(_EXTRACTORS_IMPORT_PATH)
-    except ModuleNotFoundError as ex:
+    except ModuleNotFoundError:
         return []
 
     assert spec and spec.loader
 
-
     extractor_fpaths = []
-    for d in spec.submodule_search_locations:
-        extractor_fpaths += list(list_dir(d, recursive=True, ext=".py"))
+    for dpath in spec.submodule_search_locations:
+        extractor_fpaths += list(list_dir(dpath, recursive=True, ext=".py"))
 
     emeta = []
     for fpath in extractor_fpaths:
@@ -124,10 +124,7 @@ def find_extractors() -> List[ExtractorMeta]:
 
 
 def main(args):
-    """
-    Run cij extractor.
-
-    """
+    """Entry-point"""
 
     trun = cij.runner.trun_from_file(args.trun_fpath)
 
