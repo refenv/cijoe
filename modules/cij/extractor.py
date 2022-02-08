@@ -68,8 +68,6 @@ def _get_extractor(fpath: str, name: str) -> Optional[Extractor]:
         cij.err(f"Cannot find: {name} ({fpath})")
         return None
 
-    assert isinstance(spec.loader, importlib.abc.Loader)  # help mypy
-
     try:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
