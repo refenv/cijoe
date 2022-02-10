@@ -59,6 +59,12 @@ main() {
     res=$(( res + 1 ))
   fi
 
+  # Just check that the extractor is invokable, don't actually run it
+  if ! cij_extractor --help; then
+    cij.err "cij_extractor encountered an error"
+    res=$(( res + 1 ))
+  fi
+
   # Analyse metrics
   if ! cij_analyser --preqs "${CIJ_TESTFILES}/example.preqs" --output "$res_dpath"; then
     cij.err "cij_analyser encountered an error"
