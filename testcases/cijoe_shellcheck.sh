@@ -39,7 +39,7 @@ if [[ -z "$paths" ]]; then
 fi
 
 # shellcheck disable=SC2086
-if ! shellcheck $paths ; then
+if ! shellcheck $paths -e SC1091 ; then
   popd || true
   test.fail
 fi
