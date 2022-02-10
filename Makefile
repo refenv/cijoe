@@ -55,9 +55,9 @@ release: clean release-build release-upload
 .PHONY: selftest
 selftest:
 	@rm -r selftest_results || echo "Cannot remove => That is OK"
-	./selftest.sh 0 0 selftest_results
+	cij_selftest 0 0 selftest_results
 
 .PHONY: selftest-view
 selftest-view:
 	@rm -r selftest_results || echo "Cannot remove => That is OK"
-	./selftest.sh 0 1 selftest_results
+	cij_selftest 0 1 selftest_results
