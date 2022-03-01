@@ -814,6 +814,7 @@ def main(args, conf):
         trun = trun_setup(args, conf)   # Construct 'trun' from args and conf
     except CIJError as ex:
         cij.err("main:FAILED to start testrun: %s" % ex)
+        return 1
 
     trun_to_file(trun)              # Persist trun
     trun_to_junitfile(trun)         # Persist as jUNIT XML
