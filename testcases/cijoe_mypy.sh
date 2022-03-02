@@ -26,7 +26,6 @@ fi
 
 # shellcheck disable=SC2086
 if ! mypy "${CIJ_PKG_REPOS}/modules/cij" ; then
-  popd || true
   test.fail
 fi
 
