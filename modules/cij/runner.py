@@ -477,9 +477,8 @@ def hooks_setup(trun: TestRun, instance: Runnable, hnames=None):
                 hooks[med].append(hook)
 
         if not hooks["enter"] + hooks["exit"]:
-            msg = "rnr:hooks_setup:FAIL { hname: %r has no files }" % hname
-            cij.err(msg)
-            raise InitializationError(msg)
+            raise InitializationError(
+                f"rnr:hooks_setup:FAIL {{ hname: {hname} has no files }}")
 
     instance.hooks = hooks
     instance.hnames = hnames
@@ -808,7 +807,6 @@ def main(args, conf):
     if os.path.exists(fpath):   # YAML exists, we exit, it might be RUNNING!
         cij.err("main:FAILED { fpath: %r }, exists" % fpath)
         return 1
-
     trun: TestRun
     try:
         trun = trun_setup(args, conf)   # Construct 'trun' from args and conf
