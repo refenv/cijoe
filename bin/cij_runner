@@ -115,10 +115,14 @@ if __name__ == "__main__":
         os.remove(FNAME)
 
         sys.exit(RES)
-    except FileExistsError:
+    except FileExistsError as ex:
         cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
         cij.warn("Looks like CIJOE is already running")
         cij.warn("or, a previous run did unclean exit")
+        cij.warn(" ")
+        cij.warn("This particular error was caused by the presence of:")
+        cij.warn(f"  {ex.filename}")
+        cij.warn(" ")
         cij.warn("Clean up the target-system-under-test reboot / provision")
         cij.warn("Then remove '%s' and start the runner again" % FNAME)
         cij.err("---------==========={[ CIJOE IS LOCKED ]}==========---------")
