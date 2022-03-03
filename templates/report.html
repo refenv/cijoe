@@ -123,7 +123,11 @@
           A total of <b>{{ tcases_count }}</b> testcases across <b>{{ dset.testplans | length }}</b> testplans(s).
           </p>
           <p class="card-text">
-          Test execution is {{ ((tcases_completed / tcases_count) * 100)|int }}% complete
+          Test execution is  
+          {% if tcases_count > 0 %}
+          {{ ((tcases_completed / tcases_count) * 100)|int }}%
+          {% endif %}
+          complete
           {% if dset.stamp and dset.stamp.begin %}
           , started {{ dset.stamp.begin | stamp_to_datetime | strftime("%b. %d %Y") }}
           {% endif %}
