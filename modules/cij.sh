@@ -257,7 +257,8 @@ cij.cmd() {
     ssh.cmd "$@"
     return $?
   elif [[ -v CIJ_TARGET_TRANSPORT && "${CIJ_TARGET_TRANSPORT}" == "local" ]]; then
-    "$@"
+    cij.emph "cij.cmd: $@"
+    eval "$@"
     return $?
   else
     cij.err "cij.cmd: missing SSH configuration or not explicitly set to run locally"
