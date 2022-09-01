@@ -1,4 +1,5 @@
+cijoe
 kmdo
-sphinx
+sphinx==5
 sphinx-autopackagesummary
 sphinx_rtd_theme
