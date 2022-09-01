@@ -6,7 +6,8 @@ PY_ENV = ${PY_ENV_ACTIVATE} && ${PY_BIN}
 SPHINX_SOURCEDIR=source
 SPHINX_BUILDDIR=build
 
-all: venv-setup clean kmdo build view
+all: venv-setup clean build view
+#all: venv-setup clean kmdo build view
 #all: venv-setup clean apidoc kmdo build view
 
 define build-help
@@ -62,7 +63,7 @@ venv-setup:
 	@echo "## venv-setup: installing dependencies (for sphinx)"
 	@${PY_ENV} -m pip install -r requirements.txt
 	@echo "## venv-setup: installing cijoe (for sphinx autodoc)"
-	@${PY_ENV} -m pip install ..
-	@${PY_ENV} -m pip install ../../cijoe-pkg-qemu
-	@${PY_ENV} -m pip install ../../cijoe-pkg-linux
-	@${PY_ENV} -m pip install ../../cijoe-pkg-fio
+#	@${PY_ENV} -m pip install ..
+#	@${PY_ENV} -m pip install ../../cijoe-pkg-qemu
+#	@${PY_ENV} -m pip install ../../cijoe-pkg-linux
+#	@${PY_ENV} -m pip install ../../cijoe-pkg-fio
