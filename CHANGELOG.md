@@ -10,6 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.1
+
+Fixed doc generation via read-the-docs
+
 ## 0.9.0
 
 A complete re-implementation and a switch of license.
