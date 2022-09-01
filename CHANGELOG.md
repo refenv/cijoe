@@ -10,23 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
-## UPCOMING
+## 0.9.0
 
-* Remove all Linux-specifics, and provide **cijoe-pkg-linux** package replacing it
-  - hooks: ``dmesg_{enter,exit}.sh``, ``sysinf.sh``
-  - modules: ``xfstests.sh``, ``blktests.sh``, ``ipmi.sh``, ``fs.sh``, ``kmemleak.sh``, ``pci.sh``
-  - testcases: ``extc_02_fs.sh``, ``extc_03_blktests.sh``, ``extc_04_xfstests.sh``
+A complete re-implementation and a switch of license.
 
-* Remove fio-specifics and provide a **cijoe-pkg-fio** package
-  - testcases: ``extc_05_fio.sh``
-
-* Remove qemu-specifics and provide **cijoe-pkg-qemu** package replacing it
-  - envs: ``localhost-qemu.sh``
-  - hooks: ``qemu_{enter,exit}.sh``
-  - modules: ``qemu.sh``
-
-* Remove RocksDB specific, and consider providing a **cijoe-pkg-rocksdb** package
-  - modules: ``rbench.sh``
 
 ## 0.2.1
 

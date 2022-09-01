@@ -1,8 +1,11 @@
+cijoe-output*
+tags
 selftest_results
-modules/cijoe.egg-info
+*.egg-info
 build
 dist
 .cache
+.idea
 __pycache__
 *.img
 *.pyc

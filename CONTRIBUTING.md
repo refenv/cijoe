@@ -70,7 +70,7 @@ The DCO requires a sign-off message in the following format appear on each
 commit in the pull request:
 
 ```
-Signed-off-by: Simon A. F. Lund <simon.lund@samsung.com>
+Signed-off-by: Simon A. F. Lund <os@safl.dk>
 ```
 
 The DCO text can either be manually added to your commit body, or you can add
