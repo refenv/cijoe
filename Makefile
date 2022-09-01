@@ -85,8 +85,5 @@ endef
 .PHONY: clean
 clean:
 	@echo "## py: clean"
-	@rm -r cijoe-output-* || echo "Cannot remove => That is OK"
-	@rm -r build || echo "Cannot remove => That is OK"
-	@rm -r dist || echo "Cannot remove => That is OK"
-	@rm -r *.egg-info || echo "Cannot remove => That is OK"
+	@git clean -fdx || echo "Failed git-clean ==> That is OK"
 	@echo "## py: clean [DONE]"
