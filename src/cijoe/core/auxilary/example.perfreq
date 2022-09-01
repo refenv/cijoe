@@ -1,0 +1,7 @@
+# filetype=yaml
+---
+global:
+  metrics:
+    iops: "[200; 999] k"
+    bwps: "[100; 940] MiB"
+    lat: "[3000; 9000] nsec"

@@ -1,43 +1,70 @@
-DOC_BUILD_DIR=build
+#
+# This Makefile serves as convenient command-line auto-completion
+#
 PROJECT_NAME=cijoe
-PROJECT_VERSION_MAJOR=$(shell grep "VERSION_MAJOR = ." modules/cij/__init__.py | cut -d " " -f 3)
-PROJECT_VERSION_MINOR=$(shell grep "VERSION_MINOR = ." modules/cij/__init__.py | cut -d " " -f 3)
-PROJECT_VERSION_PATCH=$(shell grep "VERSION_PATCH = ." modules/cij/__init__.py | cut -d " " -f 3)
-PROJECT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}
-NEXT_VERSION_PATCH=$$((${PROJECT_VERSION_PATCH} + 1))
-NEXT_VERSION=${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${NEXT_VERSION_PATCH}
 
+define default-help
+# invoke: 'make uninstall', 'make install'
+endef
 .PHONY: default
-default: uninstall install
-	@echo "# DONE!"
+default: build
+	@echo "## py: make default"
+	@echo "## py: make default [DONE]"
 
+define  all-help
+# Do all: clean uninstall build install
+endef
+.PHONY: all
+all: uninstall clean build install test
+
+define build-help
+# Build the package (source distribution package)
+endef
+.PHONY: build
+build:
+	@echo "## py: make build-sdist"
+	@python3 setup.py sdist
+	@echo "## py: make build-sdist [DONE]"
+
+define install-help
+# install for current user
+endef
 .PHONY: install
 install:
-	pip install . --user
+	@echo "## py: make install"
+	@python3 -m pip install dist/*.tar.gz --user
+	@echo "## py: make install [DONE]"
 
+define uninstall-help
+# uninstall
+#
+# Prefix with 'sudo' when uninstalling a system-wide installation
+endef
 .PHONY: uninstall
 uninstall:
-	pip uninstall ${PROJECT_NAME} --yes || echo "Cannot uninstall => That is OK"
+	@echo "## py: make uninstall"
+	@python3 -m pip uninstall ${PROJECT_NAME} --yes || echo "Cannot uninstall => That is OK"
+	@echo "## py: make uninstall [DONE]"
 
+define install-system-help
+# install system-wide
+#
+# install system-wide
+endef
 .PHONY: install-system
 install-system:
-	pip install .
+	@echo "## py: make install-system"
+	@python3 -m pip install dist/*.tar.gz
+	@echo "## py: make install-system [DONE]"
 
-.PHONY: dev
-dev: uninstall install selftest-view
-	@echo -n "# dev: "; date
-
-.PHONY: bump
-bump:
-	@echo "# Bumping '${PROJECT_VERSION}' to '${NEXT_VERSION}'"
-	@sed -i -e s/"version=\".*\""/"version=\"${NEXT_VERSION}\""/g setup.py
-	@sed -i -e s/"^VERSION_PATCH = .*"/"VERSION_PATCH = ${NEXT_VERSION_PATCH}"/g modules/cij/__init__.py
-
-.PHONY: clean
-clean:
-	@rm -r build || echo "Cannot remove => That is OK"
-	@rm -r dist || echo "Cannot remove => That is OK"
-	@rm -r selftest_results || echo "Cannot remove => That is OK"
+define examples-help
+# Run pytest on the testcase-test
+endef
+.PHONY: test
+test:
+	@echo "## py: make test"
+	python3 -m pytest --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
+	@echo "## py: make test [DONE]"
 
 .PHONY: release-build
 release-build:
@@ -52,12 +79,14 @@ release-upload:
 release: clean release-build release-upload
 	@echo -n "# rel: "; date
 
-.PHONY: selftest
-selftest:
-	@rm -r selftest_results || echo "Cannot remove => That is OK"
-	cij_selftest 0 0 selftest_results
-
-.PHONY: selftest-view
-selftest-view:
-	@rm -r selftest_results || echo "Cannot remove => That is OK"
-	cij_selftest 0 1 selftest_results
+define clean-help
+# clean the Python build dirs (build, dist)
+endef
+.PHONY: clean
+clean:
+	@echo "## py: clean"
+	@rm -r cijoe-output-* || echo "Cannot remove => That is OK"
+	@rm -r build || echo "Cannot remove => That is OK"
+	@rm -r dist || echo "Cannot remove => That is OK"
+	@rm -r *.egg-info || echo "Cannot remove => That is OK"
+	@echo "## py: clean [DONE]"

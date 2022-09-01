@@ -1,33 +1,68 @@
-BUILD_DIR?=build
+PY_BIN ?= python3
+PY_ENV_PATH = venv
+PY_ENV_ACTIVATE = . ${PY_ENV_PATH}/bin/activate
+PY_ENV = ${PY_ENV_ACTIVATE} && ${PY_BIN}
 
-default: doc doc-view-html
+SPHINX_SOURCEDIR=source
+SPHINX_BUILDDIR=build
 
-.PHONY: deps
-deps:
-	pip3 install -r requirements.txt --user
+all: venv-setup clean kmdo build view
+#all: venv-setup clean apidoc kmdo build view
 
+define build-help
+# Remove auto-generated documentation the source-dir and the generated docs in build-dir
+endef
 .PHONY: clean
 clean:
-	rm -fr $(BUILD_DIR) || true
+	@echo "## clean"
+	rm -rf "${SPHINX_BUILDDIR}"
+	rm -rf "${SPHINX_SOURCEDIR}/api"
 
-.PHONY: configure
-configure: clean
-	mkdir -p $(BUILD_DIR)
+define apidoc-help
+# Generate api documentation using Sphinx autodoc
+endef
+.PHONY: apidoc
+apidoc:
+	@echo "## apidoc"
+	${PY_ENV_ACTIVATE} && sphinx-apidoc --implicit-namespaces -e -H "API" -M -f --tocfile index -o ${SPHINX_SOURCEDIR}/api ../src/cijoe
 
+define kmdo-help
+# Generate api documentation using Sphinx autodoc
+endef
 .PHONY: kmdo
 kmdo:
-	kmdo src || exit 0
+	@echo "## kmdo"
+	kmdo source
 
-.PHONY: sphinx
-sphinx:
-	@mkdir -p $(BUILD_DIR)/html
-	sphinx-build -b html -c src -E src $(BUILD_DIR)/html
+define build-help
+# Build the documentation (invoke sphinx)
+endef
+.PHONY: build
+build:
+	@echo "## build"
+	${PY_ENV_ACTIVATE} && sphinx-build -b html ${SPHINX_SOURCEDIR} ${SPHINX_BUILDDIR}
 
-# Produce the sphinx stuff
-.PHONY: doc
-doc: clean deps configure sphinx
-	@echo "# DONE"
+define build-help
+# Open the HTML documentation using (xdg-open)
+endef
+.PHONY: view
+view:
+	@echo "## open docs"
+	xdg-open "${SPHINX_BUILDDIR}/index.html"
 
-.PHONY: doc-view-html
-doc-view-html:
-	(xdg-open $(BUILD_DIR)/html/index.html || open $(BUILD_DIR)/html/index.html) &
+define build-py-env-help
+# Setup a virtual environment
+endef
+.PHONY: venv-setup
+venv-setup:
+	@echo "## venv-setup(${PY_ENV_PATH})"
+	@${PY_BIN} -m venv ${PY_ENV_PATH}
+	@echo "## venv-setup: upgrading pip"
+	@${PY_ENV} -m pip install --upgrade pip
+	@echo "## venv-setup: installing dependencies (for sphinx)"
+	@${PY_ENV} -m pip install -r requirements.txt
+	@echo "## venv-setup: installing cijoe (for sphinx autodoc)"
+	@${PY_ENV} -m pip install ..
+	@${PY_ENV} -m pip install ../../cijoe-pkg-qemu
+	@${PY_ENV} -m pip install ../../cijoe-pkg-linux
+	@${PY_ENV} -m pip install ../../cijoe-pkg-fio

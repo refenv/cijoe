@@ -1,0 +1,49 @@
+---
+default_language_version:
+  python: python3
+
+repos:
+- repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+  rev: 0.2.2
+  hooks:
+  - id: yamlfmt
+    name: YAML-format
+    args:
+    - '--mapping=2'
+    - '--sequence=2'
+    - '--offset=0'
+    - '--width=120'
+    - '--preserve-quotes'
+    types: [file]
+    files: \.(yaml|yml|config|workflow)$
+
+- repo: https://github.com/psf/black
+  rev: 22.6.0
+  hooks:
+  - id: black
+    name: Python-format-black
+- repo: https://github.com/pycqa/isort
+  rev: 5.10.1
+  hooks:
+  - id: isort
+    name: Python-format-isort
+    args:
+    - '--profile=black'
+    - '--line-length=88'
+- repo: https://github.com/pycqa/flake8
+  rev: 5.0.4
+  hooks:
+  - id: flake8
+    name: Python-lint-flake8
+    # Max-line-length matching black
+    # ignore "whitespace before ':'"; ignore line length
+    # F401 = F811; This happens for fixtures for indirect parametrize
+    args:
+    - --max-line-length=88
+    - --extend-ignore=E203,F401,F811
+
+- repo: https://github.com/jumanjihouse/pre-commit-hooks
+  rev: 3.0.0
+  hooks:
+  - id: shellcheck
+    name: Shell-lint

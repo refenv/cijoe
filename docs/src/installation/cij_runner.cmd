@@ -1,1 +1,0 @@
-cij_runner --help

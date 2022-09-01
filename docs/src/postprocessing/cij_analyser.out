@@ -1,9 +1,0 @@
-usage: cij_analyser [-h] [--output OUTPUT] --preqs PREQS
-
-cij_analyser - CIJOE Test Analyser
-
-optional arguments:
-  -h, --help       show this help message and exit
-  --output OUTPUT  Path to test output (default: /home/safl/git/cijoe/docs)
-  --preqs PREQS    Path to performance requirements yaml file (default: None)
-
