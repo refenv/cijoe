@@ -38,3 +38,4 @@ For a thorough description, the rest of the documentation is provided with the
    installation/index.rst
    usage/index.rst
    resources/index.rst
+   packages/index.rst
