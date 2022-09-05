@@ -98,10 +98,18 @@ div.image {
       <h3 class="card-header {{ step_style }}">Workflow Report</h3>
 
       <div class="card-body">
+        <div class="container border rounded" style="padding: 1rem;">
+          <p>
+          This is a HTML-ification of Workflow state (<a href="workflow.state">workflow.state</a>) and
+          the associated files in the workflow <a href="./">output</a> directory.
+          Below is the <code>doc</code> section of the workflow (<code>.workflow</code> file).
+          </p>
+          <hr />
+          <pre class="workflow-documentation">{{ doc }}</pre>
+        </div>
+      </div>
 
-        <p>This is a HTML-ification of Workflow state (<a href="workflow.state">workflow.state</a>) and
-        the associated files in the workflow <a href="./">output</a> directory.</p>
-
+      <div class="card-body">
         <ul class="nav nav-tabs" id="tab-content" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link active" id="status-tab" data-bs-toggle="tab"
@@ -118,11 +126,13 @@ div.image {
               data-bs-target="#config-tab-pane" type="button" role="tab" aria-controls="config-tab-pane"
               aria-selected="false">Configuration</button>
           </li>
+          <!--
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="doc-tab" data-bs-toggle="tab"
               data-bs-target="#doc-tab-pane" type="button" role="tab" aria-controls="doc-tab-pane"
               aria-selected="false">Documentation</button>
           </li>
+          -->
         </ul>
         <div class="tab-content border border-top-0 rounded-bottom" id="tab-content">
           <div class="tab-pane show active" id="status-tab-pane" role="tabpanel" aria-labelledby="status-tab" tabindex="0">
@@ -174,6 +184,7 @@ div.image {
             </div>
           </div>
 
+          <!--
           <div class="tab-pane" id="doc-tab-pane" role="tabpanel" aria-labelledby="doc-tab" tabindex="0">
             <div class="card-body">
               <p>
@@ -183,6 +194,7 @@ div.image {
               <pre class="workflow-documentation">{{ doc }}</pre>
             </div>
           </div>
+          -->
         </div>
       </div>
 
