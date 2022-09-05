@@ -6,6 +6,15 @@ import requests
 ENCODING = "UTF-8"
 
 
+def sanitize_ident(ident: str):
+    """Naive ident sanitizer"""
+
+    for illegal in r'/\|!?[]<>.,:;"*':
+        ident = ident.replace(illegal, "_")
+
+    return ident
+
+
 def download(url: str, path: Path):
     """Downloads a file over http(s), returns (err, path)."""
 

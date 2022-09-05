@@ -4,6 +4,7 @@
 import json
 from pathlib import Path
 
+from cijoe.core.misc import sanitize_ident
 from cijoe.core.resources import dict_from_yamlfile
 
 
@@ -129,7 +130,7 @@ def testreport_from_file(path: Path):
             results["tests"][nodeid]["duration"] += result["duration"]
             results["tests"][nodeid]["outcome"] += [result["outcome"]]
 
-            runlog = runlog_from_path(path / result["nodeid"])
+            runlog = runlog_from_path(path / sanitize_ident(result["nodeid"]))
             if runlog:
                 results["tests"][nodeid]["runlog"] = runlog
 

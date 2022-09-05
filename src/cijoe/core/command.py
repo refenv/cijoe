@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 
 from cijoe.core import transport
-from cijoe.core.misc import ENCODING
+from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import Config
 
 
@@ -84,6 +84,8 @@ class Cijoe(object):
         for artifacts, command-output etc. Additionally, then it reset the command
         run-count
         """
+
+        output_ident = sanitize_ident(output_ident)
 
         self.run_count = 0
         self.output_ident = output_ident
