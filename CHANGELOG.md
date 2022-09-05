@@ -10,6 +10,10 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.2
+
+Added a naive path-sanitizer, switched to using git to "clean", fixed a style-issue.
+
 ## 0.9.1
 
 Fixed doc generation via read-the-docs
