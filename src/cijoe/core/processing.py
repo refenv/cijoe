@@ -156,15 +156,9 @@ def artifacts_in_path(path: Path):
     artifacts = []
     for artifact_dir in Path(path).rglob("artifacts"):
         for artifact in artifact_dir.rglob("*"):
-            artifacts.append(artifact)
+            artifacts.append(artifact.relative_to(path))
 
-    return sorted(
-        [
-            {"path": artifact, "name": artifact.relative_to(path)}
-            for artifact in artifacts
-        ],
-        key=lambda d: d["name"],
-    )
+    return sorted(artifacts)
 
 
 def process_workflow_output(args, cijoe):
@@ -186,9 +180,9 @@ def process_workflow_output(args, cijoe):
             continue
 
         # artifacts = artifacts_in_path(args.output, step_path / "artifacts")
-        artifacts = artifacts_in_path(step_path / "artifacts")
-        if artifacts:
-            step["extras"]["artifacts"] = artifacts
+        # artifacts = artifacts_in_path(step_path / "artifacts")
+        # if artifacts:
+        #    step["extras"]["artifacts"] = artifacts
 
         runlog = runlog_from_path(step_path)
         if runlog:
