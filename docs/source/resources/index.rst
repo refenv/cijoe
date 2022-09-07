@@ -15,7 +15,7 @@ the current working directory of the command-line tool.
 
 Via Python the resources are accessbile like so::
 
-  from joe.core.resources import get_resources
+  from cijoe.core.resources import get_resources
 
   resources = get_resources()
 
