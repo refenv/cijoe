@@ -175,7 +175,7 @@ def cli_workflow(args):
         log.error("missing config")
         return errno.EINVAL
 
-    if args.output.exists() and args.force:
+    if args.output.exists():
         archive = args.output.with_name("cijoe-archive") / str(
             time.strftime("%Y-%m-%d_%H:%M:%S")
         )
@@ -305,7 +305,7 @@ def parse_args():
     )
 
     workflow_group = parser.add_argument_group(
-        "workflow", "Run workflow at -w with config at -c output at -o"
+        "workflow", "Run workflow at '-w', using config at '-c', and output at '-o'"
     )
 
     workflow_group.add_argument(
@@ -334,12 +334,6 @@ def parse_args():
         help="Path to output directory.",
     )
     workflow_group.add_argument(
-        "--force",
-        "-f",
-        action="store_true",
-        help="Force execution even though '-o / --output' exists (moving it)",
-    )
-    workflow_group.add_argument(
         "--log-level",
         "-l",
         action="append_const",
@@ -352,6 +346,12 @@ def parse_args():
         action="store_true",
         help="Monitor workflow-output at '-o / --output'.",
     )
+    workflow_group.add_argument(
+        "--no-report",
+        "-n",
+        action="store_true",
+        help="Skip the producing, and opening, a report at the end of the workflow-run",
+    )
 
     utils_group = parser.add_argument_group(
         "utilities", "Workflow, and workflow-related utilities"
@@ -361,7 +361,7 @@ def parse_args():
         "-p",
         action="append_const",
         const=1,
-        help="Produce report for workflow-output at '-o / --output' and exit.",
+        help="Produce report, and open it, for output at '-o / --output' and exit.",
     )
     utils_group.add_argument(
         "--integrity-check",
@@ -419,9 +419,12 @@ def main():
     if args.version:
         return cli_version(args)
 
+    if args.produce_report:
+        return cli_produce_report(args)
+
     err = cli_workflow(args)
 
-    if args.produce_report:
+    if not args.no_report:
         report_err = cli_produce_report(args)
         err = err if err else report_err
 
