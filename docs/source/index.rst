@@ -24,7 +24,7 @@ providing an overview of the workflow invocation.
 
 If you do not want the HTML report, then you can invoke ``cijoe`` with ``-n`` /
 ``--no-report``.
-If you want **cijoe** to be more verbose, then increase the log level with
+If you want ``cijoe`` to be more verbose, then increase the log level with
 ``-l``/``--log-level`` or enable the monitor ``-m``/``--monitor``.
 
 For a thorough description, the rest of the documentation is provided with the
