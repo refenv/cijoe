@@ -19,11 +19,13 @@ workflow, and execute the workflow using the configuration.
    :language: bash
 
 **cijoe** is silent by default, as in, does not print out anything unless
-errors occur. Thus, to get an overview of what happened above, then produce a
-report by invoking:
+errors occur. However, at the end a HTML-report is produced and opened
+providing an overview of the workflow invocation.
 
-.. literalinclude:: 250_quickstart.txt
-   :language: bash
+If you do not want the HTML report, then you can invoke ``cijoe`` with ``-n`` /
+``--no-report``.
+If you want **cijoe** to be more verbose, then increase the log level with
+``-l``/``--log-level`` or enable the monitor ``-m``/``--monitor``.
 
 For a thorough description, the rest of the documentation is provided with the
 :ref:`sec-introduction` serving as the starting point.
