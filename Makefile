@@ -32,7 +32,7 @@ endef
 .PHONY: install
 install:
 	@echo "## py: make install"
-	@python3 -m pip install dist/*.tar.gz --user
+	@python3 -m pip install dist/*.tar.gz --user --no-build-isolation
 	@echo "## py: make install [DONE]"
 
 define uninstall-help
