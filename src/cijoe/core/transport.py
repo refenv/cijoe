@@ -1,3 +1,4 @@
+import errno
 import logging as log
 import os
 import shutil
@@ -107,6 +108,7 @@ class SSH(Transport):
         # Thus, __connect()/__disconnect() is called for each call to run()/get()/put().
         # Current short-coming is of course that then these cannot happen in parallel.
 
+        log.getLogger("paramiko.transport").setLevel(log.CRITICAL)
         paramiko.util.log_to_file(
             self.output_path / "paramiko.log", level=log.root.level
         )
@@ -136,16 +138,30 @@ class SSH(Transport):
         if cwd:
             cmd = f"cd {cwd}; {cmd}"
 
-        self.__connect()
+        try:
+            self.__connect()
 
-        _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
+            _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
 
-        logfile.write(stdout.read().decode(ENCODING))
-        logfile.write(stderr.read().decode(ENCODING))
+            logfile.write(stdout.read().decode(ENCODING))
+            logfile.write(stderr.read().decode(ENCODING))
 
-        err = stdout.channel.recv_exit_status()
+            err = stdout.channel.recv_exit_status()
 
-        self.__disconnect()
+            self.__disconnect()
+        except paramiko.ssh_exception.SSHException as exc:
+            err = (
+                exc.errno
+                if hasattr(exc, "errno")
+                and isinstance(exc.errno, int)
+                and exc.errno > 0
+                else errno.EIO
+            )
+            log.error(f"ssh-err({exc})")
+            log.debug(f"cmd({cmd}), env({env})")
+            log.debug(
+                f"run():{type(exc).__name__}, {__file__}:{exc.__traceback__.tb_lineno}"
+            )
 
         return err
 

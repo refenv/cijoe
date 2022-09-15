@@ -5,6 +5,7 @@ import errno
 import logging as log
 import os
 import time
+import traceback
 from pathlib import Path
 
 import yaml
@@ -105,28 +106,13 @@ class Cijoe(object):
 
         with open(cmd_output_fpath, "a", encoding=ENCODING) as logfile:
             begin = time.time()
-
-            try:
-                err = transport.run(cmd, cwd, env, logfile)
-            except Exception as exc:
-                if (
-                    hasattr(exc, "errno")
-                    and isinstance(exc.errno, int)
-                    and exc.errno > 0
-                ):
-                    err = exc.errno
-                else:
-                    err = errno.EIO
-                logfile.write(f"# transport.run(); raised({exc})\n")
-
-            end = time.time()
-
+            err = transport.run(cmd, cwd, env, logfile)
             state = CommandState(
                 cmd=cmd,
                 cwd=cwd,
                 err=err,
                 begin=begin,
-                end=end,
+                end=time.time(),
                 output_dpath=cmd_output_dpath,
                 output_fpath=cmd_output_fpath,
                 state_fpath=cmd_state_fpath,
@@ -164,11 +150,29 @@ class Cijoe(object):
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
-        return self.transport.put(src, dst)
+        try:
+            return self.transport.put(src, dst)
+        except Exception as exc:
+            log.error(f"err({exc})")
+            log.debug(f"src({src}), dst({dst})")
+            log.debug(
+                f"run():{type(exc).__name__}, {__file__}:{exc.__traceback__.tb_lineno}"
+            )
+
+        return False
 
     def get(self, src, dst):
         """Transfer 'src' on 'test_target' to 'dst' on **dev_box**"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
-        return self.transport.get(src, dst)
+        try:
+            return self.transport.get(src, dst)
+        except Exception as exc:
+            log.error(f"err({exc})")
+            log.debug(f"src({src}), dst({dst})")
+            log.debug(
+                f"run():{type(exc).__name__}, {__file__}:{exc.__traceback__.tb_lineno}"
+            )
+
+        return False

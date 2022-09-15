@@ -401,7 +401,7 @@ def main():
     args = parse_args()
 
     log.basicConfig(
-        format="%(levelname)s:%(module)s: %(message)s",
+        format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
         level=[log.ERROR, log.INFO, log.WARNING, log.DEBUG][
             sum(args.log_level) if args.log_level else 0
         ],
