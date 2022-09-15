@@ -5,7 +5,7 @@ repository_prep
 For every key in the configuration which has a subkey named "repository", then
 following is done:
 
- * git clone repository.upstream                   # if ! exists(repository.path)
+ * git clone repository.remote                   # if ! exists(repository.path)
  * git checkout [repository.branch,repository.tag] # if repository.{branch,tag}
  * git pull --rebase                               # if repository.branch
  * git status
@@ -17,7 +17,14 @@ Configuration
 -------------
 
 Ensure that the "repository" has sensible values for:
-* {upstream,path,branch}"
+
+* remote: url of the repository to clone
+
+* branch: name of the branch to check out and rebase
+* tag: name of the tag to check out
+
+* run_local: Optionally, set 'run_local' to True, in case the repos should just be
+  checked out locally, instead of on the remote.
 
 Retargetable: True
 ------------------
@@ -32,34 +39,31 @@ def worklet_entry(args, cijoe, step):
 
     err, _ = cijoe.run("git --version")
     if err:
-        log.err("Looks like git is not available")
+        log.error("Looks like git is not available")
         return err
 
     for repos in [
         r["repository"] for r in cijoe.config.options.values() if "repository" in r
     ]:
-        if len(set(["upstream", "path"]) - set(repos.keys())):
-            continue
-        if "qemu" in repos["upstream"]:
-            continue
+        run = cijoe.run_local if repos.get("run_local", False) else cijoe.run
 
         repos_root = Path(repos["path"]).parent
 
-        err, _ = cijoe.run(f"mkdir -p {repos_root}")
+        err, _ = run(f"mkdir -p {repos_root}")
         if err:
             log.error("failed creating repos_root({repos_root}; giving up")
             return err
 
-        err, _ = cijoe.run(
+        err, _ = run(
             f"[ ! -d {repos['path']} ] &&"
-            f" git clone {repos['upstream']} {repos['path']} --recursive"
+            f" git clone {repos['remote']} {repos['path']} --recursive"
         )
         if err:
             log.info("either already cloned or failed cloning; continuing optimisticly")
 
         do_checkout = repos.get("branch", repos.get("tag", None))
         if do_checkout:
-            err, _ = cijoe.run(f"git checkout {do_checkout}", cwd=repos["path"])
+            err, _ = run(f"git checkout {do_checkout}", cwd=repos["path"])
             if err:
                 log.error("Failed checking out; giving up")
                 return err
@@ -67,12 +71,12 @@ def worklet_entry(args, cijoe, step):
             log.info("no 'branch' nor 'tag' key; skipping checkout")
 
         if "branch" in repos.keys():
-            err, _ = cijoe.run("git pull --rebase", cwd=repos["path"])
+            err, _ = run("git pull --rebase", cwd=repos["path"])
             if err:
                 log.error("failed pulling; giving up")
                 return err
 
-        err, _ = cijoe.run("git status", cwd=repos["path"])
+        err, _ = run("git status", cwd=repos["path"])
         if err:
             log.error("failed 'git status'; giving up")
             return err
