@@ -74,18 +74,21 @@ def cli_resources(args):
 def cli_produce_report(args):
     """Produce workflow-report"""
 
-    if not (args.output / "workflow.state").exists():
+    config_path = args.output / "config.orig"
+    state_path = args.output / "workflow.state"
+
+    if not state_path.exists():
         log.error("no workflow.state, nothing to produce a report for")
         return errno.EINVAL
 
-    if args.config is None:
+    if not config_path.exists():
         log.error("missing config")
         return errno.EINVAL
 
     # Check config/substitutions
-    config = Config.from_path(args.output / "config.orig")
+    config = Config.from_path(config_path)
     if not config:
-        log.error(f"failed: Config.from_path({args.config})")
+        log.error(f"failed: Config.from_path({config_path})")
         return errno.EINVAL
 
     cijoe = Cijoe(config, args.output)
