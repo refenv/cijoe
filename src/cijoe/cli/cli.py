@@ -71,6 +71,18 @@ def cli_resources(args):
     return 0
 
 
+def cli_archive(args):
+    """Move 'output' directory into archive"""
+
+    if args.output.exists():
+        archive = args.output.with_name("cijoe-archive") / str(
+            time.strftime("%Y-%m-%d_%H:%M:%S")
+        )
+        os.makedirs(archive)
+        log.info(f"moving existing output-directory({args.output}) to '{archive}'")
+        os.rename(args.output, archive)
+
+
 def cli_produce_report(args):
     """Produce workflow-report"""
 
@@ -360,6 +372,12 @@ def parse_args():
         "utilities", "Workflow, and workflow-related utilities"
     )
     utils_group.add_argument(
+        "--archive",
+        "-a",
+        action="store_true",
+        help="Move the output at '-o / --output' to 'cijoe-archive/YYYY-MM-DD_HH:MM:SS",
+    )
+    utils_group.add_argument(
         "--produce-report",
         "-p",
         action="append_const",
@@ -424,6 +442,9 @@ def main():
 
     if args.produce_report:
         return cli_produce_report(args)
+
+    if args.archive:
+        return cli_archive(args)
 
     err = cli_workflow(args)
 
