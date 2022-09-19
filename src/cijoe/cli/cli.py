@@ -179,56 +179,54 @@ def cli_workflow(args):
     """Process workflow"""
 
     log.info("cli: run")
-    log.info(f"workflow: {args.workflow}")
-    log.info(f"config: {args.config}")
     log.info(f"output: {args.output}")
 
-    if args.workflow is None:
-        log.error("missing workflow")
-        return errno.EINVAL
-    if args.config is None:
-        log.error("missing config")
-        return errno.EINVAL
-
-    if args.output.exists():
-        archive = args.output.with_name("cijoe-archive") / str(
-            time.strftime("%Y-%m-%d_%H:%M:%S")
-        )
-        os.makedirs(archive)
-        log.info(f"moving existing output-directory to {archive}")
-        os.rename(args.output, archive)
-
+    config_path = args.output / "config.orig"
+    workflow_path = args.output / "workflow.orig"
     state_path = args.output / "workflow.state"
-    if state_path.exists():
-        log.error(f"aborting; output({args.output}) directory already exists")
-        return errno.EPERM
 
-    config = Config(args.config.resolve())
+    log.info(f"config: {args.config} | {config_path}")
+    log.info(f"workflow: {args.workflow} | {workflow_path}")
+
+    if not args.output.exists():  # Create output-dir. with .config and .workflow
+        os.makedirs(args.output)
+
+        if args.workflow is None:
+            log.error("missing workflow")
+            return errno.EINVAL
+        if args.config is None:
+            log.error("missing config")
+            return errno.EINVAL
+
+        shutil.copyfile(args.config, config_path)
+        shutil.copyfile(args.workflow, workflow_path)
+
+    config = Config(config_path)  # Load Configuration
     errors = config.load()
     if errors:
         log_errors(errors)
-        log.error("failed: Config(args.config).load()")
+        log.error(f"Config({config_path}).load() : failed")
         return errno.EINVAL
 
-    workflow = Workflow(args.workflow)
+    workflow = Workflow(workflow_path)  # Load Workflow
+    if state_path.exists():  # Resume state, reset status
+        workflow.state = dict_from_yamlfile(state_path)
+        workflow.state["status"] = Workflow.STATE["status"]
+    else:  # "Fresh" state
+        errors = workflow.load(config)
+        if errors:
+            log_errors(errors)
+            log.error("workflow.load(): see errors above or run 'cijoe -i'")
+            return errno.EINVAL
 
-    errors = workflow.load(config)
-    if errors:
-        log_errors(errors)
-        log.error("workflow.load(): see errors above or run 'cijoe -i'")
-        return errno.EINVAL
-
+    # Check step-names
     step_names = [step["name"] for step in workflow.state["steps"]]
     for step_name in args.step:
         if step_name in step_names:
             continue
-
         log.error(f"step({step_name}) not in workflow")
         return errno.EINVAL
 
-    os.makedirs(args.output)
-    shutil.copyfile(args.config, args.output / "config.orig")
-    shutil.copyfile(args.workflow, args.output / "workflow.orig")
     resources = get_resources()
 
     # pre-load worklets and augment state with step-descriptions.
@@ -261,18 +259,30 @@ def cli_workflow(args):
         begin = time.time()
 
         cijoe.set_output_ident(step["id"])
-        os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
+        step_output = Path(cijoe.output_path) / step["id"]
+        os.makedirs(step_output, exist_ok=True)
 
-        if args.step and step["name"] not in args.step:
+        # TODO: in case of existing... then remove it
+        if step["status"]["passed"]:
+            log.info("skip: step previously processed succesfully")
+        elif args.step and step["name"] not in args.step:
+            log.info("skip: not selected for run")
             step["status"]["skipped"] = 1
         else:
+            log.info(f"processing step({step['id']})")
             worklet_ident = step["uses"]
 
             try:
                 err = resources["worklets"][worklet_ident].func(args, cijoe, step)
                 if err:
                     log.error(f"worklet({worklet_ident}) : err({err})")
-                step["status"]["failed" if err else "passed"] = 1
+                    step["status"]["failed"] = 1
+                    step["status"]["passed"] = 0
+                    step["status"]["skipped"] = 0
+                else:
+                    step["status"]["failed"] = 0
+                    step["status"]["passed"] = 1
+                    step["status"]["skipped"] = 0
             except KeyboardInterrupt as exc:
                 step["status"]["failed"] = 1
                 log.error(f"worklet({worklet_ident}) : KeyboardInterrupt({exc})")
@@ -283,7 +293,9 @@ def cli_workflow(args):
         for key in ["failed", "passed", "skipped"]:
             workflow.state["status"][key] += step["status"][key]
 
-        step["status"]["elapsed"] = time.time() - begin
+        if not step["status"]["elapsed"]:
+            step["status"]["elapsed"] = time.time() - begin
+
         workflow.state["status"]["elapsed"] += step["status"]["elapsed"]
         workflow.state_dump(args.output / Workflow.STATE_FILENAME)
 
