@@ -2,7 +2,7 @@ from setuptools import find_namespace_packages, setup
 
 setup(
     name="cijoe",
-    version="0.9.6",
+    version="0.9.7",
     author="Simon A. F. Lund",
     author_email="os@safl.dk",
     url="https://github.com/refenv/cijoe",
