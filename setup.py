@@ -17,6 +17,7 @@ setup(
         "scp",
         "setuptools>=60",
         "watchdog",
+        "cffi",
     ],
     python_requires=">=3.9",
     entry_points={
