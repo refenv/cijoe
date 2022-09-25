@@ -61,6 +61,10 @@ def worklet_entry(args, cijoe, step):
         if err:
             log.info("either already cloned or failed cloning; continuing optimisticly")
 
+        err, _ = run("git fetch --all", cwd=repos["path"])
+        if err:
+            log.info("fetching failed; continuing optimisticly")
+
         do_checkout = repos.get("branch", repos.get("tag", None))
         if do_checkout:
             err, _ = run(f"git checkout {do_checkout}", cwd=repos["path"])
@@ -75,6 +79,10 @@ def worklet_entry(args, cijoe, step):
             if err:
                 log.error("failed pulling; giving up")
                 return err
+
+        err, _ = run("git submodule update --init --recursive", cwd=repos["path"])
+        if err:
+            log.info("Updating submodules failed; continuin optimisticly")
 
         err, _ = run("git status", cwd=repos["path"])
         if err:
