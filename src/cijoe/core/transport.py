@@ -143,8 +143,8 @@ class SSH(Transport):
 
             _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
 
-            logfile.write(stdout.read().decode(ENCODING))
-            logfile.write(stderr.read().decode(ENCODING))
+            logfile.write(stdout.read().decode(ENCODING, errors='replace'))
+            logfile.write(stderr.read().decode(ENCODING, errors='replace'))
 
             err = stdout.channel.recv_exit_status()
 
