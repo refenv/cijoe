@@ -46,7 +46,13 @@ to your shell, e.g. for `Bash <https://www.gnu.org/software/bash/>`_ do:
 
 .. code-block:: bash
 
-    echo "export PATH=\"$PATH:$(python3 -m site --user-base)/bin\"" >> ~/.bash_profile
+    echo "export PATH=$PATH:$(python3 -m site --user-base)/bin" >> ~/.bash_profile
+
+When on a Mac, then add it to ZSH instead:
+
+.. code-block:: bash
+
+    echo "export PATH=$PATH:$(python3 -m site --user-base)/bin" >> ~/.zshrc
 
 Once you have verified that **cijoe** is installed correctly and that you can
 execute the command-line tool, then procede to :ref:`sec-resources-workflows`.
