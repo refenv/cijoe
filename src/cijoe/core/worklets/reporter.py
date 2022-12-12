@@ -78,6 +78,6 @@ def worklet_entry(args, cijoe, step):
         report.write(template.render(workflow_state))
 
     if report_open:
-        webbrowser.open(str(report_path))
+        webbrowser.open("file://%s" % report_path.resolve())
 
     return 0
