@@ -4,7 +4,7 @@
 import json
 from pathlib import Path
 
-from cijoe.core.misc import sanitize_ident
+from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import dict_from_yamlfile
 
 
@@ -33,7 +33,7 @@ def runlog_from_path(path: Path):
         run[stem][f"{suffix}_path"] = cmd_path
         if suffix == "output":
             with run[stem][f"{suffix}_path"].open() as content:
-                run[stem][f"{suffix}"] = content.read()
+                run[stem][f"{suffix}"] = content.read().decode(ENCODING, errors='replace')
         elif suffix == "state":
             run[stem][f"{suffix}"] = dict_from_yamlfile(run[stem][f"{suffix}_path"])
 
