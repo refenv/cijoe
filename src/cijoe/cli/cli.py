@@ -75,9 +75,11 @@ def cli_archive(args):
     """Move 'output' directory into archive"""
 
     if args.output.exists():
-        archive = args.output.with_name("cijoe-archive") / str(
-            time.strftime("%Y-%m-%d_%H:%M:%S")
-        )
+        state_path = args.output / "workflow.state"
+        state = dict_from_yamlfile(state_path)
+        tag = "" if state["tag"] is None else '-'.join(state["tag"]) + '-'
+        t = str(time.strftime("%Y-%m-%d_%H:%M:%S"))
+        archive = args.output.with_name("cijoe-archive") / f"{tag}{t}"
         os.makedirs(archive)
         log.info(f"moving existing output-directory({args.output}) to '{archive}'")
         os.rename(args.output, archive)
@@ -212,6 +214,7 @@ def cli_workflow(args):
         log.error("workflow.load(): see errors above or run 'cijoe -i'")
         return errno.EINVAL
 
+    workflow.state["tag"] = args.tag
     step_names = [step["name"] for step in workflow.state["steps"]]
     for step_name in args.step:
         if step_name in step_names:
@@ -360,6 +363,14 @@ def parse_args():
         "-n",
         action="store_true",
         help="Skip the producing, and opening, a report at the end of the workflow-run",
+    )
+
+    workflow_group.add_argument(
+        "--tag",
+        "-t",
+        type=str,
+        action="append",
+        help="Tags to identify a workflow-run. This will be prefixed while storing in archive",
     )
 
     utils_group = parser.add_argument_group(

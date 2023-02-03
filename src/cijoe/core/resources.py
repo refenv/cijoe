@@ -225,6 +225,7 @@ class Workflow(Resource):
     STATE_FILENAME = "workflow.state"
     STATE = {
         "doc": "",
+        "tag": "",
         "config": {},
         "steps": [],
         "status": {
