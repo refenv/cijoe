@@ -190,13 +190,7 @@ def cli_workflow(args):
         log.error("missing config")
         return errno.EINVAL
 
-    if args.output.exists():
-        archive = args.output.with_name("cijoe-archive") / str(
-            time.strftime("%Y-%m-%d_%H:%M:%S")
-        )
-        os.makedirs(archive)
-        log.info(f"moving existing output-directory to {archive}")
-        os.rename(args.output, archive)
+    cli_archive(args)
 
     state_path = args.output / "workflow.state"
     if state_path.exists():
