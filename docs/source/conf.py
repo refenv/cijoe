@@ -10,7 +10,7 @@ import sphinx_rtd_theme  # noqa
 project = "cijoe"
 copyright = "2022, Simon A. F. Lund"
 author = "Simon A. F. Lund"
-release = "0.9.12"
+release = "0.9.13"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
