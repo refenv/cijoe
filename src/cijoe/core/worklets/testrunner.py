@@ -28,7 +28,7 @@ Although the worklet is not retargetable, then the pytest-plugin itself is retar
 def worklet_entry(args, cijoe, step):
     """Invoke test-runner"""
 
-    pytest_cmd = ["python3", "-m", "pytest"]
+    pytest_cmd = ["pytest"]
     pytest_cmd += ["--output", str(args.output / cijoe.output_ident)]
     pytest_cmd += [
         "--report-log",

@@ -5,23 +5,30 @@ Installation
 
 **cijoe** is distributed as a Python package (named `cijoe
 <https://pypi.org/project/cijoe/>`_) via the Python Package Index (`PyPi
-<https://pypi.org>`_) and installable via ``pip3``. Extensions to **cijoe** are
-referred to as **cijoe packages**, these are conventionally named
-``cijoe-pkg-<project_name>``.
+<https://pypi.org>`_). Extensions to **cijoe** are referred to as **cijoe
+packages**, these are conventionally named ``cijoe-pkg-<project_name>``.
 
-Do a **user-local** install of ``cijoe`` and a couple of useful **cijoe
-packages** using ``pip``:
+Install ``cijoe``, in a virtual-environment via ``pipx``, along with a couple
+of useful **cijoe packages**:
 
 .. code-block:: bash
 
-  python3 -m pip install --user \
-   cijoe \
-   cijoe-pkg-qemu \
-   cijoe-pkg-linux
+  python3 -m pipx install cijoe --include-deps
+  python3 -m pipx inject cijoe-pkg-qemu
+  python3 -m pipx inject cijoe-pkg-linux
 
-The **user-local** install (``--user``) isolates the installation to the
-current user account, instead of installing it **system-wide** and potentially
-colliding with system packages.
+.. note:: Make sure that you follow the recommendation above. The
+   ``--include-deps`` ensure that the ``pytest`` CLI is made available
+   alongside ``cijoe``. And by having both in the same virtual environment,
+   then **pytest** can use the **cijoe** pytest-plugin and **cijoe** can invoke
+   the ``pytest`` CLI.
+
+Installation of Python packages via ``pip`` should be done in a virtual
+environment. For command-line utilities such as ``cijoe`` then ``pipx``
+provides a convenient means, designed for exactly this usecase, to setup the
+virtual environment and make the command-line utilities provided within available
+as any other command-line utility. It is thus the recommended approach for
+``cijoe``.
 
 Check installation
 ------------------
@@ -36,23 +43,16 @@ It should provide a usage page that looks like this:
 .. literalinclude:: joe.out
    :language: bash
 
-If this does not produce the help-page as above, then your system is
-probably not configured to look for binaries/executables in the location that
-``python3 -m pip install --user`` installs them to.
-
-For example, on Linux then the output of ``python3 -m site --user-base`` is not
-in your environment-variable ``$PATH``. You can quickly fix this by adding it
-to your shell, e.g. for `Bash <https://www.gnu.org/software/bash/>`_ do:
+If this does not produce the help-page as above, then ensure that ``pipx`` is
+installed and your ``PATH`` setup correctly. For example, by running the
+following:
 
 .. code-block:: bash
 
-    echo "export PATH=$PATH:$(python3 -m site --user-base)/bin" >> ~/.bash_profile
+  python3 -m pip install --user pipx
+  python3 -m pipx ensurepath
 
-When on a Mac, then add it to ZSH instead:
-
-.. code-block:: bash
-
-    echo "export PATH=$PATH:$(python3 -m site --user-base)/bin" >> ~/.zshrc
+And then reload your shell.
 
 Once you have verified that **cijoe** is installed correctly and that you can
 execute the command-line tool, then procede to :ref:`sec-resources-workflows`.

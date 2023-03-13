@@ -1,3 +1,3 @@
-python3 -m pip install --user cijoe
+python3 -m pipx install cijoe
 cijoe --example
 cijoe
