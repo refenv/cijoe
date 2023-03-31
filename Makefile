@@ -2,6 +2,10 @@
 # This Makefile serves as convenient command-line auto-completion
 #
 PROJECT_NAME=cijoe
+PYTEST=~/.local/pipx/venvs/cijoe/bin/pytest
+PYTHON=python3
+PIPX=pipx
+TWINE=twine
 
 define default-help
 # invoke: 'make uninstall', 'make install'
@@ -23,7 +27,7 @@ endef
 .PHONY: build
 build:
 	@echo "## py: make build-sdist"
-	@python3 setup.py sdist
+	@${PYTHON} setup.py sdist
 	@echo "## py: make build-sdist [DONE]"
 
 define install-help
@@ -32,7 +36,7 @@ endef
 .PHONY: install
 install:
 	@echo "## py: make install"
-	@python3 -m pip install dist/*.tar.gz --user --no-build-isolation
+	@${PIPX} install dist/*.tar.gz
 	@echo "## py: make install [DONE]"
 
 define uninstall-help
@@ -43,19 +47,8 @@ endef
 .PHONY: uninstall
 uninstall:
 	@echo "## py: make uninstall"
-	@python3 -m pip uninstall ${PROJECT_NAME} --yes || echo "Cannot uninstall => That is OK"
+	@${PIPX} uninstall ${PROJECT_NAME} || echo "Cannot uninstall => That is OK"
 	@echo "## py: make uninstall [DONE]"
-
-define install-system-help
-# install system-wide
-#
-# install system-wide
-endef
-.PHONY: install-system
-install-system:
-	@echo "## py: make install-system"
-	@python3 -m pip install dist/*.tar.gz
-	@echo "## py: make install-system [DONE]"
 
 define examples-help
 # Run pytest on the testcase-test
@@ -63,17 +56,17 @@ endef
 .PHONY: test
 test:
 	@echo "## py: make test"
-	python3 -m pytest --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
+	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
 	@echo "## py: make test [DONE]"
 
 .PHONY: release-build
 release-build:
-	python setup.py sdist
-	python setup.py bdist_wheel
+	${PYTHON} setup.py sdist
+	${PYTHON} setup.py bdist_wheel
 
 .PHONY: release-upload
 release-upload:
-	twine upload dist/*
+	${TWINE} upload dist/*
 
 .PHONY: release
 release: clean release-build release-upload
