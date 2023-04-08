@@ -1,2 +1,1 @@
-__version__ = "1.0.0"
-__author__ = "Simon A. F. Lund"
+__version__ = "0.9.15"
