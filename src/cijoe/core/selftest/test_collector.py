@@ -42,7 +42,6 @@ def test_collect_worklets_from_path():
 
 
 def test_collect_worklets_from_packages():
-
     collector = Collector()
     collector.collect_from_packages(cijoe.core.__path__, cijoe.core.__name__ + ".")
 

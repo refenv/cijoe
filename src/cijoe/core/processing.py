@@ -32,7 +32,9 @@ def runlog_from_path(path: Path):
 
         run[stem][f"{suffix}_path"] = cmd_path
         if suffix == "output":
-            with run[stem][f"{suffix}_path"].open(encoding=ENCODING, errors="replace") as content:
+            with run[stem][f"{suffix}_path"].open(
+                encoding=ENCODING, errors="replace"
+            ) as content:
                 run[stem][f"{suffix}"] = content.read()
         elif suffix == "state":
             run[stem][f"{suffix}"] = dict_from_yamlfile(run[stem][f"{suffix}_path"])
@@ -162,7 +164,6 @@ def artifacts_in_path(path: Path):
 
 
 def process_workflow_output(args, cijoe):
-
     workflow_state = dict_from_yamlfile(args.output / "workflow.state")
     workflow_state["config"] = cijoe.config.options
     workflow_state["artifacts"] = artifacts_in_path(args.output)

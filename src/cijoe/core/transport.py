@@ -114,12 +114,10 @@ class SSH(Transport):
         )
 
     def __connect(self):
-
         self.ssh.connect(**self.config.options.get("transport").get("ssh"))
         self.scp = SCPClient(self.ssh.get_transport())
 
     def __disconnect(self):
-
         self.scp.close()
         self.ssh.close()
 
@@ -143,8 +141,8 @@ class SSH(Transport):
 
             _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
 
-            logfile.write(stdout.read().decode(ENCODING, errors='replace'))
-            logfile.write(stderr.read().decode(ENCODING, errors='replace'))
+            logfile.write(stdout.read().decode(ENCODING, errors="replace"))
+            logfile.write(stderr.read().decode(ENCODING, errors="replace"))
 
             err = stdout.channel.recv_exit_status()
 

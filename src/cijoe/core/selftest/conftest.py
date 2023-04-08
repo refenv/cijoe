@@ -3,7 +3,6 @@ import pytest
 
 @pytest.fixture
 def nvme(cijoe, capsys):
-
     nvme = cijoe.get_config(subject="nvme")
     if not nvme:
         return None
@@ -14,7 +13,6 @@ def nvme(cijoe, capsys):
 
 @pytest.fixture
 def xnvme(cijoe, capsys):
-
     nvme = cijoe.get_config(subject="nvme")
     if not nvme:
         return None

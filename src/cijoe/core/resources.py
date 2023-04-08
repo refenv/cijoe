@@ -101,7 +101,6 @@ class Resource(object):
     """Base representation of a Resource"""
 
     def __init__(self, path: Path, pkg=None):
-
         self.path = path.resolve()
         self.pkg = pkg
 
@@ -113,7 +112,6 @@ class Resource(object):
         self.ident = f"{prefix}{self.path.stem}"
 
     def __repr__(self):
-
         return str(self.path)
 
     def content_from_file(self):
@@ -220,7 +218,6 @@ class Worklet(Resource):
 
 
 class Workflow(Resource):
-
     SUFFIX = ".workflow"
     STATE_FILENAME = "workflow.state"
     STATE = {

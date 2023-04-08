@@ -20,7 +20,6 @@ class Handler(FileSystemEventHandler):
         self.log_level = log_level
 
     def on_created(self, event):
-
         path = Path(event.src_path).resolve()
         if not re.match(self.match, str(path.name)):
             return

@@ -93,7 +93,6 @@ class Cijoe(object):
         self.transport.output_ident = output_ident
 
     def _run(self, cmd, cwd, env, transport):
-
         self.run_count += 1
         cmd_output_dpath = os.path.join(self.output_path, self.output_ident)
         cmd_output_fpath = os.path.join(

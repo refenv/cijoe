@@ -2,7 +2,6 @@ from cijoe.core.resources import get_resources
 
 
 def test_workflow_load():
-
     resources = get_resources()
 
     config = resources["configs"]["core.default"]

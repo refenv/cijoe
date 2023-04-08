@@ -77,7 +77,7 @@ def cli_archive(args):
     if args.output.exists():
         state_path = args.output / "workflow.state"
         state = dict_from_yamlfile(state_path)
-        tag = "" if state.get("tag", None) is None else '-'.join(state["tag"]) + '-'
+        tag = "" if state.get("tag", None) is None else "-".join(state["tag"]) + "-"
         t = str(time.strftime("%Y-%m-%d_%H:%M:%S"))
         archive = args.output.with_name("cijoe-archive") / f"{tag}{t}"
         os.makedirs(archive)
@@ -252,7 +252,6 @@ def cli_workflow(args):
 
     cijoe = Cijoe(config, args.output)
     for step in workflow.state["steps"]:
-
         log.info(f"step({step['name']}) - begin")
 
         begin = time.time()

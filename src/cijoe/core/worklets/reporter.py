@@ -32,7 +32,6 @@ def to_yaml(value):
 
 
 def elapsed_txt(value):
-
     minutes, seconds = divmod(float(value), 60.0)
     hours, minutes = divmod(minutes, 60.0)
 
@@ -47,7 +46,6 @@ def elapsed_txt(value):
 
 
 def timestamp_to_txt(value):
-
     return datetime.fromtimestamp(float(value)).strftime("%d-%m-%Y, %H:%M:%S")
 
 
