@@ -25,9 +25,9 @@ Then create the actual package content layout::
 
   # The deep nesting is because cijoe uses namespace packages
   mkdir -p src/cijoe/blob
-  mkdir -p src/cijoe/blob/{selftest,tests,worklets,workflows,configs}
+  mkdir -p src/cijoe/blob/{selftest,tests,scripts,workflows,configs}
   touch src/cijoe/blob/__init__.py
-  touch src/cijoe/blob/{selftest,tests,worklets,workflows,configs}/__init__.py
+  touch src/cijoe/blob/{selftest,tests,scripts,workflows,configs}/__init__.py
 
   # If you are putting it on GitHUB, set the passwords on your repos
   cp -r $HOME/git/cijoe/.github .

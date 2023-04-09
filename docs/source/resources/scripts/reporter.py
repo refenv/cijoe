@@ -30,7 +30,7 @@ def to_yaml(value):
     return yaml.dump(value)
 
 
-def worklet_entry(args, cijoe, step):
+def script_entry(args, cijoe, step):
     """Produce a HTML report of the 'workflow.state' file in 'args.output'"""
 
     report_open = step.get("with", {"report_open": True}.get("report_open", True))

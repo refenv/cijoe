@@ -4,8 +4,8 @@
  Resources
 ===========
 
-In **cijoe** all of :ref:`sec-resources-auxilary`,
-:ref:`sec-resources-workflows`, :ref:`sec-resources-worklets`,
+In **cijoe** all of :ref:`sec-resources-auxiliary`,
+:ref:`sec-resources-workflows`, :ref:`sec-resources-scripts`,
 :ref:`sec-resources-configs`, :ref:`sec-resources-templates`, and
 :ref:`sec-resources-perfreqs` are all considered dynamically loadable
 resources.
@@ -36,7 +36,7 @@ The command-line, provides a quick way to lookup all available resources:
 
    configs/index.rst
    workflows/index.rst
-   worklets/index.rst
+   scripts/index.rst
    templates/index.rst
    perfreqs/index.rst
-   auxilary/index.rst
+   auxiliary/index.rst

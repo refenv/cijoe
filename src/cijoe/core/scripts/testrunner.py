@@ -16,16 +16,16 @@ Requires the following pytest plugins for correct behaviour:
 
  * report-log, dump testnode-status as JSON, this is consumed by 'core.report' to
  produce an overview of testcases and link them with the cijoe-captured output and
- auxilary files.
+ auxiliary files.
 
 Retargetable: False
 -------------------
 
-Although the worklet is not retargetable, then the pytest-plugin itself is retargetable.
+Although the script is not retargetable, then the pytest-plugin itself is retargetable.
 """
 
 
-def worklet_entry(args, cijoe, step):
+def script_entry(args, cijoe, step):
     """Invoke test-runner"""
 
     pytest_cmd = ["pytest"]

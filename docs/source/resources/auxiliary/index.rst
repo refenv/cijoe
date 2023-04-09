@@ -1,9 +1,9 @@
-.. _sec-resources-auxilary:
+.. _sec-resources-auxiliary:
 
-Auxilary
-========
+Auxiliary
+=========
 
-Auxilary files are anything which is not any of the other kind of resources.
+Auxiliary files are anything which is not any of the other kind of resources.
 A wildcard of files. This is useful for providing things like providing scripts
 for ``fio``, configuration-files for some system, hardware specifications, and
 other means of data.

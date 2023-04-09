@@ -4,8 +4,8 @@
  Usage
 =======
 
-Running workflows, writing worklets, calling **cijoe** from any Python module.
-The testrunner worklet and pytest-plugin.
+Running workflows, writing scripts, calling **cijoe** from any Python module.
+The testrunner script and pytest-plugin.
 
 Environment Variables
 =====================
@@ -36,7 +36,7 @@ Workflows
 Testrunner
 ==========
 
-The worklet... and the pytest-plugin...
+The script... and the pytest-plugin...
 
 .. automodule:: cijoe.pytest_plugin.hooks_and_fixtures
    :members:

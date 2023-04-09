@@ -10,7 +10,7 @@ following is done:
  * git pull --rebase                               # if repository.branch
  * git status
 
-The intended usage of this worklet is to prepare a repositories in a recently
+The intended usage of this script is to prepare a repositories in a recently
 provisioned system. Such as a done by 'qemu.provision'.
 
 Configuration
@@ -34,7 +34,7 @@ import logging as log
 from pathlib import Path
 
 
-def worklet_entry(args, cijoe, step):
+def script_entry(args, cijoe, step):
     """Clone, checkout branch and pull"""
 
     err, _ = cijoe.run("git --version")

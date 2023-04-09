@@ -161,7 +161,7 @@ div.image {
           <div class="tab-pane" id="artifacts-tab-pane" role="tabpanel" aria-labelledby="artifacts-tab" tabindex="0">
             <div class="card-body">
               <p>
-                If a workflow step (worklet / run) or test produced any artifacts, then they are
+                If a workflow step (script / run) or test produced any artifacts, then they are
                 listed here.
               </p>
               <hr />
@@ -286,9 +286,9 @@ div.image {
           <div class="collapse" id="CONTENT_DESCRIPTION_{{ step['id'] }}" data-bs-parent="#CONTENT_{{ step['id'] }}">
             <div class="card-header">
               <p>
-              Steps <code>uses</code> <b>worklets</b>. A description of the <b>worklet</b> used by
+              Steps <code>uses</code> <b>scripts</b>. A description of the <b>script</b> used by
               the current step is provided below. The description is extracted from the docstring
-              of the worklet and provided here in verbatim / as-is.
+              of the script and provided here in verbatim / as-is.
               <p>
               <hr />
               <pre class="runlog cmd"><code>{{ step['description'] }}</code></pre>

@@ -3,7 +3,7 @@ Currently not implemented
 """
 
 
-def worklet_entry(args, cijoe, step):
+def script_entry(args, cijoe, step):
     """Extract metrics from workflow output"""
 
     print("extractor")

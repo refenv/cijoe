@@ -49,7 +49,7 @@ def timestamp_to_txt(value):
     return datetime.fromtimestamp(float(value)).strftime("%d-%m-%Y, %H:%M:%S")
 
 
-def worklet_entry(args, cijoe, step):
+def script_entry(args, cijoe, step):
     """Produce a HTML report of the 'workflow.state' file in 'args.output'"""
 
     report_open = step.get("with", {"report_open": True}.get("report_open", True))

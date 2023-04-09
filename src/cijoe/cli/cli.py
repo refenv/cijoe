@@ -109,7 +109,7 @@ def cli_produce_report(args):
 
     resources = get_resources()
 
-    reporter = resources["worklets"]["core.reporter"]
+    reporter = resources["scripts"]["core.reporter"]
     if reporter.func is None:
         reporter.load()
 
@@ -228,16 +228,16 @@ def cli_workflow(args):
     shutil.copyfile(args.workflow, args.output / "workflow.orig")
     resources = get_resources()
 
-    # pre-load worklets and augment state with step-descriptions.
+    # pre-load scripts and augment state with step-descriptions.
     # TODO: for some reason when mod.__doc__ is None, then the docstring from a previous
     # mod trickles in. This should be fixed...
     for step in workflow.state["steps"]:
-        worklet_ident = step["uses"]
-        resources["worklets"][worklet_ident].load()
+        script_ident = step["uses"]
+        resources["scripts"][script_ident].load()
 
         step["description"] = "Undocumented"
-        if resources["worklets"][worklet_ident].mod.__doc__:
-            step["description"] = str(resources["worklets"][worklet_ident].mod.__doc__)
+        if resources["scripts"][script_ident].mod.__doc__:
+            step["description"] = str(resources["scripts"][script_ident].mod.__doc__)
 
     workflow.state["status"]["started"] = time.time()
 
@@ -262,19 +262,19 @@ def cli_workflow(args):
         if args.step and step["name"] not in args.step:
             step["status"]["skipped"] = 1
         else:
-            worklet_ident = step["uses"]
+            script_ident = step["uses"]
 
             try:
-                err = resources["worklets"][worklet_ident].func(args, cijoe, step)
+                err = resources["scripts"][script_ident].func(args, cijoe, step)
                 if err:
-                    log.error(f"worklet({worklet_ident}) : err({err})")
+                    log.error(f"script({script_ident}) : err({err})")
                 step["status"]["failed" if err else "passed"] = 1
             except KeyboardInterrupt as exc:
                 step["status"]["failed"] = 1
-                log.error(f"worklet({worklet_ident}) : KeyboardInterrupt({exc})")
+                log.error(f"script({script_ident}) : KeyboardInterrupt({exc})")
             except Exception as exc:
                 step["status"]["failed"] = 1
-                log.error(f"worklet({worklet_ident}) : Raised Exception({exc})")
+                log.error(f"script({script_ident}) : Raised Exception({exc})")
 
         for key in ["failed", "passed", "skipped"]:
             workflow.state["status"][key] += step["status"][key]

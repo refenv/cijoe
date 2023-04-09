@@ -8,7 +8,7 @@ Configs
 ``transport`` has special meaning.
 
 Keys are otherwise granted meaning by their use of
-:ref:`sec-resources-worklets`, tests, and regular Python modules.
+:ref:`sec-resources-scripts`, tests, and regular Python modules.
 
 .. _sec-resources-configs-example:
 

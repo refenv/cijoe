@@ -11,11 +11,11 @@
     * cijoe.cli (Command-Line Tool and utilization of the above for workflow execution)
 
     Everything else, literally everything, is implemented as a dynamically collectable
-    and loadable resources. That is, configuration-files, worklets, workflows,
-    templates, and auxilary files.
+    and loadable resources. That is, configuration-files, scripts, workflows,
+    templates, and auxiliary files.
 
     The base-representation of these resources is the cijoe.core.resources.Resource
-    class, with content-specific subclasses (Config, Worklet, and Workflow).
+    class, with content-specific subclasses (Config, Script, and Workflow).
 
     These resources are collected from installed and locally available Packages, as well
     as for path by the cijoe.core.resources.Collector.
@@ -167,11 +167,11 @@ class Config(Resource):
         return config
 
 
-class Worklet(Resource):
-    """Worklet representation and encapsulation"""
+class Script(Resource):
+    """Script representation and encapsulation"""
 
     SUFFIX = ".py"
-    NAMING_CONVENTION = "worklet_entry"
+    NAMING_CONVENTION = ["worklet_entry", "script_entry"]
 
     def __init__(self, path, pkg=None):
         super().__init__(path, pkg)
@@ -180,8 +180,8 @@ class Worklet(Resource):
         self.mod = None
         self.mod_name = None
 
-    def content_has_worklet_func(self):
-        """Checks whether the resource-content has the worklet entry-function"""
+    def content_has_script_func(self):
+        """Checks whether the resource-content has the script entry-function"""
 
         try:
             tree = ast.parse(self.content)
@@ -189,7 +189,7 @@ class Worklet(Resource):
             return False
 
         for node in [x for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]:
-            if node.name != Worklet.NAMING_CONVENTION:
+            if node.name not in Script.NAMING_CONVENTION:
                 continue
 
             return True
@@ -197,7 +197,7 @@ class Worklet(Resource):
         return False
 
     def load(self):
-        """Loads the module and the worklet-entry function"""
+        """Loads the module and the script-entry function"""
 
         if self.func:
             return []
@@ -205,12 +205,12 @@ class Worklet(Resource):
         if not self.content:
             self.content_from_file()
 
-        if not self.content_has_worklet_func():
-            return ["Missing worklet_entry() function in ast"]
+        if not self.content_has_script_func():
+            return ["Missing script_entry() function in ast"]
 
         mod = SourceFileLoader("", str(self.path)).load_module()
         for function_name, function in inspect.getmembers(mod, inspect.isfunction):
-            if function_name != Worklet.NAMING_CONVENTION:
+            if function_name not in Script.NAMING_CONVENTION:
                 continue
 
             self.mod = mod
@@ -218,7 +218,7 @@ class Worklet(Resource):
             self.func = function
             return []
 
-        return ["Missing worklet_entry() function in loaded module"]
+        return ["Missing script_entry() function in loaded module"]
 
 
 class Workflow(Resource):
@@ -318,9 +318,9 @@ class Workflow(Resource):
                 errors.append(f"Invalid step({nr}); unsupported keys({unsupported})")
                 continue
 
-            if step["uses"] not in resources["worklets"]:
+            if step["uses"] not in resources["scripts"]:
                 errors.append(
-                    f"Invalid step({nr}); unknown resource: worklet({step['uses']})"
+                    f"Invalid step({nr}); unknown resource: script({step['uses']})"
                 )
                 continue
 
@@ -381,8 +381,8 @@ class Collector(object):
         ("perf_reqs", ".perfreq"),
         ("templates", ".html"),
         ("workflows", ".workflow"),
-        ("worklets", Worklet.SUFFIX),
-        ("auxilary", ".*"),
+        ("scripts", Script.SUFFIX),
+        ("auxiliary", ".*"),
     ]
     IGNORE = ["__init__.py", "__pycache__", "setup.py"]
 
@@ -398,12 +398,12 @@ class Collector(object):
     def __process_candidate(self, candidate: Path, category: str, pkg):
         """Inserts the given candidate"""
 
-        if category == "worklets":
-            resource = Worklet(candidate, pkg)
+        if category == "scripts":
+            resource = Script(candidate, pkg)
             resource.content_from_file()
 
-            if not resource.content_has_worklet_func():
-                category = "auxilary"
+            if not resource.content_has_script_func():
+                category = "auxiliary"
         elif category == "configs":
             resource = Config(candidate, pkg)
         elif category == "workflows":
@@ -414,7 +414,7 @@ class Collector(object):
         self.resources[category][resource.ident] = resource
 
     def collect_from_path(self, path=None, max_depth=2):
-        """Collects non-packaged worklets from the given 'path'"""
+        """Collects non-packaged scripts from the given 'path'"""
 
         path = Path(path).resolve() if path else Path.cwd().resolve()
 

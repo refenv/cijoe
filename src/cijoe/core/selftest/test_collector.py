@@ -6,8 +6,8 @@ from cijoe.core.resources import Collector
 CORE_RESOURCE_COUNTS = {
     "configs": 2,
     "templates": 1,
-    "auxilary": 1,
-    "worklets": 6,
+    "auxiliary": 1,
+    "scripts": 6,
 }
 
 
@@ -27,26 +27,26 @@ def test_resource_collection():
                 ]
             )
             == count
-        )
+        ), f"Invalid count({count}) for category({category})"
 
 
-def test_collect_worklets_from_path():
+def test_collect_scripts_from_path():
     """Uses the core package, to have something to collect."""
 
     collector = Collector()
-    collector.collect_from_path(Path(__file__).parent.parent.joinpath("worklets"))
+    collector.collect_from_path(Path(__file__).parent.parent.joinpath("scripts"))
 
     assert (
-        len(collector.resources["worklets"]) == CORE_RESOURCE_COUNTS["worklets"]
+        len(collector.resources["scripts"]) == CORE_RESOURCE_COUNTS["scripts"]
     ), "Failed collecting from path"
 
 
-def test_collect_worklets_from_packages():
+def test_collect_scripts_from_packages():
     collector = Collector()
     collector.collect_from_packages(cijoe.core.__path__, cijoe.core.__name__ + ".")
 
     assert (
-        len(collector.resources["worklets"]) == CORE_RESOURCE_COUNTS["worklets"]
+        len(collector.resources["scripts"]) == CORE_RESOURCE_COUNTS["scripts"]
     ), "Failed collecting from packages"
 
 
@@ -54,13 +54,13 @@ def test_compare_from_path_with_from_package():
     """This is just to give hint to whether it is 'from_path' or 'from_packages'"""
 
     collector_path = Collector()
-    collector_path.collect_from_path(Path(__file__).parent.parent.joinpath("worklets"))
+    collector_path.collect_from_path(Path(__file__).parent.parent.joinpath("scripts"))
 
     collector_pkgs = Collector()
     collector_pkgs.collect_from_packages(cijoe.core.__path__, cijoe.core.__name__ + ".")
 
-    assert len(collector_path.resources["worklets"]) == len(
-        collector_pkgs.resources["worklets"]
+    assert len(collector_path.resources["scripts"]) == len(
+        collector_pkgs.resources["scripts"]
     )
 
 
@@ -70,4 +70,4 @@ def test_collect_from_empty_path():
     collector = Collector()
     collector.collect_from_path("/tmp")
 
-    assert len(collector.resources["worklets"]) == 0, "Did not expect to find any"
+    assert len(collector.resources["scripts"]) == 0, "Did not expect to find any"
