@@ -44,12 +44,12 @@ build:
 	${PY_ENV_ACTIVATE} && sphinx-build -b html ${SPHINX_SOURCEDIR} ${SPHINX_BUILDDIR}
 
 define build-help
-# Open the HTML documentation using (xdg-open)
+# Open the HTML documentation
 endef
 .PHONY: view
 view:
 	@echo "## open docs"
-	xdg-open "${SPHINX_BUILDDIR}/index.html"
+	xdg-open "${SPHINX_BUILDDIR}/index.html" || open "${SPHINX_BUILDDIR}/index.html"
 
 define build-py-env-help
 # Setup a virtual environment
