@@ -12,8 +12,8 @@ define default-help
 endef
 .PHONY: default
 default: build
-	@echo "## py: make default"
-	@echo "## py: make default [DONE]"
+	@echo "## ${PROJECT_NAME}: make default"
+	@echo "## ${PROJECT_NAME}: make default [DONE]"
 
 define  all-help
 # Do all: clean uninstall build install
@@ -21,23 +21,41 @@ endef
 .PHONY: all
 all: uninstall clean build install test
 
+define format-help
+# run code format (style, code-conventions and language-integrity) on staged changes
+endef
+.PHONY: format
+format:
+	@echo "## ${PROJECT_NAME}: format"
+	@pre-commit run
+	@echo "## ${PROJECT_NAME}: format [DONE]"
+
+define format-all-help
+# run code format (style, code-conventions and language-integrity) on staged and committed changes
+endef
+.PHONY: format-all
+format-all:
+	@echo "## ${PROJECT_NAME}: format-all"
+	@pre-commit run --all-files
+	@echo "## ${PROJECT_NAME}: format-all [DONE]"
+
 define build-help
 # Build the package (source distribution package)
 endef
 .PHONY: build
 build:
-	@echo "## py: make build-sdist"
+	@echo "## ${PROJECT_NAME}: make build-sdist"
 	@${PYTHON} setup.py sdist
-	@echo "## py: make build-sdist [DONE]"
+	@echo "## ${PROJECT_NAME}: make build-sdist [DONE]"
 
 define install-help
 # install for current user
 endef
 .PHONY: install
 install:
-	@echo "## py: make install"
+	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz
-	@echo "## py: make install [DONE]"
+	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
 # uninstall
@@ -46,18 +64,18 @@ define uninstall-help
 endef
 .PHONY: uninstall
 uninstall:
-	@echo "## py: make uninstall"
+	@echo "## ${PROJECT_NAME}: make uninstall"
 	@${PIPX} uninstall ${PROJECT_NAME} || echo "Cannot uninstall => That is OK"
-	@echo "## py: make uninstall [DONE]"
+	@echo "## ${PROJECT_NAME}: make uninstall [DONE]"
 
 define examples-help
 # Run pytest on the testcase-test
 endef
 .PHONY: test
 test:
-	@echo "## py: make test"
+	@echo "## ${PROJECT_NAME}: make test"
 	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
-	@echo "## py: make test [DONE]"
+	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
 .PHONY: release-build
 release-build:
@@ -77,6 +95,6 @@ define clean-help
 endef
 .PHONY: clean
 clean:
-	@echo "## py: clean"
+	@echo "## ${PROJECT_NAME}: clean"
 	@git clean -fdx || echo "Failed git-clean ==> That is OK"
-	@echo "## py: clean [DONE]"
+	@echo "## ${PROJECT_NAME}: clean [DONE]"
