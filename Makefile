@@ -21,6 +21,15 @@ endef
 .PHONY: all
 all: uninstall clean build install test
 
+define docker-help
+# drop into a docker instance with the repository bind-mounted at /tmp/source
+endef
+.PHONY: docker
+docker:
+	@echo "## ${PROJECT_NAME}: docker"
+	@docker run -it -w /tmp/source --mount type=bind,source="$(shell pwd)",target=/tmp/source ghcr.io/xnvme/xnvme-deps-debian-bullseye:next bash
+	@echo "## ${PROJECT_NAME}: docker [DONE]"
+
 define format-help
 # run code format (style, code-conventions and language-integrity) on staged changes
 endef
