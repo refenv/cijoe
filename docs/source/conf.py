@@ -7,10 +7,12 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import sphinx_rtd_theme  # noqa
 
+from cijoe.core import __version__
+
 project = "cijoe"
 copyright = "2022, Simon A. F. Lund"
 author = "Simon A. F. Lund"
-release = "0.9.15"
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
