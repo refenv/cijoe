@@ -369,7 +369,8 @@ def parse_args():
         "-t",
         type=str,
         action="append",
-        help="Tags to identify a workflow-run. This will be prefixed while storing in archive",
+        help="Tags to identify a workflow-run."
+        " This will be prefixed while storing in archive",
     )
 
     utils_group = parser.add_argument_group(
