@@ -1,0 +1,5 @@
+# The SSH options are passed verbatim to paramiko; see https://www.paramiko.org/
+[transport.ssh]
+username = "root"
+hostname = "test_target"
+port = 22

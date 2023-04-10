@@ -121,7 +121,7 @@ def cli_produce_report(args):
 
 
 def cli_example(args):
-    """Create example .config and .workflow"""
+    """Create example config.toml and workflow.yaml"""
 
     log.info("cli: examples")
     err = 0
@@ -130,7 +130,9 @@ def cli_example(args):
 
     resource = resources["configs"].get(f"{args.example}.default", None)
     if resource is None:
-        log.error(f"'default.config' from '{args.example}' is not available")
+        log.error(
+            f"'default-config{Config.SUFFIX}' from '{args.example}' is not available"
+        )
         return errno.EINVAL
     src_config = resource.path
 
@@ -148,10 +150,14 @@ def cli_example(args):
     log.info(f"workflow: {dst_workflow}")
 
     if not src_config.exists():
-        log.error(f"'default.config' from '{args.example}' is not available")
+        log.error(
+            f"'default-config{Config.SUFFIX}' from '{args.example}' is not available"
+        )
         return errno.EINVAL
     if not src_workflow.exists():
-        log.error(f"example.workflow' from '{args.example}' is not available")
+        log.error(
+            f"example-workflow{Workflow.SUFFIX}' from '{args.example}' is not available"
+        )
         return errno.EINVAL
 
     if dst_config.exists():
@@ -305,10 +311,10 @@ def parse_args():
     """Parse command-line interface."""
 
     cfiles = sorted(
-        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == ".config"]
+        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == Config.SUFFIX]
     )
     wfiles = sorted(
-        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == ".workflow"]
+        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == Workflow.SUFFIX]
     )
 
     parser = argparse.ArgumentParser(
@@ -409,7 +415,7 @@ def parse_args():
         type=str,
         nargs="?",
         default=None,
-        help="Create 'default.config' and 'example.workflow' and exit.",
+        help="Create 'default-config.toml' and 'example-workflow.yaml' and exit.",
     )
     utils_group.add_argument(
         "--version",

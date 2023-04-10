@@ -12,7 +12,7 @@
     To provide the cijoe-instance a configuration and output directory must be provided.
     These are given via pytest, e.g.::
 
-        pytest --config default.config --output /tmp/foo
+        pytest --config default.toml --output /tmp/foo
 
     In case no arguments are provided, defaults are used.
 """
@@ -40,7 +40,7 @@ def pytest_addoption(parser):
         action="store",
         type=Path,
         help="Path to cijoe configuration",
-        default=str(collector.resources["configs"]["core.default"]),
+        default=str(collector.resources["configs"]["core.default-config"]),
     )
     parser.addoption(
         "--output",
@@ -69,7 +69,7 @@ def pytest_configure(config):
 
     cijoe_config = Config.from_path(cijoe_config_path)
     if cijoe_config is None:
-        raise Exception("Failed loading config")
+        raise Exception(f"Failed loading config({cijoe_config_path})")
 
     pytest.cijoe_instance = Cijoe(
         cijoe_config,

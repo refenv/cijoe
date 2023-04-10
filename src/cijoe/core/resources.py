@@ -7,14 +7,14 @@
 
     * cijoe.core.command (Cijoe)
     * cijoe.core.transport (Transport, Local, SSH)
-    * jore.core.misc (As the name suggests; various helper-functions)
+    * cijoe.core.misc (As the name suggests; various helper-functions)
     * cijoe.cli (Command-Line Tool and utilization of the above for workflow execution)
 
-    Everything else, literally everything, is implemented as a dynamically collectable
-    and loadable resources. That is, configuration-files, scripts, workflows,
-    templates, and auxiliary files.
+    Everything else, literally everything, is implemented as dynamically
+    collectable and loadable resources. That is, cijoe
+    configuration-files/scripts/workflows/templates, and auxiliary files.
 
-    The base-representation of these resources is the cijoe.core.resources.Resource
+    The base-representation of these resources are the cijoe.core.resources.Resource
     class, with content-specific subclasses (Config, Script, and Workflow).
 
     These resources are collected from installed and locally available Packages, as well
@@ -54,12 +54,24 @@ import yaml
 
 import cijoe
 
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
 
 def dict_from_yamlfile(path: Path):
     """Returns content of yamlfile at 'path' as dict and {} on empty document."""
 
-    with path.open() as yamlfile:
+    with path.open("rb") as yamlfile:
         return yaml.safe_load(yamlfile) or {}
+
+
+def dict_from_tomlfile(path: Path):
+    """Returns content of tomfile at 'path' as dict and {} on empty document."""
+
+    with path.open("rb") as tomlfile:
+        return tomllib.load(tomlfile) or {}
 
 
 def default_context(config=None, resources=None):
@@ -127,12 +139,12 @@ class Resource(object):
 
 class Config(Resource):
     """
-    Encapsulation of a CIJOE config-file, e.g. 'default.config'
+    Encapsulation of a CIJOE config-file, e.g. 'default-config.toml'
 
     ivar: options: dict of configuration options populated by load() / from_path()
     """
 
-    SUFFIX = ".config"
+    SUFFIX = ".toml"
 
     def __init__(self, path: Path, pkg=None):
         super().__init__(path, pkg)
@@ -142,7 +154,8 @@ class Config(Resource):
     def load(self):
         """Populates self.options on success. Returns a list of errors otherwise"""
 
-        config_dict = dict_from_yamlfile(self.path)
+        # config_dict = dict_from_yamlfile(self.path)
+        config_dict = dict_from_tomlfile(self.path)
 
         errors = dict_substitute(config_dict, default_context())
         if errors:
@@ -222,7 +235,7 @@ class Script(Resource):
 
 
 class Workflow(Resource):
-    SUFFIX = ".workflow"
+    SUFFIX = ".yaml"
     STATE_FILENAME = "workflow.state"
     STATE = {
         "doc": "",
@@ -380,7 +393,7 @@ class Collector(object):
         ("configs", Config.SUFFIX),
         ("perf_reqs", ".perfreq"),
         ("templates", ".html"),
-        ("workflows", ".workflow"),
+        ("workflows", Workflow.SUFFIX),
         ("scripts", Script.SUFFIX),
         ("auxiliary", ".*"),
     ]
