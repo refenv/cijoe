@@ -56,6 +56,7 @@ endef
 build:
 	@echo "## ${PROJECT_NAME}: make build-sdist"
 	@${PYTHON_SYS} setup.py sdist
+	@${PYTHON_SYS} setup.py bdist_wheel
 	@echo "## ${PROJECT_NAME}: make build-sdist [DONE]"
 
 define install-help
@@ -87,17 +88,12 @@ test:
 	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
-.PHONY: release-build
-release-build:
-	${PYTHON_SYS} setup.py sdist
-	${PYTHON_SYS} setup.py bdist_wheel
-
 .PHONY: release-upload
 release-upload:
 	${TWINE} upload dist/*
 
 .PHONY: release
-release: clean release-build release-upload
+release: clean build release-upload
 	@echo -n "# rel: "; date
 
 define clean-help
