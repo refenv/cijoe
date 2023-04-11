@@ -66,6 +66,7 @@ endef
 install:
 	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz --include-deps
+	@${PIPX} inject cijoe twine
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
