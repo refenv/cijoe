@@ -20,7 +20,14 @@ define  all-help
 # Do all: clean uninstall build install
 endef
 .PHONY: all
-all: info uninstall clean build install info test
+all: uninstall clean deps build install info test
+
+define deps-help
+# Dependencies
+endef
+.PHONY: deps
+deps:
+	${PIPX} install twine || true
 
 define info-help
 # Dump various Python / tooling information
@@ -79,7 +86,6 @@ endef
 install:
 	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz --include-deps
-	@${PIPX} inject cijoe twine
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
