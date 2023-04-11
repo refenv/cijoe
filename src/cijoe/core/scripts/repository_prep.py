@@ -34,7 +34,7 @@ import logging as log
 from pathlib import Path
 
 
-def script_entry(args, cijoe, step):
+def main(args, cijoe, step):
     """Clone, checkout branch and pull"""
 
     err, _ = cijoe.run("git --version")

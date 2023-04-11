@@ -25,7 +25,7 @@ Although the script is not retargetable, then the pytest-plugin itself is retarg
 """
 
 
-def script_entry(args, cijoe, step):
+def main(args, cijoe, step):
     """Invoke test-runner"""
 
     pytest_cmd = ["pytest"]

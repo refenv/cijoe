@@ -11,7 +11,7 @@ Retargetable: True
 import errno
 
 
-def script_entry(args, cijoe, step):
+def main(args, cijoe, step):
     """Run commands one at a time via cijoe.run()"""
 
     err = 0
