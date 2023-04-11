@@ -2,8 +2,9 @@
 # This Makefile serves as convenient command-line auto-completion
 #
 PROJECT_NAME=cijoe
-PYTEST=~/.local/pipx/venvs/cijoe/bin/pytest
-PYTHON=python3
+PYTEST=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest
+PYTHON_SYS=python3
+PYTHON_VENV=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3
 PIPX=pipx
 TWINE=twine
 
@@ -54,7 +55,7 @@ endef
 .PHONY: build
 build:
 	@echo "## ${PROJECT_NAME}: make build-sdist"
-	@${PYTHON} setup.py sdist
+	@${PYTHON_SYS} setup.py sdist
 	@echo "## ${PROJECT_NAME}: make build-sdist [DONE]"
 
 define install-help
@@ -63,7 +64,7 @@ endef
 .PHONY: install
 install:
 	@echo "## ${PROJECT_NAME}: make install"
-	@${PIPX} install dist/*.tar.gz
+	@${PIPX} install dist/*.tar.gz --include-deps
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
@@ -88,8 +89,8 @@ test:
 
 .PHONY: release-build
 release-build:
-	${PYTHON} setup.py sdist
-	${PYTHON} setup.py bdist_wheel
+	${PYTHON_SYS} setup.py sdist
+	${PYTHON_SYS} setup.py bdist_wheel
 
 .PHONY: release-upload
 release-upload:
