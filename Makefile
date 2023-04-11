@@ -108,13 +108,15 @@ test:
 	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/default.config
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
-.PHONY: release-upload
-release-upload:
-	${TWINE} upload dist/*
-
+define examples-help
+# Run pytest on the testcase-test
+endef
 .PHONY: release
-release: clean build release-upload
+release: all
+	@echo "## ${PROJECT_NAME}: make release"
 	@echo -n "# rel: "; date
+	@${TWINE} upload dist/*
+	@echo "## ${PROJECT_NAME}: make release"
 
 define clean-help
 # clean the Python build dirs (build, dist)
