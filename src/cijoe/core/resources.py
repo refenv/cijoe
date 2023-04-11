@@ -43,6 +43,10 @@ import pkgutil
 import re
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+try:
+    from importlib.resources import files as importlib_files
+except ImportError:
+    from importlib_resources import files as importlib_files
 
 import jinja2
 import setuptools  # noqa
@@ -445,7 +449,7 @@ class Collector(object):
                 continue
 
             _, category = comp
-            for candidate in importlib.resources.files(f"{pkg.name}").iterdir():
+            for candidate in importlib_files(f"{pkg.name}").iterdir():
                 if candidate.name in Collector.IGNORE:
                     continue
 
