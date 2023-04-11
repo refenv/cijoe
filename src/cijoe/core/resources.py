@@ -38,11 +38,13 @@
 import ast
 import importlib
 import inspect
+import logging as log
 import os
 import pkgutil
 import re
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+
 try:
     from importlib.resources import files as importlib_files
 except ImportError:
@@ -184,7 +186,7 @@ class Script(Resource):
     """Script representation and encapsulation"""
 
     SUFFIX = ".py"
-    NAMING_CONVENTION = ["worklet_entry", "script_entry"]
+    NAMING_CONVENTION = ["worklet_entry", "script_entry", "main"]
 
     def __init__(self, path, pkg=None):
         super().__init__(path, pkg)
@@ -203,6 +205,12 @@ class Script(Resource):
 
         for node in [x for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]:
             if node.name not in Script.NAMING_CONVENTION:
+                log.info(f"skipping; invalid entry-name({node.name})")
+                continue
+
+            argnames = [arg.arg for arg in node.args.args]
+            if argnames != ["args", "cijoe", "step"]:
+                log.info(f"skipping; invalid argnames({argnames})")
                 continue
 
             return True
