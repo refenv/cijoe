@@ -20,7 +20,20 @@ define  all-help
 # Do all: clean uninstall build install
 endef
 .PHONY: all
-all: uninstall clean build install test
+all: info uninstall clean build install info test
+
+define info-help
+# Dump various Python / tooling information
+endef
+.PHONY: info
+info:
+	@echo "## ${PROJECT_NAME}: make info"
+	${PYTEST} --version || true
+	${PYTHON_SYS} --version || true
+	${PYTHON_VENV} --version || true
+	${PIPX} --version || true
+	${TWINE} --version || true
+	@echo "## ${PROJECT_NAME}: make info [DONE]"
 
 define docker-help
 # drop into a docker instance with the repository bind-mounted at /tmp/source
