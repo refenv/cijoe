@@ -277,12 +277,12 @@ def cli_workflow(args):
                 if err:
                     log.error(f"script({script_ident}) : err({err})")
                 step["status"]["failed" if err else "passed"] = 1
-            except KeyboardInterrupt as exc:
+            except KeyboardInterrupt:
+                log.exception(f"script({script_ident}) : failed")
                 step["status"]["failed"] = 1
-                log.error(f"script({script_ident}) : KeyboardInterrupt({exc})")
-            except Exception as exc:
+            except Exception:
+                log.exception(f"script({script_ident}) : failed")
                 step["status"]["failed"] = 1
-                log.error(f"script({script_ident}) : Raised Exception({exc})")
 
         for key in ["failed", "passed", "skipped"]:
             workflow.state["status"][key] += step["status"][key]
