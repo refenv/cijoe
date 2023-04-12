@@ -484,6 +484,15 @@ class Collector(object):
 
         self.collect_from_packages(cijoe.__path__, "cijoe.")
         self.collect_from_path()
+
+        cwd = Path().cwd() / ".cijoe"
+        if cwd.exists():
+            self.collect_from_path(cwd)
+
+        home = Path().home() / ".cijoe"
+        if home.exists():
+            self.collect_from_path(home)
+
         self.is_done = True
 
 
