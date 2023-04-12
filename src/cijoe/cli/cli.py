@@ -131,14 +131,16 @@ def cli_example(args):
     resource = resources["configs"].get(f"{args.example}.default-config", None)
     if resource is None:
         log.error(
-            f"'default-config{Config.SUFFIX}' from '{args.example}' is not available"
+            f"'default-config{Config.SUFFIX}' from '{args.example}'; not available"
         )
         return errno.EINVAL
     src_config = resource.path
 
     resource = resources["workflows"].get(f"{args.example}.example-workflow", None)
     if resource is None:
-        log.error(f"'example-workflow{Workflow.SUFFIX}' from '{args.example}' is not available")
+        log.error(
+            f"'example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
+        )
         return errno.EINVAL
 
     src_workflow = resource.path
@@ -151,12 +153,12 @@ def cli_example(args):
 
     if not src_config.exists():
         log.error(
-            f"'default-config{Config.SUFFIX}' from '{args.example}' is not available"
+            f"'default-config{Config.SUFFIX}' from '{args.example}'; not available"
         )
         return errno.EINVAL
     if not src_workflow.exists():
         log.error(
-            f"example-workflow{Workflow.SUFFIX}' from '{args.example}' is not available"
+            f"example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
         )
         return errno.EINVAL
 
