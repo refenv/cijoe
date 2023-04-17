@@ -446,6 +446,10 @@ class Collector(object):
             if max_depth and level > base + max_depth:
                 continue
 
+            if candidate.parent.stem == "auxiliary":
+                self.__process_candidate(candidate, "auxiliary", None)
+                continue
+
             for category, suffix in Collector.RESOURCES:
                 if candidate.name in Collector.IGNORE:
                     continue
