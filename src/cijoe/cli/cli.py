@@ -4,6 +4,7 @@ import logging as log
 import os
 import shutil
 import time
+import sys
 from pathlib import Path
 
 import cijoe.core
@@ -320,7 +321,8 @@ def parse_args():
     )
 
     parser = argparse.ArgumentParser(
-        prog="cijoe", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        prog=Path(sys.argv[0]).stem,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     workflow_group = parser.add_argument_group(
