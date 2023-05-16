@@ -60,6 +60,7 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
+import tomli_w
 
 
 def dict_from_yamlfile(path: Path):
@@ -74,6 +75,13 @@ def dict_from_tomlfile(path: Path):
 
     with path.open("rb") as tomlfile:
         return tomllib.load(tomlfile) or {}
+
+
+def dict_to_tomlfile(data, path: Path):
+    """Dumps the given 'data' to the given 'path'"""
+
+    with path.open("wb") as tomlfile:
+        return tomli_w.dump(data, tomlfile)
 
 
 def default_context(config=None, resources=None):
