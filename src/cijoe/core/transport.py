@@ -173,7 +173,7 @@ class SSH(Transport):
         if not os.path.isabs(src):
             src = os.path.join(self.output_path, self.output_ident, src)
 
-        self.scp.put(src, dst)
+        self.scp.put(src, dst, recursive=True)
 
         self.__disconnect()
 
@@ -189,7 +189,7 @@ class SSH(Transport):
         if not os.path.isabs(src):
             dst = os.path.join(self.output_path, self.output_ident, dst)
 
-        self.scp.get(src, dst)
+        self.scp.get(src, dst, recursive=True)
 
         self.__disconnect()
 
