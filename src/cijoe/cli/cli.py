@@ -3,8 +3,8 @@ import errno
 import logging as log
 import os
 import shutil
-import time
 import sys
+import time
 from pathlib import Path
 
 import cijoe.core
@@ -17,6 +17,9 @@ from cijoe.core.resources import (
     dict_substitute,
     get_resources,
 )
+
+DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
+DEFAULT_WORKFLOW_FILENAME = "cijoe-workflow.yaml"
 
 
 def log_errors(errors):
@@ -146,8 +149,8 @@ def cli_example(args):
 
     src_workflow = resource.path
 
-    dst_config = Path.cwd().joinpath(src_config.name)
-    dst_workflow = Path.cwd().joinpath(src_workflow.name)
+    dst_config = Path.cwd().joinpath(DEFAULT_CONFIG_FILENAME)
+    dst_workflow = Path.cwd().joinpath(DEFAULT_WORKFLOW_FILENAME)
 
     log.info(f"config: {dst_config}")
     log.info(f"workflow: {dst_workflow}")
@@ -313,13 +316,6 @@ def cli_workflow(args):
 def parse_args():
     """Parse command-line interface."""
 
-    cfiles = sorted(
-        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == Config.SUFFIX]
-    )
-    wfiles = sorted(
-        [p.resolve() for p in Path.cwd().iterdir() if p.suffix == Workflow.SUFFIX]
-    )
-
     parser = argparse.ArgumentParser(
         prog=Path(sys.argv[0]).stem,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -337,14 +333,14 @@ def parse_args():
         "--config",
         "-c",
         type=Path,
-        default=os.environ.get("CIJOE_DEFAULT_CONFIG", cfiles[0] if cfiles else None),
+        default=os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME),
         help="Path to the Configuration file.",
     )
     workflow_group.add_argument(
         "--workflow",
         "-w",
         type=Path,
-        default=os.environ.get("CIJOE_DEFAULT_WORKFLOW", wfiles[0] if wfiles else None),
+        default=os.environ.get("CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME),
         help="Path to workflow file.",
     )
     workflow_group.add_argument(
