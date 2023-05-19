@@ -189,6 +189,16 @@ def cli_version(args):
     return 0
 
 
+def cli_monitor(args):
+    """Start workflow monitor"""
+
+    monitor = WorkflowMonitor()
+    monitor.start()
+    monitor.join()
+
+    return 0
+
+
 def cli_workflow(args):
     """Process workflow"""
 
@@ -255,11 +265,6 @@ def cli_workflow(args):
 
     workflow.state_dump(args.output / Workflow.STATE_FILENAME)
 
-    monitor = None
-    if args.monitor:
-        monitor = WorkflowMonitor(str(args.output), log_level=args.log_level)
-        monitor.start()
-
     fail_fast = False
 
     cijoe = Cijoe(config, args.output)
@@ -306,9 +311,6 @@ def cli_workflow(args):
     err = errno.EIO if workflow.state["status"]["failed"] else 0
     if err:
         log.error("one or more steps failed")
-
-    if monitor:
-        monitor.stop()
 
     return err
 
@@ -358,12 +360,6 @@ def parse_args():
         help="Increase log-level.",
     )
     workflow_group.add_argument(
-        "--monitor",
-        "-m",
-        action="store_true",
-        help="Monitor workflow-output at '-o / --output'.",
-    )
-    workflow_group.add_argument(
         "--no-report",
         "-n",
         action="store_true",
@@ -394,6 +390,12 @@ def parse_args():
         action="append_const",
         const=1,
         help="Produce report, and open it, for output at '-o / --output' and exit.",
+    )
+    utils_group.add_argument(
+        "--monitor",
+        "-m",
+        action="store_true",
+        help="Monitor workflow-output in the current-workdir-directory (cwd).",
     )
     utils_group.add_argument(
         "--integrity-check",
@@ -456,6 +458,9 @@ def main():
 
     if args.archive:
         return cli_archive(args)
+
+    if args.monitor:
+        return cli_monitor(args)
 
     err = cli_workflow(args)
 
