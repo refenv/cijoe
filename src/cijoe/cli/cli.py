@@ -434,10 +434,11 @@ def main():
 
     args = parse_args()
 
+    levels = [log.ERROR, log.WARNING, log.INFO, log.DEBUG]
     log.basicConfig(
         format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
-        level=[log.ERROR, log.INFO, log.WARNING, log.DEBUG][
-            sum(args.log_level) if args.log_level else 0
+        level=levels[
+            min(sum(args.log_level), len(levels) - 1) if args.log_level else 0
         ],
     )
 
