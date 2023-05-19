@@ -50,7 +50,9 @@ def worker(monitor):
                 cmdlog.seek(bytes_read[ident])
                 buf = cmdlog.read()
                 nbytes = len(buf)
-                print(f"# cijoe.monitor: output({path})@{bytes_read[ident]}+{nbytes}")
+                log.info(
+                    f"# cijoe.monitor: output({path})@{bytes_read[ident]}+{nbytes}"
+                )
                 print(buf, end="")
                 monitor.dumped_at = time.time()
                 bytes_read[ident] += nbytes
@@ -118,7 +120,7 @@ class WorkflowMonitor(object):
         )
 
     def start(self):
-        print(f"# cijoe.monitor: Recursively observing path({self.path})")
+        log.info(f"# cijoe.monitor: Recursively observing path({self.path})")
 
         self.workt.start()
 
@@ -139,7 +141,7 @@ class WorkflowMonitor(object):
                 time.sleep(1)
 
                 if self.dumped_at is None:
-                    print(
+                    log.info(
                         "# cijoe.monitor: no command-output yet; start your workflow?"
                     )
                     continue
@@ -147,15 +149,19 @@ class WorkflowMonitor(object):
                 when = self.dumped_at
                 seconds = time.time() - when
                 if seconds >= self.dumped_notify:
-                    print("#")
-                    print(f"# cijoe.monitor: no output for seconds({seconds:.2f}) ..")
+                    log.info(
+                        f"# cijoe.monitor: no output for seconds({seconds:.2f}) .."
+                    )
                     if seconds >= self.dumped_notify * 2:
-                        print("# cijoe.monitor: .. possibly just a silent command ..")
+                        log.info(
+                            "# cijoe.monitor: .. possibly just a silent command .."
+                        )
                     if seconds >= self.dumped_notify * 3:
-                        print("# cijoe.monitor: .. or, workflow is finished ..")
+                        log.info("# cijoe.monitor: .. or, workflow is finished ..")
                     if seconds >= self.dumped_notify * 4:
-                        print("# cijoe.monitor: .. run 'cijoe -p' to see the progress")
-                    print("#")
+                        log.info(
+                            "# cijoe.monitor: .. run 'cijoe -p' to see the progress"
+                        )
 
         except KeyboardInterrupt:
             pass
