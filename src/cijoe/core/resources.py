@@ -213,12 +213,12 @@ class Script(Resource):
 
         for node in [x for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]:
             if node.name not in Script.NAMING_CONVENTION:
-                log.info(f"skipping; invalid entry-name({node.name})")
+                log.debug(f"skipping; invalid entry-name({node.name})")
                 continue
 
             argnames = [arg.arg for arg in node.args.args]
             if argnames != ["args", "cijoe", "step"]:
-                log.info(f"skipping; invalid argnames({argnames})")
+                log.debug(f"skipping; invalid argnames({argnames})")
                 continue
 
             return True

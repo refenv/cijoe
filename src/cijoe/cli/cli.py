@@ -377,7 +377,7 @@ def parse_args():
         "-l",
         action="append_const",
         const=1,
-        help="Increase log-level.",
+        help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
     )
     workflow_group.add_argument(
         "--no-report",
@@ -454,7 +454,7 @@ def main():
 
     args = parse_args()
 
-    levels = [log.ERROR, log.WARNING, log.INFO, log.DEBUG]
+    levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
         format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
         level=levels[
