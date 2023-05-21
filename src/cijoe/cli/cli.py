@@ -20,6 +20,36 @@ from cijoe.core.resources import (
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
 DEFAULT_WORKFLOW_FILENAME = "cijoe-workflow.yaml"
+SEARCH_PATHS = [
+    Path.cwd(),
+    Path.cwd() / ".cijoe",
+    Path.home() / ".config" / "cijoe",
+    Path.home() / ".cijoe",
+]
+
+
+def search_for_file(path: Path):
+    """
+    Search for a file named path.name. In case the given 'path' does not
+    have a directory path, then SEARCH_PATH is used.
+
+    Returns a resolved Path object on success and None on error.
+    """
+
+    # Has a directory part; resolve it and check that it exists
+    if path.is_absolute() or len(path.parts) != 1:
+        path = path.resolve()
+        path = path if path.exists() else None
+
+        return path
+
+    # Only a filename; look in search paths
+    for spath in SEARCH_PATHS:
+        candidate = (spath / path).resolve()
+        if candidate.exists():
+            return candidate
+
+    return None
 
 
 def log_errors(errors):
@@ -34,21 +64,16 @@ def cli_integrity_check(args):
     log.info(f"workflow: '{args.workflow}'")
     log.info(f"config: '{args.config}'")
 
-    if args.workflow is None:
-        log.error("'failed: missing workflow'")
-        return errno.EINVAL
-
     workflow_dict = dict_from_yamlfile(args.workflow.resolve())
     errors = Workflow.dict_normalize(workflow_dict)  # Normalize it
     errors += Workflow.dict_lint(workflow_dict)  # Check the yaml-file
 
-    if args.config:  # Check config/substitutions
-        config = Config.from_path(args.config)
-        if not config:
-            log.error(f"failed: Config.from_path({args.config})")
-            return errno.EINVAL
+    config = Config.from_path(args.config)
+    if not config:
+        log.error(f"failed: Config.from_path({args.config})")
+        return errno.EINVAL
 
-        errors += dict_substitute(workflow_dict, config.options)
+    errors += dict_substitute(workflow_dict, config.options)
 
     if errors:
         log_errors(errors)
@@ -207,13 +232,6 @@ def cli_workflow(args):
     log.info(f"config: {args.config}")
     log.info(f"output: {args.output}")
 
-    if args.workflow is None:
-        log.error("missing workflow")
-        return errno.EINVAL
-    if args.config is None:
-        log.error("missing config")
-        return errno.EINVAL
-
     cli_archive(args)
 
     state_path = args.output / "workflow.state"
@@ -335,14 +353,16 @@ def parse_args():
         "--config",
         "-c",
         type=Path,
-        default=os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME),
+        default=Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME)),
         help="Path to the Configuration file.",
     )
     workflow_group.add_argument(
         "--workflow",
         "-w",
         type=Path,
-        default=os.environ.get("CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME),
+        default=Path(
+            os.environ.get("CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME)
+        ),
         help="Path to workflow file.",
     )
     workflow_group.add_argument(
@@ -442,9 +462,6 @@ def main():
         ],
     )
 
-    if args.integrity_check:
-        return cli_integrity_check(args)
-
     if args.resources:
         return cli_resources(args)
 
@@ -462,6 +479,18 @@ def main():
 
     if args.monitor:
         return cli_monitor(args)
+
+    for filearg in ["config", "workflow"]:
+        argv = getattr(args, filearg)
+        path = search_for_file(argv)
+        if path is None:
+            log.error(f"{filearg}({argv}) does not exist; exiting")
+            return errno.EINVAL
+
+        setattr(args, filearg, path)
+
+    if args.integrity_check:
+        return cli_integrity_check(args)
 
     err = cli_workflow(args)
 
