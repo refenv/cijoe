@@ -45,7 +45,7 @@ def worker(monitor):
 
         if task == "print":
             with path.open(
-                "r"
+                "rb"
             ) as cmdlog:  # Read, update stats, inform, dump, and update stats
                 cmdlog.seek(bytes_read[ident])
                 buf = cmdlog.read()
@@ -53,7 +53,10 @@ def worker(monitor):
                 log.info(
                     f"# cijoe.monitor: output({path})@{bytes_read[ident]}+{nbytes}"
                 )
-                print(buf, end="")
+                try:
+                    print(buf.decode("UTF-8"), end="")
+                except UnicodeError:
+                    pass
                 monitor.dumped_at = time.time()
                 bytes_read[ident] += nbytes
 
