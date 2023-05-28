@@ -170,6 +170,6 @@ def main(args, cijoe, step):
 
     return (
         pytest_local
-        if step.get("with", {"run_local": True}).get("run_local")
+        if step.get("with", {"run_local": True}).get("run_local", True)
         else pytest_remote
     )(args, cijoe, step)
