@@ -52,7 +52,7 @@ def timestamp_to_txt(value):
 def main(args, cijoe, step):
     """Produce a HTML report of the 'workflow.state' file in 'args.output'"""
 
-    report_open = step.get("with", {"report_open": True}.get("report_open", True))
+    report_open = step.get("with", {"report_open"})["report_open"]
 
     resources = get_resources()
 
