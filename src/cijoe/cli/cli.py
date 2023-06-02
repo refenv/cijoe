@@ -239,7 +239,7 @@ def cli_workflow(args):
         log.error(f"aborting; output({args.output}) directory already exists")
         return errno.EPERM
 
-    config = Config(args.config.resolve())
+    config = Config(args.config)
     errors = config.load()
     if errors:
         log_errors(errors)
@@ -491,6 +491,10 @@ def main():
 
     if args.integrity_check:
         return cli_integrity_check(args)
+
+    # At this point all Path objects are resolved, except for output, do that
+    # that here.
+    args.output = args.output.resolve()
 
     err = cli_workflow(args)
 
