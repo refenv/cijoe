@@ -145,7 +145,7 @@ def cli_produce_report(args):
     return reporter.func(
         args,
         cijoe,
-        {"name": "report", "uses": "core.reporter", "with": {"report_open": True}},
+        {"name": "report", "uses": "core.reporter", "with": {"report_open": args.skip_report}},
     )
 
 
@@ -385,7 +385,12 @@ def parse_args():
         action="store_true",
         help="Skip the producing, and opening, a report at the end of the workflow-run",
     )
-
+    workflow_group.add_argument(
+        "--skip-report",
+        "-s",
+        action="store_false",
+        help="Skip the report opening at the end of the workflow-run",
+    )
     workflow_group.add_argument(
         "--tag",
         "-t",
