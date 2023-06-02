@@ -85,7 +85,7 @@ endef
 .PHONY: install
 install:
 	@echo "## ${PROJECT_NAME}: make install"
-	@${PIPX} install dist/*.tar.gz --include-deps
+	@${PIPX} install dist/*.tar.gz --include-deps --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
