@@ -115,6 +115,11 @@ def dict_substitute(topic: dict, context: dict) -> list:
                 topic[key] = [
                     jinja_env.from_string(line).render(context) for line in value
                 ]
+            elif isinstance(value, list) and all(
+                isinstance(entity, dict) for entity in value
+            ):
+                for entity in value:
+                    errors += dict_substitute(entity, context)
             elif isinstance(value, dict):
                 errors += dict_substitute(value, context)
         except jinja2.exceptions.UndefinedError as exc:
