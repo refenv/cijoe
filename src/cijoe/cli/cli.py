@@ -145,7 +145,11 @@ def cli_produce_report(args):
     return reporter.func(
         args,
         cijoe,
-        {"name": "report", "uses": "core.reporter", "with": {"report_open": args.skip_report}},
+        {
+            "name": "report",
+            "uses": "core.reporter",
+            "with": {"report_open": args.skip_report},
+        },
     )
 
 
