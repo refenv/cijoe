@@ -15,7 +15,7 @@ def main(args, cijoe, step):
     """Run commands one at a time via cijoe.run()"""
 
     err = 0
-    if "with" not in step and "commands" not in step["with"]:
+    if not ("with" in step and "commands" in step["with"]):
         return errno.EINVAL
 
     for cmd in step["with"]["commands"]:
