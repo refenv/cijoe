@@ -19,6 +19,10 @@ clean:
 	rm -rf "${SPHINX_BUILDDIR}"
 	rm -rf "${SPHINX_SOURCEDIR}/api"
 
+emit-section-packages:
+	@echo "## section:packages"
+	${PY_ENV_ACTIVATE} && ./emit.py
+
 define apidoc-help
 # Generate api documentation using Sphinx autodoc
 endef
