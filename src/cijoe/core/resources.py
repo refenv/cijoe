@@ -242,13 +242,22 @@ class Script(Resource):
         if not self.content_has_script_func():
             return ["Missing script_entry() function in ast"]
 
-        mod = SourceFileLoader("", str(self.path)).load_module()
+        mod_name = str(Path(self.path).resolve().stem)
+        mod_path = str(Path(self.path).resolve())
+
+        spec = importlib.util.spec_from_loader(
+            mod_name, SourceFileLoader(mod_name, mod_path)
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        # mod = SourceFileLoader("", str(self.path)).load_module()
         for function_name, function in inspect.getmembers(mod, inspect.isfunction):
             if function_name not in Script.NAMING_CONVENTION:
                 continue
 
             self.mod = mod
-            self.mod_name = Path(self.path).stem
+            self.mod_name = mod_name
             self.func = function
             return []
 
