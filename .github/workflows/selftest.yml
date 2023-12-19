@@ -31,12 +31,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Python version
+    - name: Python dependencies and their versions
       run: |
-        pip --version || true
-        pipx --version || true
-        python --version || true
-        python3 --version || true
+        make deps
+        make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: All
@@ -56,12 +54,10 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Python version
+    - name: Python dependencies and their versions
       run: |
-        pip --version || true
-        pipx --version || true
-        python --version || true
-        python3 --version || true
+        make deps
+        make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Build and publish

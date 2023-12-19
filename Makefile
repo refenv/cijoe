@@ -2,10 +2,11 @@
 # This Makefile serves as convenient command-line auto-completion
 #
 PROJECT_NAME=cijoe
+BUILD=pyproject-build
+PIPX=pipx
 PYTEST=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest
 PYTHON_SYS=python3
 PYTHON_VENV=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3
-PIPX=pipx
 TWINE=twine
 
 define default-help
@@ -23,10 +24,11 @@ endef
 all: uninstall clean deps build install info test
 
 define deps-help
-# Dependencies
+# Dependencies for building cijoe and uploading it to PyPI
 endef
 .PHONY: deps
 deps:
+	${PIPX} install build || true
 	${PIPX} install twine || true
 
 define info-help
@@ -35,10 +37,11 @@ endef
 .PHONY: info
 info:
 	@echo "## ${PROJECT_NAME}: make info"
+	${BUILD} --version || true
+	${PIPX} --version || true
 	${PYTEST} --version || true
 	${PYTHON_SYS} --version || true
 	${PYTHON_VENV} --version || true
-	${PIPX} --version || true
 	${TWINE} --version || true
 	@echo "## ${PROJECT_NAME}: make info [DONE]"
 
@@ -70,14 +73,13 @@ format-all:
 	@echo "## ${PROJECT_NAME}: format-all [DONE]"
 
 define build-help
-# Build the package (source distribution package)
+# Build the package (sdist and wheel using sdist)
 endef
 .PHONY: build
 build:
-	@echo "## ${PROJECT_NAME}: make build-sdist"
-	@${PYTHON_SYS} setup.py sdist
-	@${PYTHON_SYS} setup.py bdist_wheel
-	@echo "## ${PROJECT_NAME}: make build-sdist [DONE]"
+	@echo "## ${PROJECT_NAME}: make build"
+	@${BUILD}
+	@echo "## ${PROJECT_NAME}: make build [DONE]"
 
 define install-help
 # install for current user
