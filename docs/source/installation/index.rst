@@ -13,9 +13,9 @@ of useful **cijoe packages**:
 
 .. code-block:: bash
 
-  python3 -m pipx install cijoe --include-deps
-  python3 -m pipx inject cijoe cijoe-pkg-qemu
-  python3 -m pipx inject cijoe cijoe-pkg-linux
+  pipx install cijoe --include-deps
+  pipx inject cijoe cijoe-pkg-qemu
+  pipx inject cijoe cijoe-pkg-linux
 
 .. note:: Make sure that you follow the recommendation above. The
    ``--include-deps`` ensure that the ``pytest`` CLI is made available
