@@ -4,9 +4,9 @@
 PROJECT_NAME=cijoe
 BUILD=pyproject-build
 PIPX=pipx
-PYTEST=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest
+PYTEST=$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest
 PYTHON_SYS=python3
-PYTHON_VENV=$(shell pipx environment -v PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3
+PYTHON_VENV=$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3
 TWINE=twine
 
 define default-help

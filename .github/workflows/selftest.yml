@@ -33,6 +33,8 @@ jobs:
 
     - name: Python dependencies and their versions
       run: |
+        brew update || true
+        brew upgrade pipx || true
         make deps
         make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
