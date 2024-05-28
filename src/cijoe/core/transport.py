@@ -86,7 +86,7 @@ class SSH(Transport):
         """Initialize the CIJOE SSH Transport"""
 
         self.config = config
-        self.shell = self.config.options.get("run").get("shell", "sh")
+        self.shell = self.config.options.get("cijoe", {}).get("run", {}).get("shell", "sh")
         self.output_path = output_path
 
         self.ssh = paramiko.SSHClient()
@@ -124,6 +124,9 @@ class SSH(Transport):
 
     def run(self, cmd, cwd, env, logfile):
         """Invoke the given command"""
+
+        # Add environment variables defined in config.
+        env = self.config.options.get("cijoe", {}).get("run", {}).get("env", {}) | env
 
         # Seems like paramiko 'exec_command' or just SSH Accept-something... does not
         # like setting environment variables... thus.. this injection of them...
