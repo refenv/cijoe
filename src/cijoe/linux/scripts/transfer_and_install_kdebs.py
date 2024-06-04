@@ -11,7 +11,7 @@ Transfer and install Linux Kernel .deb
 Retargetable: True
 ------------------
 
-Transfer from local to remote, the config.transport.ssh determines the remote.
+Transfer from local to remote, the config.cijoe.transport.ssh determines the remote.
 """
 import errno
 import logging as log

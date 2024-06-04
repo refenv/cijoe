@@ -104,8 +104,8 @@ def pytest_remote(args, cijoe, step):
     config_path_local = args.output / cijoe.output_ident / config_stem
 
     config = copy.deepcopy(cijoe.config.options)
-    if "transport" in config and "ssh" in config["transport"]:
-        del config["transport"]["ssh"]
+    if "transport" in config.get("cijoe", {}) and "ssh" in config["cijoe"]["transport"]:
+        del config["cijoe"]["transport"]["ssh"]
 
     dict_to_tomlfile(config, config_path_local)
     cijoe.put(str(config_path_local), config_path)

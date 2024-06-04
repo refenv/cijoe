@@ -75,7 +75,7 @@ class Cijoe(object):
         self.transport_local = transport.Local(self.config, self.output_path)
         self.transport = self.transport_local
 
-        ssh = self.config.options.get("transport", {}).get("ssh", None)
+        ssh = self.config.options.get("cijoe", {}).get("transport", {}).get("ssh", None)
         if ssh:
             self.transport = transport.SSH(self.config, self.output_path)
 
