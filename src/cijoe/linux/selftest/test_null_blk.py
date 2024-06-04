@@ -6,7 +6,7 @@ import cijoe.linux.null_blk as null_blk
 def skip_when_config_has_no_remote(cijoe):
     """Skip testing when configuration is module not enabled"""
 
-    transport = cijoe.config.options.get("transport", None)
+    transport = cijoe.config.options.get("cijoe", {}).get("transport", None)
     if not transport:
         pytest.skip(reason="skipping as there is no remote transport defined")
 

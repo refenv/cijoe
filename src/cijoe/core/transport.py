@@ -115,7 +115,7 @@ class SSH(Transport):
         )
 
     def __connect(self):
-        self.ssh.connect(**self.config.options.get("transport").get("ssh"))
+        self.ssh.connect(**self.config.options.get("cijoe", {}).get("transport").get("ssh"))
         self.scp = SCPClient(self.ssh.get_transport())
 
     def __disconnect(self):

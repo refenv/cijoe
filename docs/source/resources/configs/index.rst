@@ -5,7 +5,7 @@ Configs
 
 **cijoe** configuration files are formated using `YAML`_ and named with suffix
 ``.config``. In the core functionality of provided by cijoe, only the key
-``transport`` has special meaning.
+``cijoe.transport`` has special meaning.
 
 Keys are otherwise granted meaning by their use of
 :ref:`sec-resources-scripts`, tests, and regular Python modules.
