@@ -1,0 +1,44 @@
+---
+doc: |
+  This workflow demonstrates how to use qemu via cijoe in steps of
+
+  * Build qemu from source (x86_64 and aarch64)
+  * Install qemu
+  * Provision a guest using a cloud-init image
+    - inject "$HOME/.ssh/id_rsa.pub" into guest as authorized_keys
+  * Start the guest
+  * Run a command within the guest (via SSH)
+  * Stop the guest again
+
+  This is done via scripts, which in turn are utilizing helper-functions from
+  cijoe.qemu.wrapper.
+
+steps:
+- name: build
+  uses: qemu.build
+
+- name: install
+  uses: qemu.install
+
+- name: cloudinit
+  uses: qemu.guest_init_using_cloudinit
+
+#
+# In case you do not want to use cloud-init and you already have a bootable
+# image, then comment the 'cloudinit' step above, and uncomment the 'bootimg'
+# step below.
+# Also, remember to adjust the config section [qemu.guest.init_using_image] to
+# point to where the bootable image can be downloaded or copied from.
+#
+#- name: bootimg
+#  uses: qemu.guest_init_using_bootimage
+
+- name: start
+  uses: qemu.guest_start
+
+- name: check
+  run: |
+    hostname
+
+- name: kill
+  uses: qemu.guest_kill
