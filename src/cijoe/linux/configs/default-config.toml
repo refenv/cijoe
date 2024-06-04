@@ -1,0 +1,43 @@
+[linux.repository]
+remote = "https://github.com/torvalds/linux.git"
+path = "{{ local.env.HOME }}/git/linux"
+
+#
+# null_blk
+#
+# The keys of 'null_blk' are passed verbatim to 'modprobe null_blk', consult the Kernel docs for a
+# description of the different keys
+#
+# When the nullblk kernel module is loaded it will create 'nr_devices' nullblk instances, when
+# 'nr_devices' is 0, then they can be created via sysfs instead
+[null_blk]
+nr_devices = 4
+queue_mode = 2
+home_node = 0
+bs = 512
+irqmode = 2
+gb = 14
+completion_nsec = 10
+submit_queue = 1
+hw_queue_depth = 64
+memory_backed = 1
+# MQ
+use_per_node_hctx = 0
+no_sched = 0
+blocking = 0
+shared_tags = 0
+# Zoned
+zoned = 0
+zone_size = 256
+zone_nr_conv = 0
+
+#
+# kmemleak
+#
+# CONFIG_DEBUG_KMEMLEAK, has to be enabled, for details see:
+#   https://www.kernel.org/doc/html/v4.10/dev-tools/kmemleak.html
+#
+# The 'enabled' flag is here to skip the use of kmemleak module in case it is not enabled
+#
+[kmemleak]
+enabled = false

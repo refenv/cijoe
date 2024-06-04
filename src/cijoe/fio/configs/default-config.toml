@@ -1,0 +1,31 @@
+# Declaration of where fio is located on the test-target and which IO-engines it has available
+[fio]
+bin = "{{ local.env.HOME }}/opt/fio/bin/fio"
+
+[fio.repository]
+upstream = "https://github.com/axboe/fio.git"
+path = "{{ local.env.HOME }}/git/fio"
+
+[fio.build]
+prefix = "{{ local.env.HOME }}/opt/fio"
+
+[fio.engines.libaio]
+type = "builtin"
+
+[fio.engines.io_uring]
+type = "builtin"
+
+[fio.engines.io_uring_cmd]
+type = "builtin"
+
+[fio.engines.xnvme]
+path = "/usr/local/lib/x86_64-linux-gnu/libxnvme-fio-engine.so"
+type = "external_dynamic"
+
+[fio.engines.spdk_nvme]
+path = "/opt/aux/spdk_nvme"
+type = "external_preload"
+
+[fio.engines.spdk_bdev]
+path = "/opt/aux/spdk_bdev"
+type = "external_preload"
