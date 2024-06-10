@@ -81,6 +81,8 @@ def pytest_cmdline(args, step, config_path, output_path, reportlog_path):
 
     cmdline += step.get("with").get("args", "").split(" ")
 
+    cmdline += ["--random-order"] if step.get("with").get("random-order", True) else []
+
     return cmdline
 
 
