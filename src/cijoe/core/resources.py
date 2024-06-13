@@ -51,7 +51,6 @@ except ImportError:
     from importlib_resources import files as importlib_files
 
 import jinja2
-import setuptools  # noqa
 import yaml
 
 import cijoe
