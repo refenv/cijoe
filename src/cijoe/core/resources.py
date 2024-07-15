@@ -322,7 +322,7 @@ class Workflow(Resource):
 
         errors = []
 
-        for top in set(topic.keys()) - set(["doc", "config", "steps"]):
+        for top in set(topic.keys()) - set(["doc", "config", "steps", "constants"]):
             errors.append(f"Unsupported top-level key: '{top}'")
             return errors
         for top in ["doc", "steps"]:

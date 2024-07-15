@@ -18,6 +18,11 @@ doc: |
   The commands and the scripts are passed an instance of cijoe which they can use to call
   run()/get()/put(), with an output-directory matching the current step. This is it, end of story.
 
+constants:
+- values: &a
+  - value1
+  - value2
+
 steps:
 - name: info
   run: |
@@ -28,3 +33,4 @@ steps:
   uses: core.testrunner
   with:
     args: "--pyargs cijoe.core.selftest"
+    values: *a
