@@ -37,6 +37,8 @@ from pathlib import Path
 def main(args, cijoe, step):
     """Clone, checkout branch and pull"""
 
+    shell = cijoe.config.options.get("cijoe", {}).get("run", {}).get("shell", "sh")
+
     err, _ = cijoe.run("git --version")
     if err:
         log.error("Looks like git is not available")
@@ -49,17 +51,32 @@ def main(args, cijoe, step):
 
         repos_root = Path(repos["path"]).parent
 
-        err, _ = run(f"mkdir -p {repos_root}")
-        if err:
-            log.error("failed creating repos_root({repos_root}; giving up")
-            return err
+        if shell == "pwsh":
+            err, _ = run(f"New-Item -ItemType Directory -Path {repos_root} -Force")
+            if err:
+                log.error(f"failed creating repos_root({repos_root}); giving up")
+                return err
+            
+            err, _ = run(
+                f"if (Test-Path -Path {repos['path']})"
+                "{} else {"
+                f" git clone {repos['remote']} {repos['path']} --recursive"
+                "}"
+            )
+            if err:
+                log.info("either already cloned or failed cloning; continuing optimisticly")
+        else:
+            err, _ = run(f"mkdir -p {repos_root}")
+            if err:
+                log.error(f"failed creating repos_root({repos_root}); giving up")
+                return err
 
-        err, _ = run(
-            f"[ ! -d {repos['path']} ] &&"
-            f" git clone {repos['remote']} {repos['path']} --recursive"
-        )
-        if err:
-            log.info("either already cloned or failed cloning; continuing optimisticly")
+            err, _ = run(
+                f"[ ! -d {repos['path']} ] &&"
+                f" git clone {repos['remote']} {repos['path']} --recursive"
+            )
+            if err:
+                log.info("either already cloned or failed cloning; continuing optimisticly")
 
         err, _ = run("git fetch --all", cwd=repos["path"])
         if err:
