@@ -4,6 +4,7 @@ import logging as log
 import os
 import shutil
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -81,6 +82,16 @@ def cli_integrity_check(args):
         return errno.EINVAL
 
     return 0
+
+
+def cli_script(args):
+    """Create python script with the boiler-plate code necessary for running cijoe as a standalone script."""
+    filename = "cijoe-script.py"
+    if os.path.exists(filename):
+        sys.exit("Error: File 'cijoe-script.py' already exists.")
+
+    resources = get_resources()
+    shutil.copy(resources["scripts"]["core.example"].path, filename)
 
 
 def cli_resources(args):
@@ -162,6 +173,7 @@ def cli_example(args):
     err = 0
 
     resources = get_resources()
+    print(resources["configs"].keys())
 
     resource = resources["configs"].get(f"{args.example}.default-config", None)
     if resource is None:
@@ -339,6 +351,27 @@ def cli_workflow(args):
     return err
 
 
+def cli_interface(path):
+    path = Path(path)
+    args = parse_args()
+
+    with tempfile.NamedTemporaryFile() as workflow:
+        setattr(args, "workflow", Path(workflow.name))
+        lines = [
+            "---",
+            "doc: |",
+            f"  Temporary standalone script, {path.name}",
+            "",
+            "steps:",
+            "- name: main",
+            f"  uses: {path.stem}",
+        ]
+        workflow.write(bytes("\n".join(lines), "utf-8"))
+        workflow.seek(0)
+
+        sys.exit(main(args))
+
+
 def parse_args():
     """Parse command-line interface."""
 
@@ -456,14 +489,20 @@ def parse_args():
         action="store_true",
         help="Print the version number of 'cijoe' and exit.",
     )
+    utils_group.add_argument(
+        "--script",
+        action="store_true",
+        help="Create a cijoe Python script.",
+    )
 
     return parser.parse_args()
 
 
-def main():
+def main(args=None):
     """Main entry point for the CLI"""
 
-    args = parse_args()
+    if args is None:
+        args = parse_args()
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
@@ -490,6 +529,9 @@ def main():
 
     if args.monitor:
         return cli_monitor(args)
+
+    if args.script:
+        return cli_script(args)
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)
