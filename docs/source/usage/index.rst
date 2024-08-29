@@ -10,7 +10,7 @@ The testrunner script and pytest-plugin.
 Environment Variables
 =====================
 
-There are a couple of environmetn variables which change the behaviour of
+There are a couple of environment variables which change the behaviour of
 **cijoe**. Primarily the behavior of the ``cijoe`` command-line tool.
 
 * ``CIJOE_DISABLE_SSH_ENV_INJECT``, when this is set, then environment
@@ -27,6 +27,18 @@ Command-line
 ============
 
 The command-line tool is aptly named ``cijoe``.
+
+**cijoe** scripts
+=================
+
+To create a **cijoe** Python script, run command ``cijoe --script``, which
+will create a python script with the code necessary for running **cijoe**.
+
+The script is executed by running ``python ./cijoe-script.py --config 
+path/to/config.toml``.
+
+.. literalinclude:: ../../../src/cijoe/core/scripts/example.py
+   :language: python
 
 Workflows
 =========
