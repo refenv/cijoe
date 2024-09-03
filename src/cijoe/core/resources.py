@@ -42,6 +42,7 @@ import logging as log
 import os
 import pkgutil
 import re
+import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
@@ -243,6 +244,10 @@ class Script(Resource):
 
         mod_name = str(Path(self.path).resolve().stem)
         mod_path = str(Path(self.path).resolve())
+
+        parent_path = str(Path(self.path).resolve().parent)
+        if parent_path not in sys.path:
+            sys.path.append(parent_path)
 
         spec = importlib.util.spec_from_loader(
             mod_name, SourceFileLoader(mod_name, mod_path)
