@@ -1,0 +1,9 @@
+---
+doc: |
+  Temporary standalone script
+
+steps:
+{% for path in paths %}
+- name: {{path.stem}}
+  uses: {{path.stem}}
+{% endfor %}
