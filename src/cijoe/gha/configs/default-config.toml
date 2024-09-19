@@ -1,0 +1,9 @@
+# GitHub Action Runner(s)
+[gha.runner]
+#url.download = "https://github.com/actions/runner/releases/download/<VERSION>/actions-runner-linux-<ARCH>-<VERSION>.tar.gz"
+#url.repository = "https://github.com/<owner>/<repository>"
+user = "ghar"
+home = "/home/ghar"
+nameprefix = "myrunner"
+count = 10
+labels = ["my", "label"]
