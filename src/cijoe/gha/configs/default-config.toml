@@ -1,0 +1,13 @@
+# GitHub Action Runner(s)
+[gha.runner]
+# You only need to provide a download-url if you do NOT want to download
+# the latest x86 version, e.g. you want arm or another version.
+#url.download = "https://github.com/actions/runner/releases/download/<VERSION>/actions-runner-linux-<ARCH>-<VERSION>.tar.gz"
+
+# The repository you want to add the runner to is mandatory, provide it below
+#url.repository = "https://github.com/<owner>/<repository>"
+user = "ghar"
+home = "/home/ghar"
+nameprefix = "myrunner"
+count = 10
+labels = ["my", "label"]

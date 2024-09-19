@@ -1,0 +1,19 @@
+---
+doc: |
+  GitHub Action Runner
+
+  Note
+  ----
+
+  The scripts assume you are running with a transport configuration for a
+  non-root user and that the user has passwordless sudo privileges.
+
+steps:
+- name: download
+  uses: gha.runner_download
+
+- name: setup
+  uses: gha.runner_setup
+
+- name: remove
+  uses: gha.runner_remove
