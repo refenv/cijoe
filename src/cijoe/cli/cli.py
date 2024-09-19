@@ -1,5 +1,6 @@
 import argparse
 import errno
+import jinja2
 import logging as log
 import os
 import shutil
@@ -351,25 +352,31 @@ def cli_workflow(args):
     return err
 
 
-def cli_interface(path):
-    path = Path(path)
-    args = parse_args()
+def create_adhoc_workflow(args, paths):
+    resources = get_resources()
+    paths = map(Path, paths)
+
+    template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
+    jinja_env = jinja2.Environment(
+        autoescape=True, loader=jinja2.FileSystemLoader(template_path.parent)
+    )
+    template = jinja_env.get_template(template_path.name)
 
     with tempfile.NamedTemporaryFile() as workflow:
         setattr(args, "workflow", Path(workflow.name))
-        lines = [
-            "---",
-            "doc: |",
-            f"  Temporary standalone script, {path.name}",
-            "",
-            "steps:",
-            "- name: main",
-            f"  uses: {path.stem}",
-        ]
-        workflow.write(bytes("\n".join(lines), "utf-8"))
+        setattr(args, "step", [])
+
+        content = template.render(paths=paths)
+        workflow.write(bytes(content, "utf-8"))
         workflow.seek(0)
 
         sys.exit(main(args))
+
+
+def cli_interface(path):
+    path = Path(path)
+    args = parse_args()
+    create_adhoc_workflow(args, [path])
 
 
 def parse_args():
@@ -385,7 +392,7 @@ def parse_args():
     )
 
     workflow_group.add_argument(
-        "step", nargs="*", help="One or more workflow steps to run."
+        "step", nargs="*", help="Given a workflow; one or more workflow steps to run. Else; one or more cijoe Python scripts to run."
     )
 
     workflow_group.add_argument(
@@ -503,6 +510,8 @@ def main(args=None):
 
     if args is None:
         args = parse_args()
+        if args.step and all(step.endswith(".py") for step in args.step):
+            create_adhoc_workflow(args, args.step)
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
