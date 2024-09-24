@@ -16,6 +16,8 @@ Scripts
    scripts/cmdrunner.rst
    scripts/dump_metrics.rst
    scripts/extract.rst
+   scripts/get.rst
+   scripts/put.rst
    scripts/reporter.rst
    scripts/repository_prep.rst
    scripts/testrunner.rst
