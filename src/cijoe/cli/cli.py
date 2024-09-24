@@ -22,6 +22,7 @@ from cijoe.core.resources import (
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
 DEFAULT_WORKFLOW_FILENAME = "cijoe-workflow.yaml"
+DEFAULT_SCRIPT_FILENAME = "cijoe-script.py"
 SEARCH_PATHS = [
     Path.cwd(),
     Path.cwd() / ".cijoe",
@@ -83,16 +84,6 @@ def cli_integrity_check(args):
         return errno.EINVAL
 
     return 0
-
-
-def cli_script(args):
-    """Create python script with the boiler-plate code necessary for running cijoe as a standalone script."""
-    filename = "cijoe-script.py"
-    if os.path.exists(filename):
-        sys.exit("Error: File 'cijoe-script.py' already exists.")
-
-    resources = get_resources()
-    shutil.copy(resources["scripts"]["core.example"].path, filename)
 
 
 def cli_resources(args):
@@ -190,14 +181,23 @@ def cli_example(args):
             f"'example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
         )
         return errno.EINVAL
-
     src_workflow = resource.path
+
+    resource = resources["scripts"].get("core.example", None)
+    if resource is None:
+        log.error(
+            f"example.py' from '{args.example}'; not available"
+        )
+        return errno.EINVAL
+    src_script = resource.path
 
     dst_config = Path.cwd().joinpath(DEFAULT_CONFIG_FILENAME)
     dst_workflow = Path.cwd().joinpath(DEFAULT_WORKFLOW_FILENAME)
+    dst_script = Path.cwd().joinpath(DEFAULT_SCRIPT_FILENAME)
 
     log.info(f"config: {dst_config}")
     log.info(f"workflow: {dst_workflow}")
+    log.info(f"script: {dst_script}")
 
     if not src_config.exists():
         log.error(
@@ -207,6 +207,11 @@ def cli_example(args):
     if not src_workflow.exists():
         log.error(
             f"example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
+        )
+        return errno.EINVAL
+    if not src_script.exists():
+        log.error(
+            f"example.py' from '{args.example}'; not available"
         )
         return errno.EINVAL
 
@@ -221,6 +226,12 @@ def cli_example(args):
         log.error(f"skipping workflow({dst_workflow}); already exists")
     else:
         shutil.copyfile(src_workflow, dst_workflow)
+
+    if dst_script.exists():
+        err = errno.EEXIST
+        log.error(f"skipping script({dst_script}); already exists")
+    else:
+        shutil.copyfile(src_script, dst_script)
 
     return err
 
@@ -488,18 +499,13 @@ def parse_args():
         type=str,
         nargs="?",
         default=None,
-        help="Create 'default-config.toml' and 'example-workflow.yaml' and exit.",
+        help="Create 'default-config.toml', 'example-workflow.yaml' and 'cijoe-script.py' and exit.",
     )
     utils_group.add_argument(
         "--version",
         "-v",
         action="store_true",
         help="Print the version number of 'cijoe' and exit.",
-    )
-    utils_group.add_argument(
-        "--script",
-        action="store_true",
-        help="Create a cijoe Python script.",
     )
 
     return parser.parse_args()
@@ -538,9 +544,6 @@ def main(args=None):
 
     if args.monitor:
         return cli_monitor(args)
-
-    if args.script:
-        return cli_script(args)
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)
