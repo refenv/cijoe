@@ -440,11 +440,8 @@ class Collector(object):
     def __new__(cls):
         if not hasattr(cls, "instance"):
             cls.instance = super(Collector, cls).__new__(cls)
+            cls.instance.reset()
         return cls.instance
-
-    def __init__(self):
-        self.resources = {category: {} for category, _ in Collector.RESOURCES}
-        self.is_done = False
 
     def __process_candidate(self, candidate: Path, category: str, pkg):
         """Inserts the given candidate"""
@@ -463,6 +460,10 @@ class Collector(object):
             resource = Resource(candidate, pkg)
 
         self.resources[category][resource.ident] = resource
+
+    def reset(self):
+        self.resources = {category: {} for category, _ in Collector.RESOURCES}
+        self.is_done = False
 
     def collect_from_path(self, path=None, max_depth=2):
         """Collects non-packaged scripts from the given 'path'"""
