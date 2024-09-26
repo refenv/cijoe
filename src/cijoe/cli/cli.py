@@ -364,8 +364,12 @@ def cli_workflow(args):
 
 
 def create_adhoc_workflow(args, paths):
-    resources = get_resources()
-    paths = map(Path, paths)
+    paths = list(map(Path, paths))
+    if len(set(path.stem for path in paths)) != len(paths):
+        log.error("Duplicate script file names not allowed.")
+        sys.exit(1)
+
+    resources = get_resources([step.parent for step in paths])
 
     template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
     jinja_env = jinja2.Environment(

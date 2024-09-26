@@ -511,7 +511,7 @@ class Collector(object):
 
                 self.__process_candidate(candidate, category, pkg)
 
-    def collect(self):
+    def collect(self, paths=[]):
         """Collect from all implemented resource "sources" """
 
         if self.is_done:
@@ -519,6 +519,9 @@ class Collector(object):
 
         self.collect_from_packages(cijoe.__path__, "cijoe.")
         self.collect_from_path()
+
+        for path in paths:
+            self.collect_from_path(path, 0)
 
         cwd = Path().cwd() / ".cijoe"
         if cwd.exists():
@@ -531,10 +534,10 @@ class Collector(object):
         self.is_done = True
 
 
-def get_resources():
+def get_resources(paths=[]):
     """Returns resources collected by Collector"""
 
     collector = Collector()
-    collector.collect()
+    collector.collect(paths)
 
     return collector.resources
