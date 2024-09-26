@@ -175,3 +175,34 @@ class Cijoe(object):
             )
 
         return False
+    
+    def getconf(self, key: str, default: any=None):
+        """
+        Return value for given key, and return default if no value is found.
+
+        The key must be a sequence of namespaces separated by a point, ex. 
+        "foo.bar.jazz".
+
+        The value is found in the cijoe configuration file, but is overwritten
+        if the key (with points replaced with underscores, ex. FOO_BAR_JAZZ) is 
+        found in the initiator's environment variables.
+        """
+
+        envkey = key.replace(".", "_").upper()
+        envvar = os.getenv(envkey)
+        if envvar:
+            log.debug(f"found {key} ({envkey}) in environment variables.")
+            return envvar
+
+        dict_keys = key.split(".")
+        config = self.config.options
+
+        try:
+            # fold over the list of dict keys, to iterate through nested dicts
+            [config := config.get(key, {}) for key in dict_keys[:-1]]
+            return config.get(dict_keys[-1], default)
+        except AttributeError as exc:
+            # AttributeError is raised if one of the keys are associated to a
+            # value that is not a dict.
+            log.debug(f"{key} not in config: {exc}")
+            return default
