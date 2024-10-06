@@ -15,16 +15,15 @@ Additionally, then ensure that the following environment variables are set::
     GHA_RUNNER_TOKEN
 """
 
+import logging as log
 import os
 import sys
-import logging as log
 from pathlib import Path
 
 from cijoe.cli.cli import cli_interface
 
 
 def main(args, cijoe, step):
-
     runner = cijoe.config.options.get("gha", {}).get("runner", {})
 
     home = runner.get("home", None)

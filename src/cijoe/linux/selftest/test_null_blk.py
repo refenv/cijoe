@@ -34,7 +34,6 @@ def test_insert(cijoe):
 
 
 def test_remove(cijoe):
-
     skip_when_config_has_no_remote(cijoe)
 
     err, _ = null_blk.remove(cijoe)
