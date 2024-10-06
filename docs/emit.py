@@ -26,9 +26,9 @@ TEMPLATE_PKG_OVERVIEW = """
 """
 
 TEMPLATE_PKG_INDEX = """
-cijoe-pkg-{{ pkg_name }}
+{{ pkg_name }}
 {% set pkg_name_len = pkg_name | length -%}
-{{ "=" * (10 + pkg_name_len) }}
+{{ "=" * pkg_name_len }}
 
 These are the scripts provided in the package, they are listed by the **full**
 name that you can use to refer to them in a workflow.

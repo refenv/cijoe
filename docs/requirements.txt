@@ -1,5 +1,9 @@
 cijoe
 kmdo
-sphinx==5
+pydata-sphinx-theme
+sphinx==8
 sphinx-autopackagesummary
-sphinx_rtd_theme
+sphinxcontrib-bibtex
+sphinxcontrib-jquery
+sphinx-copybutton
+sphinx-tabs

@@ -3,18 +3,82 @@
 Prerequisites
 =============
 
-**cijoe** seeks to be minimally intrusive, however, it does require the
-following to operate.
+**TLDR;** To install and run **cijoe**, the requirements are:
 
-On your **local system** / **dev box**, ensure that you have:
+* **initiator**: :python:`Python <>` and :pipx:`pipx <>`
+* **target**: ssh-server
 
-* `Python 3`_ (>= 3.9)
-* ``pip3`` (matching Python >= 3.9)
-* A function ``pipx`` environment
+For the patient reader, the rest of this section provides details on meeting
+these requirements, along with various system setup instructions. The system
+setup is divided into **initiator** and **target** requirements.
 
-  * That is, cli-tools installed via ``pipx`` are readily available via ``PATH``.
+To refresh your understanding from the :ref:`sec-introduction` section, these
+roles are illustrated as follows:
 
-  * This is usually enabled by running: ``python3 -m pipx ensurepath``.
+.. figure:: ../_static/cijoe-networked.drawio.png
+   :alt: Development Environment
+   :align: center
+
+   The "core" agentless functionality of **cijoe**; run commands and tranfer
+   files
+
+Initiator
+---------
+
+The **initiator** is the system where the **cijoe** command-line tool is
+executed, and the **cijoe** scripts are run, requiring :python:`Python <>` along
+with the necessary :python:`Python <>` package dependencies. With the adoption
+of :pep668:`PEP 668 <>` by Linux distributions, providing a virtual environment
+for Python packages is now mandatory rather than a recommended practice.
+
+For command-line utilities, :pipx:`pipx <>` offers a convenient way to install
+tools within a :python:`Python <>` virtual environment (venv), ensuring the
+correct environment variables are set for CLI endpoints to function properly.
+Therefore, the initiator must meet the following requirements:
+
+* :python:`Python <>` >= 3.9
+* :pipx:`pipx <>`
+
+It is recommended to install :python:`Python <>` and :pipx:`pipx <>` via
+the package manager of the **initiator** system. To ensure that **pipx** is
+correctly, then run the following::
+
+  pipx ensurepath
+
+.. note::
+  The **initiator** uses a pure-Python (3.6+) implementation of the SSHv2
+  protocol (:paramiko:`Paramiko <>`), thus, it does not interfere with your
+  existing **SSH** setup and does not rely on system crypto/ssl libraries.
+
+After running this, reload your environment by either logging out completely or
+starting a new shell session. With :python:`Python <>` and :pipx:`pipx <>` in
+place, then install **cijoe**::
+
+  pipx install cijoe --include-deps
+
+Check that it installed correctly, by invoking the **cijoe** command-line tool:
+
+
+
+Target
+------
+
+**cijoe** is agentless seeks to be minimally intrusive on the **target** system,
+**thus, you do not** need to install **anything at all**. However, **cijoe**
+**operates under the assumption that:
+
+* You can access the **target** system from the **initiator** via **SSH**
+
+Thus, you do not need to install **anything at all** on
+the **target** system for **cijoe**.
+However, . system is available via SSH**. Thus, the
+**following is recommended:
+
+* ssh-server
+* scp
+* The **commands** that you want to run
+
+  - Allow root login with password
 
 * A **SSH** key-pair
 
