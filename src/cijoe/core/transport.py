@@ -86,7 +86,9 @@ class SSH(Transport):
         """Initialize the CIJOE SSH Transport"""
 
         self.config = config
-        self.shell = self.config.options.get("cijoe", {}).get("run", {}).get("shell", "sh")
+        self.shell = (
+            self.config.options.get("cijoe", {}).get("run", {}).get("shell", "sh")
+        )
         self.output_path = output_path
 
         self.ssh = paramiko.SSHClient()
@@ -115,7 +117,9 @@ class SSH(Transport):
         )
 
     def __connect(self):
-        self.ssh.connect(**self.config.options.get("cijoe", {}).get("transport").get("ssh"))
+        self.ssh.connect(
+            **self.config.options.get("cijoe", {}).get("transport").get("ssh")
+        )
         self.scp = SCPClient(self.ssh.get_transport())
 
     def __disconnect(self):
@@ -133,11 +137,15 @@ class SSH(Transport):
         # unfortunately then this is shell-dependent and probably breaks.
         # This is why the CIJOE_DISABLE_SSH_ENV_INJECT is here.
         if self.shell == "csh":
-            prefix_env = "".join([f'setenv {key} "{val}"; ' for key, val in env.items()])
+            prefix_env = "".join(
+                [f'setenv {key} "{val}"; ' for key, val in env.items()]
+            )
         elif self.shell == "cmd":
-            prefix_env = "".join([f'set {key}={val} && ' for key, val in env.items()])
+            prefix_env = "".join([f"set {key}={val} && " for key, val in env.items()])
         elif self.shell == "pwsh":
-            prefix_env = "".join([f"$env:{key} = '{val}'; " for key, val in env.items()])
+            prefix_env = "".join(
+                [f"$env:{key} = '{val}'; " for key, val in env.items()]
+            )
         else:
             prefix_env = "".join([f'{key}="{val}" ' for key, val in env.items()])
         if os.environ.get("CIJOE_DISABLE_SSH_ENV_INJECT", None):

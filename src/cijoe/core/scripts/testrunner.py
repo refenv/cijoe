@@ -66,7 +66,7 @@ from cijoe.core.resources import dict_to_tomlfile
 
 
 def pytest_cmdline(args, step, config_path, output_path, reportlog_path):
-    """Construct pytest command-line arguments given 'step' and '*_path'"""
+    """Contruct pytest command-line arguments given 'step' and paths"""
 
     log.info(f"config_path({config_path})")
     log.info(f"output_path({output_path})")

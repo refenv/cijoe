@@ -309,9 +309,11 @@ class Workflow(Resource):
 
         for step in topic["steps"]:
             if step["name"].endswith(".py"):
-                errors.append("Illegal step name: Suffix .py reserved for Python scripts")
+                errors.append(
+                    "Illegal step name: Suffix .py reserved for Python scripts"
+                )
                 return errors
-            
+
             if "run" not in step.keys():
                 continue
 

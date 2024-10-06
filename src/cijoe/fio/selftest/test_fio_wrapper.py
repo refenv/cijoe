@@ -1,7 +1,7 @@
-import cijoe.linux.null_blk as null_blk
 import pytest
 
 import cijoe.fio.wrapper as fio
+import cijoe.linux.null_blk as null_blk
 
 
 def skip_when_config_has_no_remote(cijoe):
@@ -13,7 +13,6 @@ def skip_when_config_has_no_remote(cijoe):
 
 
 def test_run(cijoe):
-
     skip_when_config_has_no_remote(cijoe)
 
     err, _ = null_blk.insert(cijoe)
