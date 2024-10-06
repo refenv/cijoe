@@ -1,4 +1,5 @@
 import pytest
+
 from cijoe.core.resources import Collector
 
 

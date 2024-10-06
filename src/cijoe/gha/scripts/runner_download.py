@@ -11,8 +11,8 @@ Below is an example of the configuration items that this script uses::
     home = "/opt/gha"
 """
 
-import sys
 import logging as log
+import sys
 from pathlib import Path
 
 import requests
@@ -21,7 +21,6 @@ from cijoe.cli.cli import cli_interface
 
 
 def url_to_latest_runner_on_x86():
-
     tag_name = requests.get(
         "https://api.github.com/repos/actions/runner/releases/latest"
     ).json()["tag_name"]
@@ -33,7 +32,6 @@ def url_to_latest_runner_on_x86():
 
 
 def main(args, cijoe, step):
-
     runner = cijoe.config.options.get("gha", {}).get("runner", {})
 
     url = runner.get("url", {}).get("download", url_to_latest_runner_on_x86())

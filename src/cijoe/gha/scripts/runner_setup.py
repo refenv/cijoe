@@ -28,16 +28,15 @@ Below is an example of the configuration items that this script uses::
     labels = ["qemuhost"]
 """
 
+import logging as log
 import os
 import sys
-import logging as log
 from pathlib import Path
-
 
 from cijoe.cli.cli import cli_interface
 
-def main(args, cijoe, step):
 
+def main(args, cijoe, step):
     runner = cijoe.config.options.get("gha", {}).get("runner", {})
 
     url = runner.get("url", {}).get("repository", None)
@@ -47,7 +46,7 @@ def main(args, cijoe, step):
     labels = runner.get("labels", None)
     nameprefix = runner.get("nameprefix", None)
     token = os.getenv("GHA_RUNNER_TOKEN", runner.get("token", None))
-    
+
     if None in [url, home, count, labels, nameprefix, token]:
         token = "your_secret_runner_token_set_here_or_env"
         log.error(f"missing or invalid config gha.runner({runner})")
@@ -58,10 +57,7 @@ def main(args, cijoe, step):
         name = f"{nameprefix}{number:02d}"
         rdir = f"{home}/runners/{name}"
 
-        for cmd in [
-            f"mkdir {rdir}/",
-            f"cp -r {home}/ghar/. {rdir}/."
-        ]:
+        for cmd in [f"mkdir {rdir}/", f"cp -r {home}/ghar/. {rdir}/."]:
             err, _ = cijoe.run(cmd)
             if err:
                 log.error(f"failed copying runner err({err})")

@@ -1,6 +1,5 @@
 import argparse
 import errno
-import jinja2
 import logging as log
 import os
 import shutil
@@ -8,6 +7,8 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+
+import jinja2
 
 import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
@@ -185,9 +186,7 @@ def cli_example(args):
 
     resource = resources["scripts"].get("core.example", None)
     if resource is None:
-        log.error(
-            f"example.py' from '{args.example}'; not available"
-        )
+        log.error(f"example.py' from '{args.example}'; not available")
         return errno.EINVAL
     src_script = resource.path
 
@@ -210,9 +209,7 @@ def cli_example(args):
         )
         return errno.EINVAL
     if not src_script.exists():
-        log.error(
-            f"example.py' from '{args.example}'; not available"
-        )
+        log.error(f"example.py' from '{args.example}'; not available")
         return errno.EINVAL
 
     if dst_config.exists():
@@ -407,7 +404,9 @@ def parse_args():
     )
 
     workflow_group.add_argument(
-        "step", nargs="*", help="Given a workflow; one or more workflow steps to run. Else; one or more cijoe Python scripts to run."
+        "step",
+        nargs="*",
+        help="Given a workflow; one or more workflow steps to run. Else; one or more cijoe Python scripts to run.",
     )
 
     workflow_group.add_argument(
