@@ -175,16 +175,16 @@ class Cijoe(object):
             )
 
         return False
-    
-    def getconf(self, key: str, default: any=None):
+
+    def getconf(self, key: str, default: any = None):
         """
         Return value for given key, and return default if no value is found.
 
-        The key must be a sequence of namespaces separated by a point, ex. 
+        The key must be a sequence of namespaces separated by a point, ex.
         "foo.bar.jazz".
 
         The value is found in the cijoe configuration file, but is overwritten
-        if the key (with points replaced with underscores, ex. FOO_BAR_JAZZ) is 
+        if the key (with points replaced with underscores, ex. FOO_BAR_JAZZ) is
         found in the initiator's environment variables.
         """
 
