@@ -66,8 +66,5 @@ venv-setup:
 	@${PY_ENV} -m pip install --upgrade pip
 	@echo "## venv-setup: installing cijoe (for sphinx autodoc)"
 	@${PY_ENV} -m pip install ..
-	@${PY_ENV} -m pip install ../../cijoe-pkg-qemu
-	@${PY_ENV} -m pip install ../../cijoe-pkg-linux
-	@${PY_ENV} -m pip install ../../cijoe-pkg-fio
 	@echo "## venv-setup: installing dependencies (for sphinx)"
 	@${PY_ENV} -m pip install -r requirements.txt
