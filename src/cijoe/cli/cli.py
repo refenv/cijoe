@@ -12,7 +12,6 @@ import jinja2
 
 import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
-from cijoe.core.monitor import WorkflowMonitor
 from cijoe.core.resources import (
     Config,
     Workflow,
@@ -140,7 +139,7 @@ def cli_produce_report(args):
         log.error(f"failed: Config.from_path({config_path})")
         return errno.EINVAL
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
 
     resources = get_resources()
 
@@ -241,16 +240,6 @@ def cli_version(args):
     return 0
 
 
-def cli_monitor(args):
-    """Start workflow monitor"""
-
-    monitor = WorkflowMonitor()
-    monitor.start()
-    monitor.join()
-
-    return 0
-
-
 def cli_workflow(args):
     """Process workflow"""
 
@@ -312,7 +301,7 @@ def cli_workflow(args):
 
     fail_fast = False
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
     for step in workflow.state["steps"]:
         log.info(f"step({step['name']}) - begin")
 
@@ -440,6 +429,12 @@ def parse_args():
         help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
     )
     workflow_group.add_argument(
+        "--monitor",
+        "-m",
+        action="store_true",
+        help="Monitor workflow-output in the current-workdir-directory (cwd).",
+    )
+    workflow_group.add_argument(
         "--no-report",
         "-n",
         action="store_true",
@@ -475,12 +470,6 @@ def parse_args():
         action="append_const",
         const=1,
         help="Produce report, and open it, for output at '-o / --output' and exit.",
-    )
-    utils_group.add_argument(
-        "--monitor",
-        "-m",
-        action="store_true",
-        help="Monitor workflow-output in the current-workdir-directory (cwd).",
     )
     utils_group.add_argument(
         "--integrity-check",
@@ -544,9 +533,6 @@ def main(args=None):
 
     if args.archive:
         return cli_archive(args)
-
-    if args.monitor:
-        return cli_monitor(args)
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)

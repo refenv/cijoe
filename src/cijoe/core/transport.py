@@ -15,7 +15,7 @@ from cijoe.core.resources import Config
 
 class Transport(ABC):
     @abstractmethod
-    def run(self, cmd, cwd, env: dict, logfile):
+    def run(self, cmd, cwd, env: dict, logfile, monitor: bool):
         pass
 
     @abstractmethod
@@ -35,7 +35,7 @@ class Local(Transport):
         self.output_path = output_path
         self.output_ident = "artifacts"
 
-    def run(self, cmd, cwd, env, logfile):
+    def run(self, cmd, cwd, env, logfile, monitor):
         """Invoke the given command"""
 
         env = dict(os.environ)
@@ -43,12 +43,18 @@ class Local(Transport):
 
         with subprocess.Popen(
             cmd,
-            stdout=logfile,
-            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE,
             shell=True,
             cwd=cwd,
             env=env,
         ) as process:
+            for line in process.stdout:
+                text = line.decode(ENCODING, errors="replace")
+                if monitor:
+                    print(text, end="")
+                logfile.write(text)
+                logfile.flush()
+
             process.wait()
 
             return process.returncode
@@ -126,7 +132,7 @@ class SSH(Transport):
         self.scp.close()
         self.ssh.close()
 
-    def run(self, cmd, cwd, env, logfile):
+    def run(self, cmd, cwd, env, logfile, monitor):
         """Invoke the given command"""
 
         # Add environment variables defined in config.
@@ -158,10 +164,13 @@ class SSH(Transport):
         try:
             self.__connect()
 
-            _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
+            _, stdout, _ = self.ssh.exec_command(cmd, environment=env, get_pty=True)
 
-            logfile.write(stdout.read().decode(ENCODING, errors="replace"))
-            logfile.write(stderr.read().decode(ENCODING, errors="replace"))
+            for line in iter(stdout.readline, ""):
+                if monitor:
+                    print(line, end="")
+                logfile.write(line)
+                logfile.flush()
 
             err = stdout.channel.recv_exit_status()
 
