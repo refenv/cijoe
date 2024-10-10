@@ -7,8 +7,6 @@ SPHINX_SOURCEDIR=source
 SPHINX_BUILDDIR=build
 
 all: venv-setup clean build view
-#all: venv-setup clean kmdo build view
-#all: venv-setup clean apidoc kmdo build view
 
 define build-help
 # Remove auto-generated documentation the source-dir and the generated docs in build-dir
