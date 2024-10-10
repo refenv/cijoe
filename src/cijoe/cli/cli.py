@@ -139,7 +139,7 @@ def cli_produce_report(args):
         log.error(f"failed: Config.from_path({config_path})")
         return errno.EINVAL
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
 
     resources = get_resources()
 
@@ -297,15 +297,15 @@ def cli_workflow(args):
 
     workflow.state["status"]["started"] = time.time()
 
-    workflow.state_dump(args.output / Workflow.STATE_FILENAME)
-
     fail_fast = False
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
     for step in workflow.state["steps"]:
         log.info(f"step({step['name']}) - begin")
 
         begin = time.time()
+        step["status"]["started"] = begin
+        workflow.state_dump(args.output / Workflow.STATE_FILENAME)
 
         cijoe.set_output_ident(step["id"])
         os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
@@ -332,7 +332,6 @@ def cli_workflow(args):
 
         step["status"]["elapsed"] = time.time() - begin
         workflow.state["status"]["elapsed"] += step["status"]["elapsed"]
-        workflow.state_dump(args.output / Workflow.STATE_FILENAME)
 
         for text, status in step["status"].items():
             if text != "elapsed" and status:
@@ -341,6 +340,8 @@ def cli_workflow(args):
         if step["status"]["failed"] and fail_fast:
             log.error(f"exiting, fail_fast({fail_fast})")
             break
+
+    workflow.state_dump(args.output / Workflow.STATE_FILENAME)
 
     err = errno.EIO if workflow.state["status"]["failed"] else 0
     if err:
@@ -427,6 +428,12 @@ def parse_args():
         action="append_const",
         const=1,
         help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
+    )
+    workflow_group.add_argument(
+        "--monitor",
+        "-m",
+        action="store_true",
+        help="Dump command output to stdout",
     )
     workflow_group.add_argument(
         "--no-report",

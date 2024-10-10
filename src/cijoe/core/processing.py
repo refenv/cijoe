@@ -2,6 +2,7 @@
     Helper functions for processing the output produced by a workflow
 """
 import json
+import time
 from pathlib import Path
 
 from cijoe.core.misc import ENCODING, sanitize_ident
@@ -37,7 +38,10 @@ def runlog_from_path(path: Path):
             ) as content:
                 run[stem][f"{suffix}"] = content.read()
         elif suffix == "state":
-            run[stem][f"{suffix}"] = dict_from_yamlfile(run[stem][f"{suffix}_path"])
+            yaml_dict = dict_from_yamlfile(run[stem][f"{suffix}_path"])
+            if not yaml_dict["is_done"]:
+                yaml_dict["elapsed"] = time.time() - yaml_dict["begin"]
+            run[stem][f"{suffix}"] = yaml_dict
 
     return run
 
@@ -175,6 +179,9 @@ def process_workflow_output(args, cijoe):
     for step in workflow_state["steps"]:
         if "extras" not in step:
             step["extras"] = {}
+
+        if step["status"]["started"] > 0 and step["status"]["elapsed"] == 0:
+            step["status"]["elapsed"] = time.time() - step["status"]["started"]
 
         step_path = args.output / step["id"]
         if not step_path.exists():

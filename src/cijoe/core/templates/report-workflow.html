@@ -310,9 +310,11 @@ div.image {
             <div class="card-body" style="background-color: gray;">
             {% for stem, runlog in step['extras']['runlog'].items() %}
             {% if runlog["state"]["err"] %}
-            {% set cmd_style = "danger" %}
+              {% set cmd_style = "danger" %}
+            {% elif runlog["state"]["is_done"] %}
+              {% set cmd_style = "success" %}
             {% else %}
-            {% set cmd_style = "success" %}
+              {% set cmd_style = "secondary" %}
             {% endif %}
             <ul class="list-group">
               <li class="list-group-item list-group-item-{{ cmd_style }}">

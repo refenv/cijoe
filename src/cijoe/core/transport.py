@@ -15,7 +15,7 @@ from cijoe.core.resources import Config
 
 class Transport(ABC):
     @abstractmethod
-    def run(self, cmd, cwd, env: dict, logfile):
+    def run(self, cmd, cwd, env: dict, cmd_output):
         pass
 
     @abstractmethod
@@ -35,7 +35,7 @@ class Local(Transport):
         self.output_path = output_path
         self.output_ident = "artifacts"
 
-    def run(self, cmd, cwd, env, logfile):
+    def run(self, cmd, cwd, env, cmd_output):
         """Invoke the given command"""
 
         env = dict(os.environ)
@@ -43,12 +43,17 @@ class Local(Transport):
 
         with subprocess.Popen(
             cmd,
-            stdout=logfile,
+            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             shell=True,
             cwd=cwd,
             env=env,
         ) as process:
+            while process.poll() is None:
+                cmd_output.write(process.stdout.read(1))
+
+            cmd_output.write(process.stdout.read())
+            cmd_output.flush()
             process.wait()
 
             return process.returncode
@@ -126,7 +131,7 @@ class SSH(Transport):
         self.scp.close()
         self.ssh.close()
 
-    def run(self, cmd, cwd, env, logfile):
+    def run(self, cmd, cwd, env, cmd_output):
         """Invoke the given command"""
 
         # Add environment variables defined in config.
@@ -158,10 +163,13 @@ class SSH(Transport):
         try:
             self.__connect()
 
-            _, stdout, stderr = self.ssh.exec_command(cmd, environment=env)
+            _, stdout, _ = self.ssh.exec_command(cmd, environment=env, get_pty=True)
 
-            logfile.write(stdout.read().decode(ENCODING, errors="replace"))
-            logfile.write(stderr.read().decode(ENCODING, errors="replace"))
+            while not stdout.channel.exit_status_ready():
+                cmd_output.write(stdout.read(1))
+
+            cmd_output.write(stdout.read())
+            cmd_output.flush()
 
             err = stdout.channel.recv_exit_status()
 
