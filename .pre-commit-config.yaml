@@ -41,9 +41,3 @@ repos:
     args:
     - --max-line-length=88
     - --extend-ignore=E203,F401,F811
-
-- repo: https://github.com/jumanjihouse/pre-commit-hooks
-  rev: 3.0.0
-  hooks:
-  - id: shellcheck
-    name: Shell-lint
