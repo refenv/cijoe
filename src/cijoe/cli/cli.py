@@ -12,7 +12,6 @@ import jinja2
 
 import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
-from cijoe.core.monitor import WorkflowMonitor
 from cijoe.core.resources import (
     Config,
     Workflow,
@@ -237,16 +236,6 @@ def cli_version(args):
     """Print version and exit"""
 
     print(f"cijoe {cijoe.core.__version__}")
-
-    return 0
-
-
-def cli_monitor(args):
-    """Start workflow monitor"""
-
-    monitor = WorkflowMonitor()
-    monitor.start()
-    monitor.join()
 
     return 0
 
@@ -477,12 +466,6 @@ def parse_args():
         help="Produce report, and open it, for output at '-o / --output' and exit.",
     )
     utils_group.add_argument(
-        "--monitor",
-        "-m",
-        action="store_true",
-        help="Monitor workflow-output in the current-workdir-directory (cwd).",
-    )
-    utils_group.add_argument(
         "--integrity-check",
         "-i",
         action="store_true",
@@ -544,9 +527,6 @@ def main(args=None):
 
     if args.archive:
         return cli_archive(args)
-
-    if args.monitor:
-        return cli_monitor(args)
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)
