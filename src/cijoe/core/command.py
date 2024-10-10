@@ -4,6 +4,7 @@
 import errno
 import logging as log
 import os
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -21,19 +22,68 @@ def default_output_path():
     return os.path.join(os.getcwd(), "cijoe-output")
 
 
+class Tee:
+    def __init__(self, file_path, monitor):
+        self.file = open(file_path, "w")
+        self.monitor = monitor
+        self.buffer = []
+        self.buffer_size = 0
+
+    def write(self, data: bytes):
+        decoded = data.decode(ENCODING, errors="replace")
+        self.buffer.append(decoded)
+        self.buffer_size += len(decoded)
+
+        if "\n" in decoded or self.buffer_size >= 4096:
+            self.flush()
+
+    def flush(self):
+        output = "".join(self.buffer)
+
+        self.file.write(output)
+        self.file.flush()
+
+        if self.monitor:
+            sys.stdout.write(output)
+            sys.stdout.flush()
+
+        self.buffer = []
+        self.buffer_size = 0
+
+    def close(self):
+        self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+
 class CommandState(object):
-    def __init__(
-        self, cmd, cwd, err, begin, end, output_dpath, output_fpath, state_fpath
-    ):
+    def __init__(self, cijoe, cmd, cwd, err, begin, end, is_done, monitor):
         self.cmd = cmd
         self.cwd = cwd
         self.err = err
         self.begin = begin
         self.end = end
         self.elapsed = end - begin
-        self.output_dpath = Path(output_dpath)
-        self.output_fpath = Path(output_fpath)
-        self.state_fpath = Path(state_fpath)
+        self.is_done = is_done
+
+        cmd_output_dpath = os.path.join(cijoe.output_path, cijoe.output_ident)
+        cmd_output_fpath = os.path.join(
+            cmd_output_dpath, f"cmd_{cijoe.run_count:02}.output"
+        )
+        cmd_state_fpath = os.path.join(
+            cmd_output_dpath, f"cmd_{cijoe.run_count:02}.state"
+        )
+        os.makedirs(cmd_output_dpath, exist_ok=True)
+
+        self.output_dpath = Path(cmd_output_dpath)
+        self.output_fpath = Path(cmd_output_fpath)
+        self.state_fpath = Path(cmd_state_fpath)
+
+        self.cmd_output = Tee(self.output_fpath, monitor)
 
     def output(self):
         """Returns the content of 'output_fpath'"""
@@ -44,7 +94,7 @@ class CommandState(object):
     def to_file(self):
         """Dump the command state to file"""
 
-        with self.state_fpath.open("a", encoding=ENCODING) as state_file:
+        with self.state_fpath.open("w", encoding=ENCODING) as state_file:
             state = {
                 "cmd": self.cmd,
                 "cwd": str(self.cwd),
@@ -54,6 +104,7 @@ class CommandState(object):
                 "elapsed": self.elapsed,
                 "output_dpath": str(self.output_dpath),
                 "output_fpath": str(self.output_fpath),
+                "is_done": self.is_done,
             }
             yaml.dump(state, state_file)
 
@@ -61,7 +112,7 @@ class CommandState(object):
 class Cijoe(object):
     """CIJOE providing retargetable command-line expressions and data-transfers"""
 
-    def __init__(self, config: Config, output_path: Path):
+    def __init__(self, config: Config, output_path: Path, monitor: bool):
         """Create a cijoe encapsulation defined by the given config_fpath"""
 
         self.config = config
@@ -69,6 +120,8 @@ class Cijoe(object):
         self.run_count = 0
         self.output_path = output_path if output_path else default_output_path()
         self.output_ident = "artifacts"
+
+        self.monitor = monitor
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
@@ -94,28 +147,26 @@ class Cijoe(object):
 
     def _run(self, cmd, cwd, env, transport):
         self.run_count += 1
-        cmd_output_dpath = os.path.join(self.output_path, self.output_ident)
-        cmd_output_fpath = os.path.join(
-            cmd_output_dpath, f"cmd_{self.run_count:02}.output"
-        )
-        cmd_state_fpath = os.path.join(
-            cmd_output_dpath, f"cmd_{self.run_count:02}.state"
-        )
-        os.makedirs(cmd_output_dpath, exist_ok=True)
 
-        with open(cmd_output_fpath, "a", encoding=ENCODING) as logfile:
-            begin = time.time()
-            err = transport.run(cmd, cwd, env, logfile)
-            state = CommandState(
-                cmd=cmd,
-                cwd=cwd,
-                err=err,
-                begin=begin,
-                end=time.time(),
-                output_dpath=cmd_output_dpath,
-                output_fpath=cmd_output_fpath,
-                state_fpath=cmd_state_fpath,
-            )
+        begin = time.time()
+        state = CommandState(
+            cijoe=self,
+            cmd=cmd,
+            cwd=cwd,
+            err=0,
+            begin=begin,
+            end=0,
+            is_done=False,
+            monitor=self.monitor,
+        )
+        state.to_file()
+
+        with state.cmd_output as cmd_output:
+            err = transport.run(cmd, cwd, env, cmd_output)
+            state.err = err
+            state.end = time.time()
+            state.elapsed = state.end - state.begin
+            state.is_done = True
             state.to_file()
 
         return err, state
@@ -125,7 +176,7 @@ class Cijoe(object):
         Execute the given shell command/expression via 'config.transport'
 
         Commands executed using this will write stdout and stderr to file. The location
-        of the logfile is fixed to: "output_path/output_ident/cmd.log", such that the
+        of the cmd_output is fixed to: "output_path/output_ident/cmd_XX.output", such that the
         location is a subfolder of the output_path. Unless somebody wants to break the
         convention and call set_output_ident("../..")
         """
@@ -137,7 +188,7 @@ class Cijoe(object):
         Execute the given shell command/expression via local transport
 
         Commands executed using this will write stdout and stderr to file. The location
-        of the logfile is fixed to: "output_path/output_ident/cmd.log", such that the
+        of the cmd_output is fixed to: "output_path/output_ident/cmd_XX.output", such that the
         location is a subfolder of the output_path. Unless somebody wants to break the
         convention and call set_output_ident("../..")
         """

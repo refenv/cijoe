@@ -74,6 +74,7 @@ def pytest_configure(config):
     pytest.cijoe_instance = Cijoe(
         cijoe_config,
         config.getoption("--output"),
+        False,
     )
     if pytest.cijoe_instance is None:
         raise Exception("Failed instantiating cijoe")
