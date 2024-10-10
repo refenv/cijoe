@@ -139,7 +139,7 @@ def cli_produce_report(args):
         log.error(f"failed: Config.from_path({config_path})")
         return errno.EINVAL
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
 
     resources = get_resources()
 
@@ -301,7 +301,7 @@ def cli_workflow(args):
 
     fail_fast = False
 
-    cijoe = Cijoe(config, args.output)
+    cijoe = Cijoe(config, args.output, args.monitor)
     for step in workflow.state["steps"]:
         log.info(f"step({step['name']}) - begin")
 
@@ -427,6 +427,12 @@ def parse_args():
         action="append_const",
         const=1,
         help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
+    )
+    workflow_group.add_argument(
+        "--monitor",
+        "-m",
+        action="store_true",
+        help="Monitor workflow-output in the current-workdir-directory (cwd).",
     )
     workflow_group.add_argument(
         "--no-report",

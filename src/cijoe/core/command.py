@@ -23,7 +23,7 @@ def default_output_path():
 
 class CommandState(object):
     def __init__(
-        self, cmd, cwd, err, begin, end, output_dpath, output_fpath, state_fpath
+        self, cmd, cwd, err, begin, end, output_dpath, output_fpath, state_fpath, done
     ):
         self.cmd = cmd
         self.cwd = cwd
@@ -34,6 +34,7 @@ class CommandState(object):
         self.output_dpath = Path(output_dpath)
         self.output_fpath = Path(output_fpath)
         self.state_fpath = Path(state_fpath)
+        self.done = done
 
     def output(self):
         """Returns the content of 'output_fpath'"""
@@ -44,7 +45,7 @@ class CommandState(object):
     def to_file(self):
         """Dump the command state to file"""
 
-        with self.state_fpath.open("a", encoding=ENCODING) as state_file:
+        with self.state_fpath.open("w", encoding=ENCODING) as state_file:
             state = {
                 "cmd": self.cmd,
                 "cwd": str(self.cwd),
@@ -54,6 +55,7 @@ class CommandState(object):
                 "elapsed": self.elapsed,
                 "output_dpath": str(self.output_dpath),
                 "output_fpath": str(self.output_fpath),
+                "done": self.done,
             }
             yaml.dump(state, state_file)
 
@@ -61,7 +63,7 @@ class CommandState(object):
 class Cijoe(object):
     """CIJOE providing retargetable command-line expressions and data-transfers"""
 
-    def __init__(self, config: Config, output_path: Path):
+    def __init__(self, config: Config, output_path: Path, monitor: bool):
         """Create a cijoe encapsulation defined by the given config_fpath"""
 
         self.config = config
@@ -69,6 +71,8 @@ class Cijoe(object):
         self.run_count = 0
         self.output_path = output_path if output_path else default_output_path()
         self.output_ident = "artifacts"
+
+        self.monitor = monitor
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
@@ -104,18 +108,25 @@ class Cijoe(object):
         os.makedirs(cmd_output_dpath, exist_ok=True)
 
         with open(cmd_output_fpath, "a", encoding=ENCODING) as logfile:
-            begin = time.time()
-            err = transport.run(cmd, cwd, env, logfile)
             state = CommandState(
                 cmd=cmd,
                 cwd=cwd,
-                err=err,
-                begin=begin,
-                end=time.time(),
+                err=0,
+                begin=0,
+                end=0,
                 output_dpath=cmd_output_dpath,
                 output_fpath=cmd_output_fpath,
                 state_fpath=cmd_state_fpath,
+                done=False,
             )
+            state.to_file()
+
+            begin = time.time()
+            err = transport.run(cmd, cwd, env, logfile, self.monitor)
+            state.begin = begin
+            state.err = err
+            state.end = time.time()
+            state.done = True
             state.to_file()
 
         return err, state
