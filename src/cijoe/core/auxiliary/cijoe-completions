@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# The function that will perform the autocomplete
+_cijoe_completion() {
+    local cur prev yaml_file values options
+
+    # Get the current word (the one being completed) and the previous word
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # Define the possible options for cijoe
+    options="--help --config -c --workflow -w --output -o --log-level -l --no-report -n --skip-report -s --tag -t --archive -a --produce-report -p --monitor -m --integrity-check -i --resources -r --example -e --version -v"
+
+    # Provide options completion if the current word starts with --
+    if [[ "$cur" == --* ]]; then
+        COMPREPLY=( $(compgen -W "$options" -- "$cur") )
+        return
+    fi
+
+    # Check if the previous word is --workflow or -w, which specifies the YAML file
+    if [[ "$prev" == "--workflow" || "$prev" == "-w" ]]; then
+        # We're completing the YAML file path for --workflow or -w
+        COMPREPLY=( $(compgen -f -- "$cur") )
+        return
+    fi
+
+    # Search for the YAML file in the command-line arguments
+    yaml_file=""
+    for ((i=1; i<COMP_CWORD; i++)); do
+        if [[ "${COMP_WORDS[i]}" == "--workflow" || "${COMP_WORDS[i]}" == "-w" ]]; then
+            yaml_file="${COMP_WORDS[i+1]}"
+            break
+        fi
+    done
+
+    # If no YAML file is provided, use 'cijoe-workflow.yaml' as the default
+    if [[ -z "$yaml_file" ]]; then
+        yaml_file="cijoe-workflow.yaml"
+    fi
+
+    # If the YAML file doesn't exist, return without suggestions
+    if [[ ! -f "$yaml_file" ]]; then
+        return
+    fi
+
+    # Extract 'name' values from the YAML file under 'steps'
+    values=$(grep -oP '(?<=name: ).*' "$yaml_file")
+
+    # Provide the extracted values as autocomplete suggestions
+    COMPREPLY=( $(compgen -W "${values}" -- "$cur") )
+}
+
+# Register the completion function for your cijoe command
+complete -F _cijoe_completion cijoe
