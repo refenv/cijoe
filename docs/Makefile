@@ -1,10 +1,6 @@
-PY_BIN ?= python3
-PY_ENV_PATH = venv
-PY_ENV_ACTIVATE = . ${PY_ENV_PATH}/bin/activate
-PY_ENV = ${PY_ENV_ACTIVATE} && ${PY_BIN}
-
 SPHINX_SOURCEDIR=source
 SPHINX_BUILDDIR=build
+PYTHON=$(shell pipx environment --value PIPX_LOCAL_VENVS)/cijoe/bin/python
 
 all: venv-setup clean build view
 
@@ -17,9 +13,10 @@ clean:
 	rm -rf "${SPHINX_BUILDDIR}"
 	rm -rf "${SPHINX_SOURCEDIR}/api"
 
+.PHONY: emit-section-packages
 emit-section-packages:
 	@echo "## section:packages"
-	${PY_ENV_ACTIVATE} && ./emit.py
+	${PYTHON} ./emit.py
 
 define apidoc-help
 # Generate api documentation using Sphinx autodoc
@@ -27,7 +24,7 @@ endef
 .PHONY: apidoc
 apidoc:
 	@echo "## apidoc"
-	${PY_ENV_ACTIVATE} && sphinx-apidoc --implicit-namespaces -e -H "API" -M -f --tocfile index -o ${SPHINX_SOURCEDIR}/api ../src/cijoe
+	sphinx-apidoc --implicit-namespaces -e -H "API" -M -f --tocfile index -o ${SPHINX_SOURCEDIR}/api ../src/cijoe
 
 define kmdo-help
 # Generate api documentation using Sphinx autodoc
@@ -43,7 +40,7 @@ endef
 .PHONY: build
 build:
 	@echo "## build"
-	${PY_ENV_ACTIVATE} && sphinx-build -b html ${SPHINX_SOURCEDIR} ${SPHINX_BUILDDIR}
+	sphinx-build -b html ${SPHINX_SOURCEDIR} ${SPHINX_BUILDDIR}
 
 define build-help
 # Open the HTML documentation
@@ -54,15 +51,9 @@ view:
 	xdg-open "${SPHINX_BUILDDIR}/index.html" || open "${SPHINX_BUILDDIR}/index.html"
 
 define build-py-env-help
-# Setup a virtual environment
+# Setup a virtual environment using pipx
 endef
 .PHONY: venv-setup
 venv-setup:
-	@echo "## venv-setup(${PY_ENV_PATH})"
-	@${PY_BIN} -m venv ${PY_ENV_PATH}
-	@echo "## venv-setup: upgrading pip"
-	@${PY_ENV} -m pip install --upgrade pip
-	@echo "## venv-setup: installing cijoe (for sphinx autodoc)"
-	@${PY_ENV} -m pip install ..
-	@echo "## venv-setup: installing dependencies (for sphinx)"
-	@${PY_ENV} -m pip install -r requirements.txt
+	pipx install ../dist/cijoe-*.tar.gz --force --include-deps
+	xargs -a requirements.txt -I {} pipx inject cijoe {} --force --include-deps
