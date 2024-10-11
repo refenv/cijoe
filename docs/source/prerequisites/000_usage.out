@@ -1,0 +1,52 @@
+usage: cijoe [-h] [--config CONFIG] [--workflow WORKFLOW] [--output OUTPUT]
+             [--log-level] [--no-report] [--skip-report] [--tag TAG]
+             [--archive] [--produce-report] [--monitor] [--integrity-check]
+             [--resources] [--example [EXAMPLE]] [--version]
+             [step ...]
+
+options:
+  -h, --help            show this help message and exit
+
+workflow:
+  Run workflow at '-w', using config at '-c', and output at '-o'
+
+  step                  Given a workflow; one or more workflow steps to run.
+                        Else; one or more cijoe Python scripts to run.
+                        (default: None)
+  --config CONFIG, -c CONFIG
+                        Path to the Configuration file. (default: cijoe-
+                        config.toml)
+  --workflow WORKFLOW, -w WORKFLOW
+                        Path to workflow file. (default: cijoe-workflow.yaml)
+  --output OUTPUT, -o OUTPUT
+                        Path to output directory. (default:
+                        /home/safl/git/cijoe/docs/source/prerequisites/cijoe-
+                        output)
+  --log-level, -l       Increase log-level. Provide '-l' for info and '-ll'
+                        for debug. (default: None)
+  --no-report, -n       Skip the producing, and opening, a report at the end
+                        of the workflow-run (default: False)
+  --skip-report, -s     Skip the report opening at the end of the workflow-run
+                        (default: True)
+  --tag TAG, -t TAG     Tags to identify a workflow-run. This will be prefixed
+                        while storing in archive (default: None)
+
+utilities:
+  Workflow, and workflow-related utilities
+
+  --archive, -a         Move the output at '-o / --output' to 'cijoe-
+                        archive/YYYY-MM-DD_HH:MM:SS (default: False)
+  --produce-report, -p  Produce report, and open it, for output at '-o /
+                        --output' and exit. (default: None)
+  --monitor, -m         Monitor workflow-output in the current-workdir-
+                        directory (cwd). (default: False)
+  --integrity-check, -i
+                        Check integrity of workflow at '-w / --workflow' and
+                        exit. (default: False)
+  --resources, -r       List collected resources and exit. (default: False)
+  --example [EXAMPLE], -e [EXAMPLE]
+                        Create 'default-config.toml', 'example-workflow.yaml'
+                        and 'cijoe-script.py' and exit. (default: None)
+  --version, -v         Print the version number of 'cijoe' and exit.
+                        (default: False)
+

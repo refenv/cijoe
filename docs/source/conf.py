@@ -43,6 +43,7 @@ html_sidebars = {"introduction**": [], "usage**": [], "prereq**": []}
 extlinks = {
     "ansible": ("https://www.ansible.com/%s", None),
     "chef": ("https://www.chef.io/%s", None),
+    "expect": ("https://en.wikipedia.org/wiki/Expect%s", None),
     "fabric": ("https://www.fabfile.org/%s", None),
     "github": ("https://github.com/%s", None),
     "gitlab": ("https://gitlab.com/%s", None),
@@ -55,4 +56,5 @@ extlinks = {
     "puppet": ("https://puppet.com/%s", None),
     "python": ("https://www.python.org/%s", None),
     "travis": ("https://travis-ci.org/%s", None),
+    "windows_ssh": ("https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh-overview%s", None),
 }
