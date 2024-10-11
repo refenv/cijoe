@@ -11,7 +11,8 @@ from cijoe.core.resources import get_resources
 
 DOC_ROOT_PKGS = "packages"
 
-TEMPLATE_PKG_OVERVIEW = """
+TEMPLATE_PKG_OVERVIEW = """.. _sec-packages:
+
 ==========
  Packages
 ==========
