@@ -1,6 +1,6 @@
 
-core
-====
+gha
+===
 
 These are the scripts provided in the package, they are listed by the **full**
 name that you can use to refer to them in a workflow.
@@ -13,10 +13,6 @@ Scripts
    :hidden:
 
 
-   scripts/cmdrunner.rst
-   scripts/example.rst
-   scripts/get.rst
-   scripts/put.rst
-   scripts/reporter.rst
-   scripts/repository_prep.rst
-   scripts/testrunner.rst
+   scripts/runner_download.rst
+   scripts/runner_remove.rst
+   scripts/runner_setup.rst
