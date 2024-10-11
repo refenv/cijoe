@@ -21,8 +21,22 @@ TEMPLATE_PKG_OVERVIEW = """..
  Packages
 ==========
 
+A **cijoe** package is a collection of :ref:`sec-resources`, which may optionally
+include a Python module, packaged within a Python package. Including a Python module is
+useful when multiple :ref:`sec-resources-scripts` share common implementation details.
+
+The packages covered in this section are **built-in**, meaning they are included by
+default with the **cijoe** installation. You can also create your own package, and the
+**cijoe** infrastructure will automatically recognize it, allowing it to be loaded in
+the same way as the **built-in** :ref:`sec-resources`.
+
+If you prefer not to create and distribute a Python package via PyPi, **cijoe** can
+still collect and use your locally available :ref:`sec-resources` without additional
+steps.
+
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
 {% for pkg_name, script_name in packages.items() %}
    {{ pkg_name }}/index.rst
