@@ -1,15 +1,74 @@
 [build-system]
-requires = [
-    "setuptools>=54",
-    "wheel"
-]
+requires = ["setuptools>=54", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 88
+[project]
+name = "cijoe"
+dynamic = ["version"]
+description = "A loosely coupled approach to systems development and testing"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+keywords = ["systems", "development", "testing"]
+authors = [
+    { name = "Simon A. F. Lund", email = "os@safl.dk" }
+]
+maintainers = [
+    { name = "Simon A. F. Lund", email = "os@safl.dk" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development",
+    "Topic :: Text Processing",
+    "Topic :: Utilities"
+]
 
-[tool.isort]
-profile = "black"
+dependencies = [
+    "jinja2",
+    "paramiko",
+    "pytest",
+    "pytest-random-order>=1.0.0",
+    "pytest-reportlog",
+    "pyyaml",
+    "requests",
+    "psutil",
+    "scp",
+    "tomli>=1.1.0; python_version < '3.11'",
+    "tomli-w",
+    "watchdog"
+]
+
+[project.urls]
+homepage = "https://cijoe.readthedocs.io/"
+documentation = "https://cijoe.readthedocs.io/"
+repository = "https://github.com/refenv/cijoe"
+changelog = "https://github.com/refenv/cijoe/blob/main/CHANGELOG.md"
+
+[project.entry-points."console_scripts"]
+cijoe = "cijoe.cli.cli:main"
+
+[project.entry-points."pytest11"]
+cijoe = "cijoe.pytest_plugin.hooks_and_fixtures"
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+
+[tool.setuptools.dynamic]
+version = { attr = "cijoe.core.__version__" }
+
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.config", "*.perfreq", "*.toml", "*.yaml", "*.workflow", "*.user", "*.meta", "*.jinja2", "auxiliary/*"]
 
 [tool.pytest.ini_options]
 addopts = "-W ignore::DeprecationWarning"
