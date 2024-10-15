@@ -163,7 +163,8 @@ class SSH(Transport):
         try:
             self.__connect()
 
-            _, stdout, _ = self.ssh.exec_command(cmd, environment=env, get_pty=True)
+            _, stdout, _ = self.ssh.exec_command(cmd, environment=env)
+            stdout.channel.set_combine_stderr(True)
 
             while not stdout.channel.exit_status_ready():
                 cmd_output.write(stdout.read(1))
