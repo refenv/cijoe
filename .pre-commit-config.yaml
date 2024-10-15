@@ -41,3 +41,15 @@ repos:
     args:
     - --max-line-length=88
     - --extend-ignore=E203,F401,F811,E501
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.11.2
+  hooks:
+  - id: mypy
+    name: Python-lint-mypy
+    exclude: "conf.py"
+    args:
+    - "--ignore-missing-imports"
+    additional_dependencies:
+    - types-paramiko
+    - types-PyYAML
+    - types-requests
