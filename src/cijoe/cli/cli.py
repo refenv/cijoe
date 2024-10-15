@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from typing import Optional
 
 import jinja2
 
@@ -31,7 +32,7 @@ SEARCH_PATHS = [
 ]
 
 
-def search_for_file(path: Path):
+def search_for_file(path: Path) -> Optional[Path]:
     """
     Search for a file named path.name. In case the given 'path' does not
     have a directory path, then SEARCH_PATH is used.
@@ -42,9 +43,10 @@ def search_for_file(path: Path):
     # Has a directory part; resolve it and check that it exists
     if path.is_absolute() or len(path.parts) != 1:
         path = path.resolve()
-        path = path if path.exists() else None
+        if path.exists():
+            return path
 
-        return path
+        return None
 
     # Only a filename; look in search paths
     for spath in SEARCH_PATHS:

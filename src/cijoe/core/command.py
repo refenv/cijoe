@@ -9,6 +9,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -228,7 +229,7 @@ class Cijoe(object):
 
         return False
 
-    def getconf(self, key: str, default: any = None):
+    def getconf(self, key: str, default: Any = None):
         """
         Return value for given key, and return default if no value is found.
 

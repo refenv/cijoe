@@ -45,21 +45,25 @@ import re
 import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
+from typing import Any, Dict, List, Union
 
 try:
     from importlib.resources import files as importlib_files
 except ImportError:
-    from importlib_resources import files as importlib_files
+    from importlib_resources import files as importlib_files_fallback
+
+    importlib_files = importlib_files_fallback
 
 import jinja2
 import yaml
 
 import cijoe
 
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
+if sys.version_info >= (3, 11):
+    import tomllib  # Python 3.11 and newer
+else:
+    import tomli as tomllib  # For older Python versions
+
 import tomli_w
 
 
@@ -164,7 +168,7 @@ class Config(Resource):
     def __init__(self, path: Path, pkg=None):
         super().__init__(path, pkg)
 
-        self.options = {}
+        self.options: Dict[str, Any] = {}
 
     def load(self):
         """Populates self.options on success. Returns a list of errors otherwise"""
@@ -271,7 +275,7 @@ class Script(Resource):
 class Workflow(Resource):
     SUFFIX = ".yaml"
     STATE_FILENAME = "workflow.state"
-    STATE = {
+    STATE: Dict[str, Any] = {
         "doc": "",
         "tag": "",
         "config": {},
@@ -385,7 +389,7 @@ class Workflow(Resource):
         the object properties
         """
 
-        errors = []
+        errors: List[Any] = []
 
         if self.state:
             return errors
@@ -408,6 +412,7 @@ class Workflow(Resource):
         state = Workflow.STATE.copy()
         state["doc"] = workflow_dict.get("doc")
         state["config"] = workflow_dict.get("config", {})
+        state["steps"] = list(state["steps"])
         for nr, step in enumerate(workflow_dict["steps"], 1):
             step["nr"] = nr
             step["status"] = {
@@ -447,6 +452,8 @@ class Collector(object):
 
     def __process_candidate(self, candidate: Path, category: str, pkg):
         """Inserts the given candidate"""
+
+        resource: Union[Script, Config, Workflow, Resource]
 
         if category == "scripts":
             resource = Script(candidate, pkg)

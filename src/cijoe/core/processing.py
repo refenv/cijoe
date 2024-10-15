@@ -5,6 +5,7 @@
 import json
 import time
 from pathlib import Path
+from typing import Any, Dict, Union
 
 from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import dict_from_yamlfile
@@ -13,7 +14,7 @@ from cijoe.core.resources import dict_from_yamlfile
 def runlog_from_path(path: Path):
     """Produce a dict of command-dicts with paths to .output and .state files"""
 
-    run = {}
+    run: Dict[str, Dict[str, Any]] = {}
 
     if not (path.is_dir() and path.exists()):
         return run
@@ -91,7 +92,7 @@ def longrepr_to_string(longrepr):
 def testreport_from_file(path: Path):
     """Parse the given 'pytest-reportlog' output into a restreport dict"""
 
-    results = {
+    results: Dict[str, Dict[str, Any]] = {
         "status": {"failed": 0, "passed": 0, "skipped": 0, "total": 0},
         "tests": {},
     }
@@ -106,7 +107,7 @@ def testreport_from_file(path: Path):
             if result["$report_type"] != "TestReport":
                 continue
 
-            nodeid = result["nodeid"]
+            nodeid: str = result["nodeid"]
             if nodeid not in results["tests"]:
                 try:
                     comp = nodeid.split("::")
