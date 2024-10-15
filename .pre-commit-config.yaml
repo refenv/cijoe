@@ -40,4 +40,4 @@ repos:
     # F401 = F811; This happens for fixtures for indirect parametrize
     args:
     - --max-line-length=88
-    - --extend-ignore=E203,F401,F811
+    - --extend-ignore=E203,F401,F811,E501
