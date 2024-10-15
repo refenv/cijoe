@@ -16,6 +16,7 @@ Step arguments
 # Whether or not the generated report should be opened (in a browser)
 report_open: true|false
 """
+
 import logging as log
 import webbrowser
 from datetime import datetime

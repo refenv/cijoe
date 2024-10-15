@@ -16,7 +16,7 @@ def main(args, cijoe, step):
 
     commands = [
         "make clean",
-        f"./configure --prefix={ cijoe.config.options['fio']['build']['prefix'] }",
+        f"./configure --prefix={cijoe.config.options['fio']['build']['prefix']}",
         "make -j $(nproc)",
     ]
     for cmd in commands:

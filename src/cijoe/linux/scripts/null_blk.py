@@ -13,6 +13,7 @@ Insert or remove null_blk instances, based on the value of step.args.do
 Retargetable: True
 ------------------
 """
+
 import errno
 
 import cijoe.linux.null_blk as null_blk

@@ -56,5 +56,9 @@ extlinks = {
     "puppet": ("https://puppet.com/%s", None),
     "python": ("https://www.python.org/%s", None),
     "travis": ("https://travis-ci.org/%s", None),
-    "windows_ssh": ("https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh-overview%s", None),
+    "windows_ssh": (
+        "https://learn.microsoft.com/en-us/windows-server/administration/openssh/"
+        "openssh-overview%s",
+        None,
+    ),
 }

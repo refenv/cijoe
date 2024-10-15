@@ -13,7 +13,7 @@ exist, then it is downloaded from
 Config::
 
     [qemu.guest.init_using_cloudinit]
-    url = # URL of cloud-init image, e.g. somewhere on https://cloud.debian.org/images/cloud/
+    url = # URL of cloud-init image, e.g. on https://cloud.debian.org/images/cloud/
     img = # Path to cloud-init image
     meta = # Path to cloud-init meta-file
     user = # Path to cloud-init user-file

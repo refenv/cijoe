@@ -1,6 +1,7 @@
 """
     Helper functions for processing the output produced by a workflow
 """
+
 import json
 import time
 from pathlib import Path
