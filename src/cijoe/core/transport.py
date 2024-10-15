@@ -34,6 +34,7 @@ class Local(Transport):
         self.config = config
         self.output_path = output_path
         self.output_ident = "artifacts"
+        self.shell_bin = self.config.options.get("cijoe", {}).get("run", {}).get("shell_bin", "/bin/sh")
 
     def run(self, cmd, cwd, env, cmd_output):
         """Invoke the given command"""
@@ -41,11 +42,12 @@ class Local(Transport):
         env = dict(os.environ)
         env.update(env)
 
+        cmd = [self.shell_bin, "-c", cmd]
+
         with subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            shell=True,
             cwd=cwd,
             env=env,
         ) as process:
