@@ -165,7 +165,6 @@ def cli_example(args):
     err = 0
 
     resources = get_resources()
-    print(resources["configs"].keys())
 
     resource = resources["configs"].get(f"{args.example}.default-config", None)
     if resource is None:
