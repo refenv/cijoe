@@ -15,7 +15,23 @@ defaults:
     shell: bash
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.1.7
+
+    - name: Install pre-commit
+      run: |
+        pipx install pre-commit
+
+    - name: Run pre-commit
+      run: |
+        make format-all
+
   selftest:
+    needs: format
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
