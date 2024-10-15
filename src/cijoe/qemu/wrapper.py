@@ -8,6 +8,7 @@
     currently not a priority as the intent is to utilize qemu to produce a virtual
     machine to serve as a 'target' for tests.
 """
+
 import logging as log
 import os
 import shutil

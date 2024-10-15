@@ -36,6 +36,7 @@
     retargtable: true
     -----------------
 """
+
 import errno
 import json
 import logging as log
@@ -116,12 +117,12 @@ def setup_ioengine(param, env, engine_name, cijoe, device, xnvme_opts, spdk_opts
     if engine["type"] == "builtin":
         param["ioengine"] = engine_name
     elif engine["type"] == "external_dynamic":
-        param["ioengine"] = f"external:{ engine['path'] }"
+        param["ioengine"] = f"external:{engine['path']}"
     elif engine["type"] == "external_preload":
         param["ioengine"] = engine_name
         env["LD_PRELOAD"] = engine["path"]
     else:
-        log.error(f"Configuration has invalid engine.type({ engine['type'] })")
+        log.error(f"Configuration has invalid engine.type({engine['type']})")
         return False
 
     # setup 'xnvme' specific options

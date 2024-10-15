@@ -16,6 +16,7 @@
 
     retargetable: True
 """
+
 NULLBLK_MODULE_NAME = "null_blk"
 NULLBLK_SYSPATH = "/sys/kernel/config/nullb"
 

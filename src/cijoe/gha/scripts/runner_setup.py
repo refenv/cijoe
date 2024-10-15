@@ -65,11 +65,11 @@ def main(args, cijoe, step):
 
         for cmd in [
             f"chown -R {user}:{user} .",
-            f"./config.sh --unattended --replace "
+            "./config.sh --unattended --replace "
             f"--url {url} --token {token} --labels {labels} --name {name}",
             f"sudo ./svc.sh install {user}",
-            f"sudo ./svc.sh start",
-            f"sudo ./svc.sh status",
+            "sudo ./svc.sh start",
+            "sudo ./svc.sh status",
         ]:
             err, _ = cijoe.run(cmd, cwd=rdir)
             if err:
