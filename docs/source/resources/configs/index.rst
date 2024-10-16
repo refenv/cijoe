@@ -3,24 +3,20 @@
 Configs
 =======
 
-**cijoe** configuration files are formated using `YAML`_ and named with suffix
-``.config``. In the core functionality of provided by cijoe, only the key
-``cijoe.transport`` has special meaning.
+**cijoe** configuration files are plain-text files written in :toml:`TOML <>`
+and with suffix ``.toml``. **cijoe** itself has few configurable items, thus,
+the content of a **cijoe** configuration file is often filled with with items
+used by :ref:`sec-resources-scripts`.
 
-Keys are otherwise granted meaning by their use of
-:ref:`sec-resources-scripts`, tests, and regular Python modules.
+However, there are a couple of **cijoe** specific keys:
 
-.. _sec-resources-configs-example:
+* SSH Configuration
+* Shell Configuration
 
-Example
-~~~~~~~
+.. _sec-resources-configs-api:
 
-...
-
-.. _sec-resources-configs-objects:
-
-Objects
--------
+API
+---
 
 Represented in the code as a :ref:`sec-resources`.
 
@@ -28,5 +24,3 @@ Represented in the code as a :ref:`sec-resources`.
    :members:
    :undoc-members:
    :inherited-members:
-
-.. _YAML: https://yaml.org/

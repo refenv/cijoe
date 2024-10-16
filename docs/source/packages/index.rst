@@ -9,7 +9,7 @@
 ==========
 
 A **cijoe** package is a collection of :ref:`sec-resources`, which may optionally
-include  a Python module, packaged within a Python package. Including a Python module is
+include a Python module, packaged within a Python package. Including a Python module is
 useful when multiple :ref:`sec-resources-scripts` share common implementation details.
 
 The packages covered in this section are **built-in**, meaning they are included by

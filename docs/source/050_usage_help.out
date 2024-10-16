@@ -1,6 +1,6 @@
 usage: cijoe [-h] [--config CONFIG] [--workflow WORKFLOW] [--output OUTPUT]
-             [--log-level] [--no-report] [--skip-report] [--tag TAG]
-             [--archive] [--produce-report] [--monitor] [--integrity-check]
+             [--log-level] [--monitor] [--no-report] [--skip-report]
+             [--tag TAG] [--archive] [--produce-report] [--integrity-check]
              [--resources] [--example [EXAMPLE]] [--version]
              [step ...]
 
@@ -20,10 +20,10 @@ workflow:
                         Path to workflow file. (default: cijoe-workflow.yaml)
   --output OUTPUT, -o OUTPUT
                         Path to output directory. (default:
-                        /home/safl/git/cijoe/docs/source/prerequisites/cijoe-
-                        output)
+                        /home/safl/git/cijoe/docs/cijoe-output)
   --log-level, -l       Increase log-level. Provide '-l' for info and '-ll'
                         for debug. (default: None)
+  --monitor, -m         Dump command output to stdout (default: False)
   --no-report, -n       Skip the producing, and opening, a report at the end
                         of the workflow-run (default: False)
   --skip-report, -s     Skip the report opening at the end of the workflow-run
@@ -38,8 +38,6 @@ utilities:
                         archive/YYYY-MM-DD_HH:MM:SS (default: False)
   --produce-report, -p  Produce report, and open it, for output at '-o /
                         --output' and exit. (default: None)
-  --monitor, -m         Monitor workflow-output in the current-workdir-
-                        directory (cwd). (default: False)
   --integrity-check, -i
                         Check integrity of workflow at '-w / --workflow' and
                         exit. (default: False)

@@ -5,7 +5,7 @@
 ===========
 
 In **cijoe** the most essential **resources** are :ref:`sec-resources-scripts`,
-:ref:`sec-resources-configs`, and :ref:`sec-resources-workflows`.
+:ref:`sec-resources-workflows`, and :ref:`sec-resources-configs`.
 In addition to these are :ref:`auxiliary files <sec-resources-auxiliary>`,
 :ref:`sec-resources-templates`, and :ref:`sec-resources-perfreqs`.
 
@@ -13,8 +13,8 @@ Resources are **automatically collected** from installed
 **cijoe** :ref:`sec-packages` as well as the current working directory
 (``cwd``).
 
-In a :ref:`script <sec-resources-scripts>`, resources can be accessed as
-follows::
+When writing a :ref:`script <sec-resources-scripts>` then resources are accessed
+as follows::
 
   from cijoe.core.resources import get_resources
 
@@ -27,17 +27,20 @@ your :ref:`sec-resources-auxiliary` files -- they are readily available.
 On the command-line a quick way to list all available resources:
 
 
-.. literalinclude:: command.cmd
+.. literalinclude:: ../150_cijoe_resources.cmd
    :language: bash
 
 
-.. literalinclude:: command.out
+.. literalinclude:: ../150_cijoe_resources.out
    :language: bash
 
 
 This is useful when you want to create a modified version of a script, review
 its details, or verify that all expected resources are available in your
 installation.
+
+There are gold hidden in the **resources** for the example, **cijoe** provides a
+bash-completion script. 
 
 The following sections describe the different types of resources.
 
@@ -46,9 +49,7 @@ The following sections describe the different types of resources.
    :includehidden:
    :hidden:
 
-   scripts/index.rst
    configs/index.rst
-   workflows/index.rst
    templates/index.rst
    perfreqs/index.rst
    auxiliary/index.rst

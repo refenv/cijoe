@@ -1,0 +1,108 @@
+Resources collected by the CIJOE collector are listed below.
+auxiliary:
+  - ident: conf
+    path: /home/safl/git/cijoe/docs/source/conf.py
+  - ident: core.cijoe-completions
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/auxiliary/cijoe-completions
+  - ident: core.example
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/auxiliary/example.perfreq
+  - ident: emit
+    path: /home/safl/git/cijoe/docs/emit.py
+  - ident: qemu.cloudinit-debian-meta
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-meta.meta
+  - ident: qemu.cloudinit-debian-user-amd64
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-user-amd64.user
+  - ident: qemu.cloudinit-debian-user-arm64
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-user-arm64.user
+  - ident: qemu.cloudinit-freebsd-meta
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-freebsd-meta.meta
+  - ident: qemu.cloudinit-freebsd-user
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-freebsd-user.user
+configs:
+  - ident: core.default-config
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/configs/default-config.toml
+  - ident: core.transport-ssh
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/configs/transport-ssh.toml
+  - ident: fio.default-config
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/configs/default-config.toml
+  - ident: gha.default-config
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/configs/default-config.toml
+  - ident: linux.default-config
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/configs/default-config.toml
+  - ident: qemu.debian-bookworm-amd64-kvm
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bookworm-amd64-kvm.toml
+  - ident: qemu.debian-bookworm-arm64-hvf
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bookworm-arm64-hvf.toml
+  - ident: qemu.debian-bullseye-amd64-kvm
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bullseye-amd64-kvm.toml
+  - ident: qemu.default-config
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/default-config.toml
+  - ident: qemu.freebsd-13-amd64-kvm
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/freebsd-13-amd64-kvm.toml
+perf_reqs: ~
+scripts:
+  - ident: core.cmdrunner
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/cmdrunner.py
+  - ident: core.example
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/example.py
+  - ident: core.get
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/get.py
+  - ident: core.put
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/put.py
+  - ident: core.reporter
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/reporter.py
+  - ident: core.repository_prep
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/repository_prep.py
+  - ident: core.testrunner
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/testrunner.py
+  - ident: fio.build
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/scripts/build.py
+  - ident: fio.check
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/scripts/check.py
+  - ident: fio.install
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/scripts/install.py
+  - ident: gha.runner_download
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/scripts/runner_download.py
+  - ident: gha.runner_remove
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/scripts/runner_remove.py
+  - ident: gha.runner_setup
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/scripts/runner_setup.py
+  - ident: linux.build_kdebs
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/scripts/build_kdebs.py
+  - ident: linux.null_blk
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/scripts/null_blk.py
+  - ident: linux.sysinfo
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/scripts/sysinfo.py
+  - ident: linux.transfer_and_install_kdebs
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/scripts/transfer_and_install_kdebs.py
+  - ident: qemu.build
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/build.py
+  - ident: qemu.guest_init_using_bootimage
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_init_using_bootimage.py
+  - ident: qemu.guest_init_using_cloudinit
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_init_using_cloudinit.py
+  - ident: qemu.guest_kill
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_kill.py
+  - ident: qemu.guest_start
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_start.py
+  - ident: qemu.install
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/install.py
+templates:
+  - ident: core.example-tmp-workflow.yaml
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/example-tmp-workflow.yaml.jinja2
+  - ident: core.report-workflow
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/report-workflow.html
+workflows:
+  - ident: core.example-workflow
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/workflows/example-workflow.yaml
+  - ident: fio.example
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/workflows/example.workflow
+  - ident: gha.example-workflow
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/workflows/example-workflow.yaml
+  - ident: linux.example-null_blk
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example-null_blk.yaml
+  - ident: linux.example-workflow
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example-workflow.yaml
+  - ident: qemu.example-workflow
+    path: /home/safl/.local/share/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/workflows/example-workflow.yaml
+

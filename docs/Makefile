@@ -2,7 +2,11 @@ SPHINX_SOURCEDIR=source
 SPHINX_BUILDDIR=build
 PYTHON=$(shell pipx environment --value PIPX_LOCAL_VENVS)/cijoe/bin/python
 
-all: venv-setup clean build view
+.PHONY: common
+common: clean build view
+
+.PHONY: all
+all: venv-setup kmdo clean build view
 
 define build-help
 # Remove auto-generated documentation the source-dir and the generated docs in build-dir

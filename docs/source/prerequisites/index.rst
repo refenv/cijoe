@@ -59,12 +59,12 @@ place, then install **cijoe**::
 
 Check that it installed correctly, by invoking the **cijoe** command-line tool:
 
-.. literalinclude:: 000_usage.cmd
+.. literalinclude:: ../050_usage_help.cmd
    :language: console
 
 You should then see:
 
-.. literalinclude:: 000_usage.out
+.. literalinclude:: ../050_usage_help.out
    :language: console
 
 With this in place, then go ahead and check up on

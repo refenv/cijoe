@@ -1,9 +1,1 @@
 
-ERROR:cli: aborting; output(/home/safl/git/joe/cijoe/docs/cijoe-output) directory already exists
-[45066:45066:0830/112932.070928:ERROR:sandbox_linux.cc(377)] InitializeSandbox() called with multiple threads in process gpu-process.
-[45020:45081:0830/112932.177298:ERROR:nss_util.cc(286)] After loading Root Certs, loaded==false: NSS error code: -8018
-[45020:45053:0830/112934.222124:ERROR:chrome_browser_main_extra_parts_metrics.cc(227)] START: ReportBluetoothAvailability(). If you don't see the END: message, this is crbug.com/1216328.
-[45020:45053:0830/112934.222147:ERROR:chrome_browser_main_extra_parts_metrics.cc(230)] END: ReportBluetoothAvailability()
-*** stack smashing detected ***: terminated
-[45067:45076:0830/112934.544317:ERROR:node_controller.cc(585)] Trying to re-add dropped peer 275B349A897613C1.D8FED3D9AD3AAD22
-[45066:45170:0830/112934.544251:ERROR:node_controller.cc(585)] Trying to re-add dropped peer 275B349A897613C1.D8FED3D9AD3AAD22

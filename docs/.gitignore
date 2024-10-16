@@ -1,3 +1,7 @@
 default.config
 example.workflow
 venv
+cijoe-archive
+cijoe-config.toml
+cijoe-script.py
+cijoe-workflow.yaml

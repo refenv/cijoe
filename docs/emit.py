@@ -87,6 +87,9 @@ def main():
     templates = setup_templates()
 
     for key, props in get_resources().get("scripts").items():
+        if "." not in key:
+            continue
+
         pkg_name, script_name = key.split(".")
         if pkg_name not in packages:
             packages[pkg_name] = []

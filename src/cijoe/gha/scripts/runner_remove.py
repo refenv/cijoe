@@ -20,8 +20,6 @@ import os
 import sys
 from pathlib import Path
 
-from cijoe.cli.cli import cli_interface
-
 
 def main(args, cijoe, step):
     runner = cijoe.config.options.get("gha", {}).get("runner", {})
@@ -51,7 +49,3 @@ def main(args, cijoe, step):
                 errors.append(err)
 
     return errors[0] if errors else 0
-
-
-if __name__ == "__main__":
-    cli_interface(__file__)

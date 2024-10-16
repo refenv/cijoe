@@ -38,7 +38,26 @@ numfig = True
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 html_logo = "_static/logo.png"
-html_sidebars = {"introduction**": [], "usage**": [], "prereq**": []}
+html_sidebars = {
+    "introduction**": [],
+    "prereq**": [],
+    "scripts**": [],
+    "testrunner**": [],
+    "usage**": [],
+    "workflows**": [],
+}
+html_theme_options = {
+    "header_links_before_dropdown": 8,
+    "collapse_navigation": False,
+    "navigation_depth": 4,
+    "navigation_with_keys": False,
+    "navbar_align": "left",
+    "show_version_warning_banner": True,
+}
+html_context = {
+    "default_mode": "dark",
+}
+
 
 extlinks = {
     "ansible": ("https://www.ansible.com/%s", None),
@@ -50,12 +69,19 @@ extlinks = {
     "invocations": ("https://invocations.readthedocs.io/en/latest/%s", None),
     "invoke": ("https://www.pyinvoke.org/%s", None),
     "jenkins": ("https://www.jenkins.io/%s", None),
+    "just": ("https://github.com/casey/just%s", None),
+    "make": ("https://en.wikipedia.org/wiki/Make_(software)%s", None),
     "paramiko": ("https://www.paramiko.org/%s", None),
     "pep668": ("https://peps.python.org/pep-0668/%s", None),
     "pipx": ("https://pypa.github.io/pipx/%s", None),
     "puppet": ("https://puppet.com/%s", None),
+    "pytest": ("https://docs.pytest.org/%s", None),
+    "python_argparse": ("https://docs.python.org/3/library/argparse.html%s", None),
     "python": ("https://www.python.org/%s", None),
+    "python_logging": ("https://docs.python.org/3/library/logging.html%s", None),
+    "toml": ("https://toml.io/en/%s", None),
     "travis": ("https://travis-ci.org/%s", None),
+    "yaml": ("https://yaml.org/%s", None),
     "windows_ssh": (
         "https://learn.microsoft.com/en-us/windows-server/administration/openssh/"
         "openssh-overview%s",

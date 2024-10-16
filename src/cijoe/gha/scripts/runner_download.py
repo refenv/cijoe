@@ -17,8 +17,6 @@ from pathlib import Path
 
 import requests
 
-from cijoe.cli.cli import cli_interface
-
 
 def url_to_latest_runner_on_x86():
     tag_name = requests.get(
@@ -52,7 +50,3 @@ def main(args, cijoe, step):
             return err
 
     return 0
-
-
-if __name__ == "__main__":
-    cli_interface(__file__)
