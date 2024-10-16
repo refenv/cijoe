@@ -2,7 +2,7 @@
 
 # The function that will perform the autocomplete
 _cijoe_completion() {
-    local cur prev yaml_file values options
+    local cur prev yaml_file toml_file values options
 
     # Get the current word (the one being completed) and the previous word
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -17,10 +17,37 @@ _cijoe_completion() {
         return
     fi
 
+    # Check if the previous word is --config or -c, which specifies the TOML file
+    if [[ "$prev" == "--config" || "$prev" == "-c" ]]; then
+        # Complete with TOML files or directories (allow both files and paths)
+        COMPREPLY=( $(compgen -o plusdirs -f -- "$cur") )
+        for i in "${!COMPREPLY[@]}"; do
+            # Append "/" to directories only if needed and ensure it doesn't append for the full path
+            if [[ -d "${COMPREPLY[$i]}" ]]; then
+                if [[ "${cur}" != */ ]]; then
+                    COMPREPLY[$i]="${COMPREPLY[$i]}/"  # Append "/" to directories only if it doesn't already have one
+                fi
+            elif [[ ! "${COMPREPLY[$i]}" == *.toml ]]; then
+                unset "COMPREPLY[$i]"  # Remove non-TOML files
+            fi
+        done
+        return
+    fi
+
     # Check if the previous word is --workflow or -w, which specifies the YAML file
     if [[ "$prev" == "--workflow" || "$prev" == "-w" ]]; then
-        # We're completing the YAML file path for --workflow or -w
-        COMPREPLY=( $(compgen -f -- "$cur") )
+        # Complete with YAML files or directories (allow both files and paths)
+        COMPREPLY=( $(compgen -o plusdirs -f -- "$cur") )
+        for i in "${!COMPREPLY[@]}"; do
+            # Append "/" to directories only if needed and ensure it doesn't append for the full path
+            if [[ -d "${COMPREPLY[$i]}" ]]; then
+                if [[ "${cur}" != */ ]]; then
+                    COMPREPLY[$i]="${COMPREPLY[$i]}/"  # Append "/" to directories only if it doesn't already have one
+                fi
+            elif [[ ! "${COMPREPLY[$i]}" == *.yaml ]]; then
+                unset "COMPREPLY[$i]"  # Remove non-YAML files
+            fi
+        done
         return
     fi
 
