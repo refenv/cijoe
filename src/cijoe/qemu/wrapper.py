@@ -114,10 +114,10 @@ class Guest(object):
         while True:
             enter = time.time()
             try:
-                with self.serial.open() as serialfile:
-                    if "login:" in serialfile.read():
-                        time.sleep(10)
-                        return True
+                if "login:" in self.serial.read_text(
+                    encoding="utf-8", errors="replace"
+                ):
+                    return True
             except Exception as exc:
                 log.error(f"{exc}")
 
