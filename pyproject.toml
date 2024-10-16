@@ -72,3 +72,19 @@ version = { attr = "cijoe.core.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "-W ignore::DeprecationWarning"
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+line-length = 88
+extend-ignore = ["E203", "F401", "F811", "E501"]
+
+[tool.mypy]
+ignore_missing_imports = true
+exclude = "docs/source/conf.py"
