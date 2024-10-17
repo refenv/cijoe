@@ -26,8 +26,8 @@ steps:
     cat /proc/cpuinfo
     hostname
 
-- name: custom_script
-  uses: cijoe-script
+#- name: custom_script
+#  uses: cijoe-script
 
 - name: builtin_script
   uses: core.example
