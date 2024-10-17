@@ -34,7 +34,7 @@ The command-line tool is aptly named ``cijoe``.
 To create a **cijoe** Python script, run command ``cijoe --script``, which
 will create a python script with the code necessary for running **cijoe**.
 
-The script is executed by running ``python ./cijoe-script.py --config
+The script is executed by running ``cijoe ./cijoe-script.py --config
 path/to/config.toml``.
 
 .. literalinclude:: ../../../src/cijoe/core/scripts/example.py

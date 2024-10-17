@@ -376,12 +376,6 @@ def create_adhoc_workflow(args, paths):
         sys.exit(main(args))
 
 
-def cli_interface(path):
-    path = Path(path)
-    args = parse_args()
-    create_adhoc_workflow(args, [path])
-
-
 def parse_args():
     """Parse command-line interface."""
 
