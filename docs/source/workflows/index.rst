@@ -32,9 +32,8 @@ Content Overview
 Let's take a look at what the workflow file produced by ``cijoe --example``
 looks like:
 
-.. literalinclude:: ../../cijoe-workflow.yaml
+.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow.yaml
    :language: yaml
-
 
 At a first glance, then it might feel a bit similar to GitHub Actions workflow,
 but dramatically simpler since:
@@ -82,13 +81,9 @@ Inline Commands
 
 A step with **inline commands** take the form:
 
-.. code-block:: yaml
-
-   steps:
-   - name: commands_inline
-     run: |
-       cat /proc/cpuinfo
-       hostname
+.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow.yaml
+   :language: yaml
+   :lines: 24-27
 
 Each line in a multi-line string is executed. It is implemented as a call to
 ``cijoe.run(command)``. Thus, the above notation for **inline commands** turn
@@ -113,15 +108,9 @@ Steps with Scripts
 
 When a step runs a script, then you give it a **name** and you tell it
 
-.. code-block:: yaml
-
-   steps:
-   - name: commands_via_script
-     uses: core.cmdrunner
-     with:
-       commands: |
-         cat /proc/cpuinfo
-         hostname
+.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow.yaml
+   :language: yaml
+   :lines: 29-34
 
 Take note of the "magic" keys:
 
