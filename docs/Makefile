@@ -22,6 +22,18 @@ emit-section-packages:
 	@echo "## section:packages"
 	${PYTHON} ./emit.py
 
+.PHONY: docker-build
+docker-build:
+	docker build -t cijoe-docgen .
+
+.PHONY: docker
+docker: docker-build
+	docker run -it --rm \
+		-v $(shell pwd)/../:/cijoe \
+		--user $(shell id -u):$(shell id -g) \
+		cijoe-docgen \
+		bash -c "cd /cijoe && make all && cd docs && make all"
+
 define apidoc-help
 # Generate api documentation using Sphinx autodoc
 endef

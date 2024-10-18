@@ -1,7 +1,7 @@
 
 
 'cijoe' already seems to be installed. Not modifying existing installation in
-'/home/safl/.local/share/pipx/venvs/cijoe'. Pass '--force' to force
+'/home/developer/.local/pipx/venvs/cijoe'. Pass '--force' to force
 installation.
 
 

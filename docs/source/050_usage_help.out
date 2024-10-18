@@ -19,8 +19,8 @@ workflow:
   --workflow WORKFLOW, -w WORKFLOW
                         Path to workflow file. (default: cijoe-workflow.yaml)
   --output OUTPUT, -o OUTPUT
-                        Path to output directory. (default:
-                        /home/safl/git/cijoe/docs/cijoe-output)
+                        Path to output directory. (default: /cijoe/docs/cijoe-
+                        output)
   --log-level, -l       Increase log-level. Provide '-l' for info and '-ll'
                         for debug. (default: None)
   --monitor, -m         Dump command output to stdout (default: False)

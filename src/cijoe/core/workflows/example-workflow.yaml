@@ -21,13 +21,21 @@ doc: |
   current step. This is it, end of story.
 
 steps:
-- name: commands
+- name: inline_commands
   run: |
     cat /proc/cpuinfo
     hostname
 
+- name: script_with_args
+  uses: core.cmdrunner
+  with:
+    commands:
+    - cat /proc/cpuinfo
+    - hostname
+
+#
+# Uncomment the lines below to include the non-packaged script
+# 'cijoe-script.py', from the directory where you ran 'cijoe --example'
+#
 #- name: custom_script
 #  uses: cijoe-script
-
-- name: builtin_script
-  uses: core.example

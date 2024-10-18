@@ -1,18 +1,21 @@
 .. _sec-resources-scripts:
 
-Scripts
-=======
+=========
+ Scripts
+=========
 
-Let's start by looking at how to run a **cijoe** script, here is how:
+Let's start by running the script produced by ``cijoe --example``:
 
 .. literalinclude:: ../400_usage_script_all.cmd
    :language: python
 
-To create a **cijoe** Python script, run command ``cijoe --script``, which will
-create a python script with the code necessary for running **cijoe**.
+When running, then an **output** directory is populated with a bunch of
+log files, statefiles, command-output files, and artifacts produced or otherwise collected
+by the script.
+
 
 Content Overview
-----------------
+================
 
 Let's take a look at the example script provided by ``cijoe --example``:
 
@@ -31,7 +34,7 @@ through how the **cijoe-isms** are used.
 .. _sec-resources-scripts-command-execution:
 
 Command Execution
------------------
+=================
 
 The following method is available to execute commands.
 
@@ -61,16 +64,29 @@ will **not** be **re-targeted** only the **commmand**.
 .. _sec-resources-scripts-command-output:
 
 Command Output
---------------
+==============
 
-The result of of ``cijoe.run(...)`` is the tuple:
+The result from ``cijoe.run(...)`` is the tuple:
 
 .. code-block:: python
 
    (err: int, state: CommandState)
 
-To inspect the output, stdout and stderr is combined, of the command, then use
-the method:
+That is, the error / returncode of the command and a command-state object. A
+couple of things to take note of:
+
+* **command output** is *always* a combination of the **stdout** and **stderr**
+  output streams into a single **command output** stream
+
+* **command output** is always captured and written to file on the
+  **initiator**
+
+* You can tell the ``cijoe`` command-line tool to **also** dump the **command
+  output** to **stdout** on the **initiator**, in realtime, with the argument
+  ``-m / --monitor``
+
+To handle the **command output** in your script, then you can conveniently read
+the entire output via a helper on the CommandState object:
 
 .. code-block:: python
 
@@ -85,10 +101,10 @@ command-output file instead of using the ``output()`` helper.
 .. _sec-resources-scripts-logging:
 
 Logging
--------
+=======
 
-When using the **cijoe** cli, then there is a option for logging
-``-l / --log-level``. This content of this log comes from calls to the Python
+When using the ``cijoe`` command-line tool, then there is a option for logging
+``-l / --log-level``. The content of this log comes from calls to the Python
 built-in :python_logging:`logging <>` module. Thus, if you want logging in your
 scripts, then you can just do as the example does, e.g.:
 
@@ -101,15 +117,35 @@ scripts, then you can just do as the example does, e.g.:
    log.info("Status information on something")
    log.error("Something went very wrong!")
 
-When writing your scripts, then it is recommended that you utilize logging if
-you want to print anything, by doing so, then **regular** output is reserved to
-be coming from **command output** e.g. when using ``-m / --monitor``.
+Log statements are printed to **stdout** in the shell where ``cijoe`` is
+running. When writing **cijoe** scripts, it is recommended to use logging
+for any printed output. This ensures that **regular** output is reserved for
+**command output**, such as when using the ``-m`` or ``--monitor`` options.
+
+
+.. _sec-resources-scripts-getconf:
+
+Getting Configuration Values
+============================
+
+**cijoe** provides a convenient function for retrieving values from the 
+configuration file. It can be used as follows:
+
+.. code-block:: python
+
+   value = cijoe.getconf("example.max.value")
+
+   log.info(f"Max value is capped at ({value})")
+
+You can override configuration file values using environment variables. For
+example, if the environment variable ``EXAMPLE_MAX_VALUE`` is set, its value
+will be used instead of the value specified in the configuration file.
 
 
 .. _sec-resources-scripts-python-pkgs:
 
 Adding Python packages
-----------------------
+======================
 
 Python projects are commonly installed in virtual environments (venv) and it is
 recommended that **cijoe** is installed using :pipx:`pipx <>`, since when doing
