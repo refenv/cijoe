@@ -1,20 +1,20 @@
 """
-    cijoe pytest-plugin
-    ===================
+pytest-plugin API
+=================
 
-    The plugin provides a cijoe-instance readily available as a test-fixture, setup per
-    test with a nodeid-defined output-directory. For example::
+The plugin provides a cijoe-instance readily available as a test-fixture, setup per
+test with a nodeid-defined output-directory. For example::
 
-        def test_foo(cijoe):
-            err, _ = cijoe.run("hostname")
-            asssert not err
+    def test_foo(cijoe):
+        err, _ = cijoe.run("hostname")
+        asssert not err
 
-    To provide the cijoe-instance a configuration and output directory must be provided.
-    These are given via pytest, e.g.::
+To provide the cijoe-instance a configuration and output directory must be provided.
+These are given via pytest, e.g.::
 
-        pytest --config default.toml --output /tmp/foo
+    pytest --config default.toml --output /tmp/foo
 
-    In case no arguments are provided, defaults are used.
+In case no arguments are provided, defaults are used.
 """
 
 from pathlib import Path
