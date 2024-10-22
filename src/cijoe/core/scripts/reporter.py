@@ -57,7 +57,7 @@ def main(args, cijoe, step):
 
     resources = get_resources()
 
-    template_path = resources["templates"]["core.report-workflow"].path
+    template_path = resources["templates"]["core.report-workflow.html"].path
     report_path = args.output / "report.html"
 
     log.info(f"template: {template_path}")

@@ -436,8 +436,7 @@ class Collector(object):
 
     RESOURCES = [
         ("configs", Config.SUFFIX),
-        ("perf_reqs", ".perfreq"),
-        ("templates", ".html"),
+        ("templates", ".jinja2"),
         ("workflows", Workflow.SUFFIX),
         ("scripts", Script.SUFFIX),
         ("auxiliary", ".*"),

@@ -68,7 +68,7 @@ namespaces = true
 version = { attr = "cijoe.core.__version__" }
 
 [tool.setuptools.package-data]
-"*" = ["*.html", "*.config", "*.perfreq", "*.toml", "*.yaml", "*.workflow", "*.user", "*.meta", "*.jinja2", "auxiliary/*"]
+"*" = ["*.html", "*.config", "*.toml", "*.yaml", "*.workflow", "*.user", "*.meta", "*.jinja2", "auxiliary/*"]
 
 [tool.pytest.ini_options]
 addopts = "-W ignore::DeprecationWarning"
