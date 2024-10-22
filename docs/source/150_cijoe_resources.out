@@ -39,7 +39,6 @@ configs:
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/default-config.toml
   - ident: qemu.freebsd-13-amd64-kvm
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/freebsd-13-amd64-kvm.toml
-perf_reqs: ~
 scripts:
   - ident: core.cmdrunner
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/cmdrunner.py
@@ -90,8 +89,8 @@ scripts:
 templates:
   - ident: core.example-tmp-workflow.yaml
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/example-tmp-workflow.yaml.jinja2
-  - ident: core.report-workflow
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/report-workflow.html
+  - ident: core.report-workflow.html
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/report-workflow.html.jinja2
 workflows:
   - ident: core.example-workflow
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/workflows/example-workflow.yaml

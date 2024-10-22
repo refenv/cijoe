@@ -6,12 +6,12 @@
 
 In **cijoe** the most essential **resources** are :ref:`sec-resources-scripts`,
 :ref:`sec-resources-workflows`, and :ref:`sec-resources-configs`.
-In addition to these are :ref:`auxiliary files <sec-resources-auxiliary>`,
-:ref:`sec-resources-templates`, and :ref:`sec-resources-perfreqs`.
+In addition to these are :ref:`Auxiliary files <sec-resources-auxiliary>`, and
+:ref:`sec-resources-templates`.
 
 Resources are **automatically collected** from installed
 **cijoe** :ref:`sec-packages` as well as the current working directory
-(``cwd``).
+(``cwd``) and any sub-directory with a max depth of 2.
 
 When writing a :ref:`script <sec-resources-scripts>` then resources are accessed
 as follows::
@@ -51,5 +51,4 @@ The following sections describe the different types of resources.
 
    configs/index.rst
    templates/index.rst
-   perfreqs/index.rst
    auxiliary/index.rst
