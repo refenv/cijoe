@@ -87,7 +87,7 @@ class Local(Transport):
 class SSH(Transport):
     """Provide cmd/push/pull over SSH"""
 
-    def __init__(self, config, output_path):
+    def __init__(self, config, output_path, transport_name):
         """Initialize the CIJOE SSH Transport"""
 
         self.config = config
@@ -97,6 +97,9 @@ class SSH(Transport):
         self.output_path = output_path
 
         self.ssh = paramiko.SSHClient()
+        self.ssh_params = (
+            self.config.options.get("cijoe", {}).get("transport").get(transport_name)
+        )
 
         # Using the 'AutoAddPolicy()' *without* load_system_host_keys(), by doing so,
         # then Paramiko does not know any hosts, and simply adds them first time they
@@ -122,9 +125,7 @@ class SSH(Transport):
         )
 
     def __connect(self):
-        self.ssh.connect(
-            **self.config.options.get("cijoe", {}).get("transport").get("ssh")
-        )
+        self.ssh.connect(**self.ssh_params)
         self.scp = SCPClient(self.ssh.get_transport())
 
     def __disconnect(self):

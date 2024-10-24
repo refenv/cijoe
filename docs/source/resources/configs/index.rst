@@ -76,6 +76,38 @@ password login or key-based login. You can configure it as follows:
    key_filename = "path/to/private_key"
    passphrase   = "baz"
 
+
+Configuring multiple transports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When executing scripts over an **ssh** connection, **cijoe** connects to the
+first transport defined under the ``cijoe.transport`` key. If you need to 
+connect to multiple different transports, you can define them under different
+keys, for example:
+
+.. code-block:: toml
+   
+   [cijoe.transport.machineA]
+   hostname = "machineA"
+   port = 22
+   username = "foo"
+   password = "bar"
+
+   [cijoe.transport.machineB]
+   hostname = "machineB"
+   port = 22
+   username = "foo"
+   key_filename = "path/to/private_key"
+
+To execute commands on a specific transport, use the ``transport_name`` 
+parameter of ``cijoe.run(...)``, for example:
+
+.. code-block:: python
+
+   cijoe.run("hostname")                             # will run on machineA
+   cijoe.run("hostname", transport_name="machineB")  # will run on machineB
+
+
 Shell Configuration
 -------------------
 
