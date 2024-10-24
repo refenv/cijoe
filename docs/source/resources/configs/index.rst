@@ -52,23 +52,23 @@ Transport Configuration
 -----------------------
 
 **cijoe** uses :paramiko:`paramiko <>` as the **ssh** implementation.
-Consequently, your current **ssh** client configuration (e.g., ``.ssh/config``)
-and your **ssh-agent** are not in effect. This is by design to ensure complete
-separation of keys and the agent, avoiding clashes with system SSL libraries.
+Consequently, the values you set here are the ones used for the call to
+:paramiko_client:`connect() <#paramiko.client.SSHClient.connect>`.
 
-Authentication setup is straightforward and supports only username and password
-login at this time. You can configure it as follows:
+Authentication setup is straightforward and supports either username and
+password login or key-based login. You can configure it as follows:
 
 .. code-block:: toml
 
-   cijoe.transport.ssh.hostname = jazz
-   cijoe.transport.ssh.port     = 22
-   cijoe.transport.ssh.username = foo
-   cijoe.transport.ssh.password = bar
+   cijoe.transport.ssh.hostname     = foo
+   cijoe.transport.ssh.port         = 22
+   cijoe.transport.ssh.username     = bar
 
-.. note::
-   Support for key-based login is expected soon.
-
+   # either
+   cijoe.transport.ssh.password     = baz
+   # or
+   cijoe.transport.ssh.key_filename = "path/to/private_key"
+   cijoe.transport.ssh.passphrase   = baz
 
 Shell Configuration
 -------------------

@@ -73,6 +73,7 @@ extlinks = {
     "just": ("https://github.com/casey/just%s", None),
     "make": ("https://en.wikipedia.org/wiki/Make_(software)%s", None),
     "paramiko": ("https://www.paramiko.org/%s", None),
+    "paramiko_client": ("https://docs.paramiko.org/en/latest/api/client.html%s", None),
     "pep668": ("https://peps.python.org/pep-0668/%s", None),
     "pipx": ("https://pypa.github.io/pipx/%s", None),
     "posix_sh": (
