@@ -69,6 +69,36 @@ login at this time. You can configure it as follows:
 .. note::
    Support for key-based login is expected soon.
 
+Configuring multiple endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When executing scripts over an **ssh** connection, **cijoe** connects to the
+first endpoint defined under the ``cijoe.transport`` key. If you need to 
+connect to multiple different endpoints, you can define them under different
+keys, for example:
+
+.. code-block:: toml
+   
+   [cijoe.transport.machineA]
+   hostname = "machineA"
+   port = 22
+   username = "foo"
+   password = "bar"
+
+   [cijoe.transport.machineB]
+   hostname = "machineB"
+   port = 22
+   username = "foo"
+   key_filename = "path/to/private_key"
+
+To execute commands on a specific endpoint, use the ``endpoint_name`` parameter
+of ``cijoe.run(...)``, for example:
+
+.. code-block:: python
+
+   cijoe.run("hostname")                            # will run on machineA
+   cijoe.run("hostname", endpoint_name="machineB")  # will run on machineB
+
 
 Shell Configuration
 -------------------
