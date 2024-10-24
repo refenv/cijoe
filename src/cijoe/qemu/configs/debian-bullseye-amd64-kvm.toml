@@ -2,7 +2,7 @@
 # https://www.paramiko.org/ This is common CIJOE infrastructure
 #
 # Used by: cijoe.run() / cijoe.get() / cijoe.put()
-[cijoe.transport.ssh]
+[cijoe.transport.qemu_guest]
 username = "root"
 password = "root"
 hostname = "localhost"

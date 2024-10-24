@@ -151,13 +151,20 @@ class Cijoe(object):
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         self.transport_local = transport.Local(self.config, self.output_path)
-        self.transport = self.transport_local
+        self.transports = {}
 
-        ssh = self.config.options.get("cijoe", {}).get("transport", {}).get("ssh", None)
-        if ssh:
-            self.transport = transport.SSH(self.config, self.output_path)
+        config_transports = self.config.options.get("cijoe", {}).get("transport", {})
+        for transport_name in config_transports:
+            self.transports[transport_name] = transport.SSH(
+                self.config, self.output_path, transport_name
+            )
 
-    def set_output_ident(self, output_ident: str):
+        if not config_transports:
+            # If there are no endpoints defined, create one transport which is the
+            # local transport.
+            self.transports["local"] = self.transport_local
+
+    def set_output_ident(self, output_ident: str, transport_name=None):
         """
         This sets the output-identifier which is used in order to provide a subfolder
         for artifacts, command-output etc. Additionally, then it reset the command
@@ -168,7 +175,7 @@ class Cijoe(object):
 
         self.run_count = 0
         self.output_ident = output_ident
-        self.transport.output_ident = output_ident
+        self._get_transport(transport_name).output_ident = output_ident
 
     def _run(self, cmd, cwd, env, transport):
         self.run_count += 1
@@ -196,7 +203,17 @@ class Cijoe(object):
 
         return err, state
 
-    def run(self, cmd, cwd=None, env={}):
+    def _get_transport(self, transport_name=None):
+        if not transport_name:
+            transport_name = next(iter(self.transports))
+        if transport_name not in self.transports:
+            log.error(
+                f"The given transport name ({transport_name}) not valid. Must be defined in the configuration file."
+            )
+
+        return self.transports[transport_name]
+
+    def run(self, cmd, cwd=None, env={}, transport_name=None):
         """
         Execute the given shell command/expression via 'config.transport'
 
@@ -206,7 +223,7 @@ class Cijoe(object):
         convention and call set_output_ident("../..")
         """
 
-        return self._run(cmd, cwd, env, self.transport)
+        return self._run(cmd, cwd, env, self._get_transport(transport_name))
 
     def run_local(self, cmd, cwd=None, env={}):
         """
@@ -220,13 +237,13 @@ class Cijoe(object):
 
         return self._run(cmd, cwd, env, self.transport_local)
 
-    def put(self, src, dst):
+    def put(self, src, dst, transport_name=None):
         """Transfer 'src' on 'dev_box' to 'dst' on **test_target**"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         try:
-            return self.transport.put(src, dst)
+            return self._get_transport(transport_name).put(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
@@ -236,13 +253,13 @@ class Cijoe(object):
 
         return False
 
-    def get(self, src, dst):
+    def get(self, src, dst, transport_name=None):
         """Transfer 'src' on 'test_target' to 'dst' on **dev_box**"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         try:
-            return self.transport.get(src, dst)
+            return self._get_transport(transport_name).get(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
