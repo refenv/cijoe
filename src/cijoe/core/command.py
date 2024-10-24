@@ -128,24 +128,37 @@ class Cijoe(object):
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         self.transport_local = transport.Local(self.config, self.output_path)
-        self.transport = self.transport_local
+        self.transports = {}
 
-        ssh = self.config.options.get("cijoe", {}).get("transport", {}).get("ssh", None)
-        if ssh:
-            self.transport = transport.SSH(self.config, self.output_path)
+        endpoints = self.config.options.get("cijoe", {}).get("transport", {})
+        for endpoint_name in endpoints:
+            self.transports[endpoint_name] = transport.SSH(
+                self.config, self.output_path, endpoint_name
+            )
 
-    def set_output_ident(self, output_ident: str):
+        if not endpoints:
+            # If there are no endpoints defined, create one transport which is the
+            # local transport.
+            self.transports["local"] = self.transport_local
+
+    def set_output_ident(self, output_ident: str, endpoint_name=None):
         """
         This sets the output-identifier which is used in order to provide a subfolder
         for artifacts, command-output etc. Additionally, then it reset the command
         run-count
         """
+        if not endpoint_name:
+            endpoint_name = next(iter(self.transports))
+        if endpoint_name not in self.transports:
+            log.error(
+                f"The given endpoint name ({endpoint_name}) not valid. Must be defined in the configuration file."
+            )
 
         output_ident = sanitize_ident(output_ident)
 
         self.run_count = 0
         self.output_ident = output_ident
-        self.transport.output_ident = output_ident
+        self.transports[endpoint_name].output_ident = output_ident
 
     def _run(self, cmd, cwd, env, transport):
         self.run_count += 1
@@ -173,7 +186,7 @@ class Cijoe(object):
 
         return err, state
 
-    def run(self, cmd, cwd=None, env={}):
+    def run(self, cmd, cwd=None, env={}, endpoint_name=None):
         """
         Execute the given shell command/expression via 'config.transport'
 
@@ -182,8 +195,14 @@ class Cijoe(object):
         location is a subfolder of the output_path. Unless somebody wants to break the
         convention and call set_output_ident("../..")
         """
+        if not endpoint_name:
+            endpoint_name = next(iter(self.transports))
+        if endpoint_name not in self.transports:
+            log.error(
+                f"The given endpoint name ({endpoint_name}) not valid. Must be defined in the configuration file."
+            )
 
-        return self._run(cmd, cwd, env, self.transport)
+        return self._run(cmd, cwd, env, self.transports[endpoint_name])
 
     def run_local(self, cmd, cwd=None, env={}):
         """
@@ -197,13 +216,20 @@ class Cijoe(object):
 
         return self._run(cmd, cwd, env, self.transport_local)
 
-    def put(self, src, dst):
+    def put(self, src, dst, endpoint_name=None):
         """Transfer 'src' on 'dev_box' to 'dst' on **test_target**"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
+        if not endpoint_name:
+            endpoint_name = next(iter(self.transports))
+        if endpoint_name not in self.transports:
+            log.error(
+                f"The given endpoint name ({endpoint_name}) not valid. Must be defined in the configuration file."
+            )
+
         try:
-            return self.transport.put(src, dst)
+            return self.transports[endpoint_name].put(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
@@ -213,13 +239,20 @@ class Cijoe(object):
 
         return False
 
-    def get(self, src, dst):
+    def get(self, src, dst, endpoint_name=None):
         """Transfer 'src' on 'test_target' to 'dst' on **dev_box**"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
+        if not endpoint_name:
+            endpoint_name = next(iter(self.transports))
+        if endpoint_name not in self.transports:
+            log.error(
+                f"The given endpoint name ({endpoint_name}) not valid. Must be defined in the configuration file."
+            )
+
         try:
-            return self.transport.get(src, dst)
+            return self.transports[endpoint_name].get(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
