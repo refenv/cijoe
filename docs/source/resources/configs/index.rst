@@ -32,6 +32,7 @@ you should avoid using for other things than the intended purpose:
 
 * SSH Transport Configuration
 * Shell Configuration
+* Workflow Configuration
 
 **cijoe** abides by the convention that configuration values are grouped under
 a relevant key. Thus, the those for **cijoe** itself are all stored under the
@@ -43,6 +44,9 @@ a relevant key. Thus, the those for **cijoe** itself are all stored under the
    ...
 
    [cijoe.run]
+   ...
+
+   [cijoe.workflow]
    ...
 
 
@@ -93,7 +97,7 @@ specified ``PATH`` and ``LANG`` variables.
 
 
 ``cijoe.run.shell``
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 **cijoe** assumes that the default shell of the **target** machine follows the
 POSIX standard for the :posix_sh:`Shell Command Language <>`. If not, for 
@@ -116,6 +120,29 @@ In the table below, you can see the keys associated with different shells in
      - ``cmd``
    * - C Shell
      - ``csh``
+
+
+.. _sec-resources-configs-workflow:
+
+Workflow Configuration
+----------------------
+
+When a workflow is processed, each step is executed in sequence. It can be
+advantageous to *fail fast*, meaning the workflow stops processing further steps
+once a failure occurs in any step.
+
+This is possible via the **cijoe** configuration option:
+``cijoe.workflow.fail_fast`` which you can set in your
+:ref:`configuration-file <sec-resources-configs>`:
+
+.. literalinclude:: ../../../../src/cijoe/core/configs/default-config.toml
+
+By default **cijoe** functionality, then this can also be controlled environment
+variable:
+
+.. code-block:: bash
+
+   CIJOE_WORKFLOW_FAIL_FAST=true
 
 
 .. _sec-resources-configs-api:

@@ -299,7 +299,7 @@ def cli_workflow(args):
     workflow.state["status"]["started"] = time.time()
 
     cijoe = Cijoe(config, args.output, args.monitor)
-    fail_fast = cijoe.getconf("cijoe.fail_fast", False)
+    fail_fast = cijoe.getconf("cijoe.workflow.fail_fast", False)
 
     for step in workflow.state["steps"]:
         log.info(f"step({step['name']}) - begin")
