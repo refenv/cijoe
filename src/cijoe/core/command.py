@@ -268,7 +268,7 @@ class Cijoe(object):
         envvar = os.getenv(envkey)
         if envvar:
             log.debug(f"found {key} ({envkey}) in environment variables.")
-            return envvar
+            return convert_str(envvar)
 
         dict_keys = key.split(".")
         config = self.config.options
