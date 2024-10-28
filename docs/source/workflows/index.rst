@@ -23,6 +23,27 @@ similar to how targets are specified in a :make:`Makefile <>`:
 With the above, only the step named **builtin_script** will be executed. This
 becomes even more useful when utilizing **cijoe** bash completions.
 
+.. _sec-resources-workflows-config:
+
+Config Options
+==============
+
+When a workflow is processed, each step is executed in sequence. It can be
+advantageous to *fail fast*, meaning the workflow stops processing further steps
+once a failure occurs in any step.
+
+This is possible via the **cijoe** configuration option: ``cijoe.fail_fast``
+which you can set in your :ref:`sec-resources-configs`:
+
+.. literalinclude:: ../../../src/cijoe/core/configs/default-config.toml
+
+By default **cijoe** functionality, then this can also be controlled environment
+variable:
+
+.. code-block:: bash
+
+   CIJOE_FAIL_FAST=true
+
 
 .. _sec-resources-workflows-content:
 
