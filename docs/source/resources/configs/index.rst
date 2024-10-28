@@ -60,15 +60,17 @@ password login or key-based login. You can configure it as follows:
 
 .. code-block:: toml
 
-   cijoe.transport.ssh.hostname     = foo
-   cijoe.transport.ssh.port         = 22
-   cijoe.transport.ssh.username     = bar
+   [cijoe.transport.ssh]
+   hostname     = "foo"
+   port         = 22
+   username     = "bar"
 
    # either
-   cijoe.transport.ssh.password     = baz
+   password     = "baz"
+
    # or
-   cijoe.transport.ssh.key_filename = "path/to/private_key"
-   cijoe.transport.ssh.passphrase   = baz
+   key_filename = "path/to/private_key"
+   passphrase   = "baz"
 
 Shell Configuration
 -------------------
