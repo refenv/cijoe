@@ -9,13 +9,36 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 import yaml
 
 from cijoe.core import transport
 from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import Config
+
+
+def convert_str(value: str) -> Union[str, int, bool]:
+    # Strip and lowercase the input to make checks more robust
+    lower_value = value.lower().strip()
+
+    # Check for boolean values
+    if lower_value in ("true", "false"):
+        return lower_value == "true"
+
+    # Check for hexadecimal numbers (starting with '0x' or '0X')
+    if lower_value.startswith("0x"):
+        try:
+            return int(value, 16)  # Convert hex to int
+        except ValueError:
+            pass  # In case the hex is invalid, we just fall through
+
+    # Check for integer conversion (decimal numbers)
+    if value.isdigit() or (value.startswith("-") and value[1:].isdigit()):
+        return int(value)
+
+    # If no conversion is possible, return the original string
+    return value
 
 
 def default_output_path():
