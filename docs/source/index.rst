@@ -92,7 +92,7 @@ to run automated tasks locally.
    :alt: Development Environment
    :align: center
 
-   The "core" agentless functionality of **cijoe**; run commands and tranfer
+   The "core" agentless functionality of **cijoe**; run commands and transfer
    files
 
 
