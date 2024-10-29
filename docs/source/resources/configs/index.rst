@@ -177,6 +177,35 @@ variable:
    CIJOE_WORKFLOW_FAIL_FAST=true
 
 
+.. _sec-resources-configs-evar-override:
+
+Environment Variable Override
+=============================
+
+Any configuration option specified in a configuration file can be overridden by
+an environment variable. This behavior follows a specific naming convention for
+environment variables, as outlined below.
+
+For a configuration file entry such as:
+
+.. code-block:: toml
+
+   [foo.bar]
+   baz = false
+
+You can override this option with an environment variable named:
+
+.. code-block:: bash
+
+   FOO_BAR_BAZ=true
+
+In summary:
+
+- Convert the configuration path and name to uppercase.
+
+- Replace any dots (``.``) with underscores (``_``).
+
+
 .. _sec-resources-configs-api:
 
 API
