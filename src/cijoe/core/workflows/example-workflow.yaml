@@ -33,6 +33,11 @@ steps:
     - cat /proc/cpuinfo
     - hostname
 
+- name: example_script
+  uses: core.example
+  with:
+    repeat: 2
+
 #
 # Uncomment the lines below to include the non-packaged script
 # 'cijoe-script.py', from the directory where you ran 'cijoe --example'
