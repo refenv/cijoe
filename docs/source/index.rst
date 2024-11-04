@@ -170,6 +170,7 @@ of existing script collections and related packages.
    usage/index.rst
    scripts/index.rst
    workflows/index.rst
+   configs/index.rst
    testrunner/index.rst
    resources/index.rst
    packages/index.rst

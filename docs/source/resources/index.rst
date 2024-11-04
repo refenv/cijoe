@@ -49,6 +49,5 @@ The following sections describe the different types of resources.
    :includehidden:
    :hidden:
 
-   configs/index.rst
    templates/index.rst
    auxiliary/index.rst
