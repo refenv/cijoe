@@ -167,7 +167,7 @@ This is possible via the **cijoe** configuration option:
 ``cijoe.workflow.fail_fast`` which you can set in your
 :ref:`configuration-file <sec-resources-configs>`:
 
-.. literalinclude:: ../../../../src/cijoe/core/configs/default-config.toml
+.. literalinclude:: ../../../src/cijoe/core/configs/default-config.toml
 
 By default **cijoe** functionality, then this can also be controlled environment
 variable:
