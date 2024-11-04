@@ -204,16 +204,3 @@ In summary:
 - Convert the configuration path and name to uppercase.
 
 - Replace any dots (``.``) with underscores (``_``).
-
-
-.. _sec-resources-configs-api:
-
-API
-====
-
-Represented in the code as a :ref:`sec-resources`.
-
-.. autoclass:: cijoe.core.resources.Config
-   :members:
-   :undoc-members:
-   :inherited-members:
