@@ -1,4 +1,17 @@
+import copy
+import subprocess
+
+import yaml
+
+from cijoe.cli.cli import cli_integrity_check
 from cijoe.core.resources import get_resources
+
+WORKFLOW_SKELETON = {
+    "doc": "Some description",
+    "steps": [
+        {"name": "foo", "uses": "core.example"},
+    ],
+}
 
 
 def test_workflow_load():
@@ -15,3 +28,52 @@ def test_workflow_load():
 
     errors = workflow.load(config, [])
     assert not errors
+
+
+def test_workflow_lint_valid_workflow(tmp_path):
+
+    config_path = (tmp_path / "test-config-empty.toml").resolve()
+    config_path.write_text("")
+
+    data = copy.deepcopy(WORKFLOW_SKELETON)
+
+    with (tmp_path / "workflow.yaml").resolve() as workflow_file:
+        workflow_file.write_text(yaml.dump(data))
+
+        result = subprocess.run(
+            [
+                "cijoe",
+                "--integrity-check",
+                "--workflow",
+                str(workflow_file),
+                "--config",
+                str(config_path),
+            ],
+            cwd=str(tmp_path),
+        )
+        assert result.returncode == 0
+
+
+def test_workflow_lint_invalid_step_name(tmp_path):
+
+    config_path = (tmp_path / "test-config-empty.toml").resolve()
+    config_path.write_text("")
+
+    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data.get("steps", []).append({"name": "cannot have spaces", "with": "core.example"})
+
+    with (tmp_path / "workflow.yaml").resolve() as workflow_file:
+        workflow_file.write_text(yaml.dump(data))
+
+        result = subprocess.run(
+            [
+                "cijoe",
+                "--integrity-check",
+                "--workflow",
+                str(workflow_file),
+                "--config",
+                str(config_path),
+            ],
+            cwd=str(tmp_path),
+        )
+        assert result.returncode != 0

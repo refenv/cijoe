@@ -2,6 +2,7 @@ import argparse
 import errno
 import logging as log
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -30,6 +31,7 @@ SEARCH_PATHS = [
     Path.home() / ".config" / "cijoe",
     Path.home() / ".cijoe",
 ]
+STEP_NAME_REGEX = r"^(?!\d)[a-z0-9_-]+$"
 
 
 def search_for_file(path: Path) -> Optional[Path]:
@@ -70,6 +72,24 @@ def cli_integrity_check(args):
     log.info(f"config: '{args.config}'")
 
     workflow_dict = dict_from_yamlfile(args.workflow.resolve())
+
+    steps = workflow_dict.get("steps", None)
+    if steps is None:
+        log.error("No steps in workflow, nothing to do.")
+        return errno.EINVAL
+
+    for nr, step in enumerate(steps, 1):
+        step_name = step.get("name", None)
+        if step_name is None:
+            log.error(f"Step number({nr}) is missing mandatory 'name'")
+            return errno.EINVAL
+
+        if not re.match(STEP_NAME_REGEX, step_name):
+            log.error(
+                f"Invalid step_name({step_name}); must match regex({STEP_NAME_REGEX})"
+            )
+            return errno.EINVAL
+
     errors = Workflow.dict_normalize(workflow_dict)  # Normalize it
     errors += Workflow.dict_lint(workflow_dict)  # Check the yaml-file
 
