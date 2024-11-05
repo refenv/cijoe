@@ -11,6 +11,12 @@ from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import dict_from_yamlfile
 
 
+def cmd_number_from_path(path):
+    """Extracts the numerical part after 'cmd_' in the filename stem."""
+
+    return int(path.stem.split("_")[1])
+
+
 def runlog_from_path(path: Path):
     """Produce a dict of command-dicts with paths to .output and .state files"""
 
@@ -19,7 +25,7 @@ def runlog_from_path(path: Path):
     if not (path.is_dir() and path.exists()):
         return run
 
-    for cmd_path in sorted(path.glob("cmd_*.*")):
+    for cmd_path in sorted(path.glob("cmd_*.*"), key=cmd_number_from_path):
         stem = cmd_path.stem
         suffix = cmd_path.suffix[1:]
         if suffix not in ["output", "state"]:
