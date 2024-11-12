@@ -16,15 +16,33 @@ defaults:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
 
     steps:
     - name: Grab source
       uses: actions/checkout@v4.1.7
 
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Python dependencies and their versions
+      run: |
+        brew update || true
+        brew upgrade pipx || true
+        make deps
+        make info
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
     - name: Install pre-commit
       run: |
-        pipx install pre-commit
+        pipx install pre-commit --python ${{ matrix.python-version }}
 
     - name: Run pre-commit
       run: |
