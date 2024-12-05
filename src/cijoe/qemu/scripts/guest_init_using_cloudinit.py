@@ -14,6 +14,8 @@ Config::
 
     [qemu.guest.init_using_cloudinit]
     url = # URL of cloud-init image, e.g. on https://cloud.debian.org/images/cloud/
+    url_checksum = # URL pointing to download location of the checksum of the 
+                   # cloud-init image
     img = # Path to cloud-init image
     meta = # Path to cloud-init meta-file
     user = # Path to cloud-init user-file
