@@ -11,6 +11,8 @@ Config::
 
     [qemu.guest.init_using_bootimage]
     url = # URL pointing to download location of the bootable disk-image
+    url_checksum = # URL pointing to download location of the checksum of the 
+                   # bootable disk-image
     img = # Absolute path to disk-image file"
 
 Retargetable: False

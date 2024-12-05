@@ -48,10 +48,12 @@ system_args.host_share = "{{ local.env.HOME }}/git"
 
 # Used by: qemu.guest_init_using_bootimage.py
 init_using_bootimage.url = "https://refenv.fra1.digitaloceanspaces.com/boot_images/debian-bullseye-amd64.qcow2"
+init_using_bootimage.url_checksum = "https://refenv.fra1.digitaloceanspaces.com/boot_images/debian-bullseye-amd64.qcow2.sha256"
 init_using_bootimage.img = "{{ local.env.HOME }}/images/boot_images/debian-bullseye-amd64.qcow2"
 
 # Used by: qemu.guest_init_using_cloudinit.py
 init_using_cloudinit.url = "https://cloud.debian.org/images/cloud/bullseye/daily/latest/debian-11-generic-amd64-daily.qcow2"
+init_using_cloudinit.url_checksum = "https://cloud.debian.org/images/cloud/bullseye/daily/latest/SHA512SUMS"
 init_using_cloudinit.img = "{{ local.env.HOME }}/images/cloudinit/debian-11-generic-amd64-daily.qcow2"
 init_using_cloudinit.meta = "{{ resources.auxiliary['qemu.cloudinit-debian-meta'] }}"
 init_using_cloudinit.user = "{{ resources.auxiliary['qemu.cloudinit-debian-user-amd64'] }}"
