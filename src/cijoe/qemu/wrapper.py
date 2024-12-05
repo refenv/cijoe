@@ -18,7 +18,7 @@ from pprint import pformat
 
 import psutil
 
-from cijoe.core.misc import download
+from cijoe.core.misc import download_and_verify
 
 
 def qemu_img(cijoe, args=""):
@@ -233,22 +233,22 @@ class Guest(object):
             log.error("missing config([qemu.guest.init_using_cloudinit])")
             return 1
 
-        img = cloudinit.get("img", None)
-        if not img:
-            log.error("missing config([qemu.guest.init_using_cloudinit.img])")
+        if not all(key in cloudinit for key in ["img", "url", "url_checksum"]):
+            log.error(
+                'missing config. [qemu.guest.init_using_cloudinit] must have keys "img", "url", "url_checksum"'
+            )
             return 1
+
+        url = cloudinit["url"]
+        url_checksum = cloudinit["url_checksum"]
+        img = cloudinit["img"]
 
         img = Path(img).resolve()
         if not img.exists():
-            url = cloudinit.get("url", None)
-            if not url:
-                log.error("missing config([qemu.guest.init_using_cloudinit.url])")
-                return 1
-
             img.parent.mkdir(parents=True, exist_ok=True)
-            err, path = download(url, img)
+            err, img = download_and_verify(url, url_checksum, img)
             if err:
-                log.error(f"download({url}), {path}: failed")
+                log.error(f"download({url}), {img}: failed")
                 return err
 
         # Create the boot.img based on cloudinit_img
@@ -307,17 +307,30 @@ class Guest(object):
 
         # Ensure the guest has an image available to boot from
         boot = self.guest_config.get("init_using_bootimage", {})
-        boot["img"] = Path(boot["img"]).resolve()
+        if not boot:
+            log.error("missing config([qemu.guest.init_using_bootimage])")
+            return 1
 
-        if not boot["img"].exists():
-            os.makedirs(boot["img"].parent, exist_ok=True)
-            err, path = download(boot["url"], str(boot["img"]))
+        if not all(key in boot for key in ["img", "url", "url_checksum"]):
+            log.error(
+                'missing config. [qemu.guest.init_using_bootimage] must have keys "img", "url", "url_checksum"'
+            )
+            return 1
+
+        url = boot["url"]
+        url_checksum = boot["url_checksum"]
+        img = boot["img"]
+
+        img = Path(img).resolve()
+        if not img.exists():
+            img.parent.mkdir(parents=True, exist_ok=True)
+            err, img = download_and_verify(url, url_checksum, img)
             if err:
-                log.error(f"download({boot['url']}), {path}: failed")
+                log.error(f"download({url}), {img}: failed")
                 return err
 
         # Create the boot.img based on cloudinit_img
-        shutil.copyfile(str(boot["img"]), str(self.boot_img))
+        shutil.copyfile(str(img), str(self.boot_img))
         qemu_img(self.cijoe, f"resize {self.boot_img} 10G")
 
         return 0
