@@ -83,7 +83,7 @@ line_length = 88
 
 [tool.ruff]
 line-length = 88
-extend-ignore = ["E203", "F401", "F811", "E501"]
+lint.extend-ignore = ["E203", "F401", "F811", "E501"]
 
 [tool.mypy]
 ignore_missing_imports = true
