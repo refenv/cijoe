@@ -1,0 +1,50 @@
+---
+#
+# Build a Docker image with qemu which can be utilized to run qemu guests via
+# containers on GitHUB, the image has the following systems:
+#
+# * qemu-system-aarch64
+# * qemu-system-arm
+# * qemu-system-i386
+# * qemu-system-x86_64
+# * qemu-system-x86_64-microvm
+#
+name: cijoe_docker
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - cijoe_docker
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  build_and_push:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TAG: latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4.2.2
+
+    - name: Build Docker image
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/cijoe-docker
+        docker build \
+          -t ${IMAGE_ID}:${DOCKER_TAG} \
+          -f .github/cijoe-docker/Dockerfile \
+          .
+
+    - name: Authenticate to GitHub Container Registry
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Push Docker image to registry
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/cijoe-docker
+        docker push ${IMAGE_ID}:${DOCKER_TAG}
