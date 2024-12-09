@@ -1,0 +1,12 @@
+---
+doc: |
+  Create a disk image (.qcow2) using a cloud-image
+  This image should be usable for
+
+  * Disk image for a virtual machine (qemu-guest)
+  * Disk image for a physical machine (to be written to bootable media)
+  * As input to produce a Docker Image
+
+steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage

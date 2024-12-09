@@ -1,0 +1,14 @@
+# This configuration file is intended for the creation of docker images from
+# qcow2 images
+[[system-imaging.collection.alpine-x86_64]]
+cloud.url = "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.3-x86_64-bios-cloudinit-metal-r0.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloudinit/generic_alpine-3.20.3-x86_64-bios-cloudinit-metal-r0.qcow2"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-alpine-meta'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-alpine-user-amd64'] }}"
+
+disk.url = "https://spdk-community-ci.s3.eu-central-003.backblazeb2.com/system/alpine-3.20-x86_64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/cloudinit/alpine-x86_64.qcow2"
+
+docker.url = "ghcr.io/refenv/alpine-3.20-x86_64:main"
+docker.name = "alpine-3.20-x86_64"
+docker.tag = "main"
