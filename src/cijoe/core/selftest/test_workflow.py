@@ -39,21 +39,21 @@ def test_workflow_lint_valid_workflow(tmp_path):
 
     data = copy.deepcopy(WORKFLOW_SKELETON)
 
-    with (tmp_path / "workflow.yaml").resolve() as workflow_file:
-        workflow_file.write_text(yaml.dump(data))
+    workflow_file = (tmp_path / "workflow.yaml").resolve()
+    workflow_file.write_text(yaml.dump(data))
 
-        result = subprocess.run(
-            [
-                "cijoe",
-                "--integrity-check",
-                "--workflow",
-                str(workflow_file),
-                "--config",
-                str(config_path),
-            ],
-            cwd=str(tmp_path),
-        )
-        assert result.returncode == 0
+    result = subprocess.run(
+        [
+            "cijoe",
+            "--integrity-check",
+            "--workflow",
+            str(workflow_file),
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode == 0
 
 
 def test_workflow_lint_invalid_step_name(tmp_path):
@@ -64,21 +64,21 @@ def test_workflow_lint_invalid_step_name(tmp_path):
     data = copy.deepcopy(WORKFLOW_SKELETON)
     data.get("steps", []).append({"name": "cannot have spaces", "with": "core.example"})
 
-    with (tmp_path / "workflow.yaml").resolve() as workflow_file:
-        workflow_file.write_text(yaml.dump(data))
+    workflow_file = (tmp_path / "workflow.yaml").resolve()
+    workflow_file.write_text(yaml.dump(data))
 
-        result = subprocess.run(
-            [
-                "cijoe",
-                "--integrity-check",
-                "--workflow",
-                str(workflow_file),
-                "--config",
-                str(config_path),
-            ],
-            cwd=str(tmp_path),
-        )
-        assert result.returncode != 0
+    result = subprocess.run(
+        [
+            "cijoe",
+            "--integrity-check",
+            "--workflow",
+            str(workflow_file),
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode != 0
 
 
 def test_workflow_report_command_ordering(tmp_path):
@@ -92,22 +92,22 @@ def test_workflow_report_command_ordering(tmp_path):
     )
 
     output_path = (tmp_path / "output").resolve()
-    with (tmp_path / "workflow.yaml").resolve() as workflow_file:
-        workflow_file.write_text(yaml.dump(data))
+    workflow_file = (tmp_path / "workflow.yaml").resolve()
+    workflow_file.write_text(yaml.dump(data))
 
-        result = subprocess.run(
-            [
-                "cijoe",
-                "--output",
-                str(output_path),
-                "--workflow",
-                str(workflow_file),
-                "--config",
-                str(config_path),
-            ],
-            cwd=str(tmp_path),
-        )
-        assert result.returncode == 0
+    result = subprocess.run(
+        [
+            "cijoe",
+            "--output",
+            str(output_path),
+            "--workflow",
+            str(workflow_file),
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode == 0
 
     for count, key in enumerate(
         runlog_from_path(output_path / "002_many_commands").keys(), 1
