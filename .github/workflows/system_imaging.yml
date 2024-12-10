@@ -19,7 +19,10 @@ jobs:
 
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
-      options: --privileged
+      options: >-
+        --privileged
+        -v /dev:/dev
+        -v /lib/modules:/lib/modules
 
     strategy:
       fail-fast: false
@@ -47,6 +50,7 @@ jobs:
 
     - name: Emit the example configuration file and workflow
       run: |
+        apt-get install -qy linux-image-amd64 linux-headers-amd64
         cijoe --example system_imaging
 
     - name: Run it!
