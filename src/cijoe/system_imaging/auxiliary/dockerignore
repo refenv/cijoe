@@ -1,0 +1,4 @@
+/etc/fstab
+/dev/*
+/proc/*
+/sys/*

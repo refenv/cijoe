@@ -2,11 +2,11 @@
 name: selftest
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
-    - "!gh-pages"
-    - "**"
+    - "main"
     tags:
     - "v*"
 
