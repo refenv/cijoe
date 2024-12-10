@@ -47,7 +47,7 @@ system_args.tcp_forward = {host = 4200, guest = 22}
 # This configuration file is intended for the creation of docker images from
 # qcow2 images
 [system-imaging.images.alpine-x86_64]
-cloud.url = "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.3-x86_64-bios-cloudinit-metal-r0.qcow2"
+cloud.url = "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/nocloud_alpine-3.20.3-x86_64-bios-cloudinit-metal-r0.qcow2"
 cloud.path = "{{ local.env.HOME }}/system_imaging/cloudinit/generic_alpine-3.20.3-x86_64-bios-cloudinit-metal-r0.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-alpine-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-alpine-userdata-x86_64'] }}"
