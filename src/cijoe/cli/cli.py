@@ -187,7 +187,6 @@ def cli_example(args):
     err = 0
 
     resources = get_resources()
-
     resource = resources["configs"].get(f"{args.example}.default-config", None)
     if resource is None:
         log.error(
@@ -276,7 +275,7 @@ def cli_workflow(args):
         log.error(f"aborting; output({args.output}) directory already exists")
         return errno.EPERM
 
-    config = Config(args.config)
+    config = Config([args.config])
     errors = config.load()
     if errors:
         log_errors(errors)
@@ -417,9 +416,10 @@ def parse_args():
     workflow_group.add_argument(
         "--config",
         "-c",
+        nargs="+",
         type=Path,
-        default=Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME)),
-        help="Path to the Configuration file.",
+        default=[Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME))],
+        help="Paths to the Configuration file.",
     )
     workflow_group.add_argument(
         "--workflow",
@@ -552,10 +552,17 @@ def main(args=None):
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)
-        path = search_for_file(argv)
-        if path is None:
-            log.error(f"{filearg}({argv}) does not exist; exiting")
-            return errno.EINVAL
+        if isinstance(argv, list):
+            for p in argv:
+                path = search_for_file(p)
+                if path is None:
+                    log.error(f"{filearg}({p}) does not exist; exiting")
+                    return errno.EINVAL
+        else:
+            path = search_for_file(argv)
+            if path is None:
+                log.error(f"{filearg}({argv}) does not exist; exiting")
+                return errno.EINVAL
 
         setattr(args, filearg, path)
 
