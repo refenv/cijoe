@@ -53,6 +53,7 @@ jobs:
       env:
         LIBGUESTFS_DEBUG: 1
         LIBGUESTFS_TRACE: 1
+        LIBGUESTFS_BACKEND: direct
       run: |
         cijoe --monitor -ll
 
