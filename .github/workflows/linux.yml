@@ -1,0 +1,64 @@
+---
+name: linux
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+    - "v*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  linux:
+    runs-on: ${{ matrix.os }}
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker-qemu:latest
+      options: --privileged
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+      with:
+        path: cijoe
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Build and install cijoe from source
+      run: |
+        cd cijoe
+        apt install -y kmod pciutils flex bison bc cpio libelf-dev:native libssl-dev:native libssl-dev rsync debhelper-compat
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Emit the example configuration file and workflow
+      run: |
+        cijoe \
+        --example linux
+
+    - name: Run it!
+      run: |
+        cijoe \
+        --monitor
+
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-linux
+        path: cijoe-output/*
+        if-no-files-found: error
