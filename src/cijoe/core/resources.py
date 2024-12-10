@@ -45,7 +45,7 @@ import re
 import sys
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 try:
     from importlib.resources import files as importlib_files
@@ -156,7 +156,30 @@ class Resource(object):
             self.content = resource_file.read()
 
 
-class Config(Resource):
+class ResourceMultiFiles(object):
+    """Base representation of a Resource that spans over multiple files"""
+
+    def __init__(self, paths: List[Path], pkg=None):
+        self.paths = [path.resolve() for path in paths]
+        self.pkg = pkg
+
+        self.content = None
+
+        prefix = ".".join(pkg.name.split(".")[1:-1]) + "." if pkg else ""
+
+        self.ident = f"{prefix}{'_'.join([path.stem for path in self.paths])}"
+
+    @property
+    def path(self) -> Optional[Path]:
+        if len(self.paths):
+            return self.paths[0]
+        return None
+
+    def __repr__(self):
+        return "_".join([str(path) for path in self.paths])
+
+
+class Config(ResourceMultiFiles):
     """
     Encapsulation of a CIJOE config-file, e.g. 'default-config.toml'
 
@@ -165,8 +188,8 @@ class Config(Resource):
 
     SUFFIX = ".toml"
 
-    def __init__(self, path: Path, pkg=None):
-        super().__init__(path, pkg)
+    def __init__(self, paths: List[Path], pkg=None):
+        super().__init__(paths, pkg)
 
         self.options: Dict[str, Any] = {}
 
@@ -174,7 +197,9 @@ class Config(Resource):
         """Populates self.options on success. Returns a list of errors otherwise"""
 
         # config_dict = dict_from_yamlfile(self.path)
-        config_dict = dict_from_tomlfile(self.path)
+        config_dict = {}
+        for path in self.paths:
+            config_dict.update(dict_from_tomlfile(path))
 
         errors = dict_substitute(config_dict, default_context())
         if errors:
@@ -184,14 +209,14 @@ class Config(Resource):
         return []
 
     @staticmethod
-    def from_path(path, pkg=None):
+    def from_path(path: Path, pkg=None):
         """Instantiate a Config from path, returning None on error"""
 
         path = Path(path).resolve()
         if not path.exists():
             return None
 
-        config = Config(path, pkg)
+        config = Config([path], pkg)
         errors = config.load()
         if errors:
             return None
@@ -461,7 +486,7 @@ class Collector(object):
             if not resource.content_has_script_func():
                 category = "auxiliary"
         elif category == "configs":
-            resource = Config(candidate, pkg)
+            resource = Config([candidate], pkg)
         elif category == "workflows":
             resource = Workflow(candidate, pkg)
         else:
