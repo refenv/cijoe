@@ -8,6 +8,9 @@ password = "root"
 hostname = "localhost"
 port = 4200
 
+[cijoe.workflow]
+fail_fast=true
+
 [os]
 name = "debian"
 version = "bullseye"
