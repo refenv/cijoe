@@ -59,13 +59,16 @@ jobs:
 
     - name: Run it!
       run: |
-        cd cijoe-example-${{ matrix.usage_example }}
-        cijoe --monitor -l
+        coverage run\
+          --data-file=cijoe-output/.coverage\
+          --rcfile=repository/.coveragerc\
+          -L \
+          $(which cijoe) --monitor
 
     - name: Upload report
       if: always()
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-cijoe_packages-${{ matrix.usage_example }}
-        path: cijoe-example-${{ matrix.usage_example }}/cijoe-output/*
+        path: cijoe-output/*
         if-no-files-found: error
