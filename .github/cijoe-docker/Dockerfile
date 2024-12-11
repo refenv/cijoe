@@ -43,6 +43,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	git \
 	guestmount \
 	htop \
+	libglib2.0-dev \
 	libguestfs-tools \
 	linux-image-amd64 \
 	lshw \
