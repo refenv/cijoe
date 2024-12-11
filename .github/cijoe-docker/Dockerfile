@@ -46,6 +46,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	libguestfs-tools \
 	linux-image-amd64 \
 	lshw \
+	meson \
 	neovim \
 	openssh-server \
 	pipx \
