@@ -11,24 +11,12 @@ port = 4200
 [cijoe.workflow]
 fail_fast=true
 
-[os]
-name = "debian"
-version = "bullseye"
-
-# Used by: qemu.build.py
-[qemu.repository]
-upstream = "https://github.com/qemu/qemu.git"
-path = "{{ local.env.HOME }}/git/qemu"
-tag = "v8.0.0"
-
-# Used by: qemu.build.py
-[qemu.build]
-prefix = "{{ local.env.HOME }}/opt/qemu"
-
 # Used by: the qemu.*.py scripts
 [qemu]
-#system_bin = "/opt/qemu/bin/qemu-system-x86_64"
-system_bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-system-x86_64"
+# Uncomment this, to use a version of qemu build from source and installed in a
+# non-conventional location
+#system_bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-system-x86_64"
+system_bin = "qemu-system-x86_64"
 img_bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-img"
 default_guest = "bullseye_amd64"
 
@@ -60,4 +48,3 @@ init_using_cloudinit.url_checksum = "https://cloud.debian.org/images/cloud/bulls
 init_using_cloudinit.img = "{{ local.env.HOME }}/images/cloudinit/debian-11-generic-amd64-daily.qcow2"
 init_using_cloudinit.meta = "{{ resources.auxiliary['qemu.cloudinit-debian-meta'] }}"
 init_using_cloudinit.user = "{{ resources.auxiliary['qemu.cloudinit-debian-user-amd64'] }}"
-#init_using_cloudinit.pubkey = "keys/guest_key.pub"
