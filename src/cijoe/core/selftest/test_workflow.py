@@ -11,7 +11,7 @@ from cijoe.core.resources import get_resources
 WORKFLOW_SKELETON = {
     "doc": "Some description",
     "steps": [
-        {"name": "foo", "uses": "core.example"},
+        {"name": "foo", "uses": "core.example_script_default"},
     ],
 }
 
@@ -19,13 +19,13 @@ WORKFLOW_SKELETON = {
 def test_workflow_load():
     resources = get_resources()
 
-    config = resources["configs"]["core.default-config"]
+    config = resources["configs"]["core.example_config_default"]
     assert config
 
     errors = config.load()
     assert not errors
 
-    workflow = resources["workflows"]["core.example-workflow"]
+    workflow = resources["workflows"]["core.example_workflow_default"]
     assert workflow
 
     errors = workflow.load(config, [])
@@ -62,7 +62,9 @@ def test_workflow_lint_invalid_step_name(tmp_path):
     config_path.write_text("")
 
     data = copy.deepcopy(WORKFLOW_SKELETON)
-    data.get("steps", []).append({"name": "cannot have spaces", "with": "core.example"})
+    data.get("steps", []).append(
+        {"name": "cannot have spaces", "with": "core.example_script_default"}
+    )
 
     workflow_file = (tmp_path / "workflow.yaml").resolve()
     workflow_file.write_text(yaml.dump(data))
@@ -88,7 +90,11 @@ def test_workflow_report_command_ordering(tmp_path):
 
     data = copy.deepcopy(WORKFLOW_SKELETON)
     data["steps"].append(
-        {"name": "many_commands", "uses": "core.example", "with": {"repeat": 100}}
+        {
+            "name": "many_commands",
+            "uses": "core.example_script_default",
+            "with": {"repeat": 100},
+        }
     )
 
     output_path = (tmp_path / "output").resolve()

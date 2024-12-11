@@ -41,7 +41,7 @@ def pytest_addoption(parser):
         action="store",
         type=Path,
         help="Path to cijoe configuration",
-        default=str(collector.resources["configs"]["core.default-config"]),
+        default=str(collector.resources["configs"]["core.example_config_default"]),
     )
     parser.addoption(
         "--output",

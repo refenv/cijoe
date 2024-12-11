@@ -184,73 +184,38 @@ def cli_example(args):
     """Create example config.toml and workflow.yaml"""
 
     log.info("cli: examples")
-    err = 0
 
     resources = get_resources()
 
-    resource = resources["configs"].get(f"{args.example}.default-config", None)
-    if resource is None:
-        log.error(
-            f"'default-config{Config.SUFFIX}' from '{args.example}'; not available"
-        )
-        return errno.EINVAL
-    src_config = resource.path
-
-    resource = resources["workflows"].get(f"{args.example}.example-workflow", None)
-    if resource is None:
-        log.error(
-            f"'example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
-        )
-        return errno.EINVAL
-    src_workflow = resource.path
-
-    resource = resources["scripts"].get("core.example", None)
-    if resource is None:
-        log.error(f"example.py' from '{args.example}'; not available")
-        return errno.EINVAL
-    src_script = resource.path
-
-    dst_config = Path.cwd().joinpath(DEFAULT_CONFIG_FILENAME)
-    dst_workflow = Path.cwd().joinpath(DEFAULT_WORKFLOW_FILENAME)
-    dst_script = Path.cwd().joinpath(DEFAULT_SCRIPT_FILENAME)
-
-    log.info(f"config: {dst_config}")
-    log.info(f"workflow: {dst_workflow}")
-    log.info(f"script: {dst_script}")
-
-    if not src_config.exists():
-        log.error(
-            f"'default-config{Config.SUFFIX}' from '{args.example}'; not available"
-        )
-        return errno.EINVAL
-    if not src_workflow.exists():
-        log.error(
-            f"example-workflow{Workflow.SUFFIX}' from '{args.example}'; not available"
-        )
-        return errno.EINVAL
-    if not src_script.exists():
-        log.error(f"example.py' from '{args.example}'; not available")
+    pkg_name, *tail = args.example.split(".")
+    if len(tail) > 1:
+        log.error(f"Invalid argument: {args.example}")
         return errno.EINVAL
 
-    if dst_config.exists():
-        err = errno.EEXIST
-        log.error(f"skipping config({dst_config}); already exists")
-    else:
-        shutil.copyfile(src_config, dst_config)
+    for section, default_filename in [
+        ("config", DEFAULT_CONFIG_FILENAME),
+        ("workflow", DEFAULT_WORKFLOW_FILENAME),
+        ("script", DEFAULT_SCRIPT_FILENAME),
+    ]:
+        example_name = tail[0] if tail else "default"
+        label = f"{pkg_name}.example_{section}_{example_name}"
 
-    if dst_workflow.exists():
-        err = errno.EEXIST
-        log.error(f"skipping workflow({dst_workflow}); already exists")
-    else:
-        shutil.copyfile(src_workflow, dst_workflow)
+        resource = resources.get(f"{section}s", {}).get(label, None)
+        if resource is None:
+            if section == "script":  # Providing an example script is optional
+                continue
 
-    if dst_script.exists():
-        err = errno.EEXIST
-        log.error(f"skipping script({dst_script}); already exists")
-    else:
-        shutil.copyfile(src_script, dst_script)
+            log.error(f"'No example '{section}' in example({args.example})")
+            return errno.EINVAL
 
-    return err
+        dst = Path.cwd().joinpath(default_filename)
+        if dst.exists():
+            log.info(f"skipping dst({dst}); already exists")
+            continue
+
+        shutil.copyfile(resource.path, dst)
+
+    return 0
 
 
 def cli_version(args):
@@ -507,7 +472,7 @@ def parse_args():
         type=str,
         nargs="?",
         default=None,
-        help="Create 'default-config.toml', 'example-workflow.yaml' and 'cijoe-script.py' and exit.",
+        help=f"Create '{DEFAULT_CONFIG_FILENAME}', '{DEFAULT_WORKFLOW_FILENAME}' and '{DEFAULT_SCRIPT_FILENAME}' and exit.",
     )
     utils_group.add_argument(
         "--version",
