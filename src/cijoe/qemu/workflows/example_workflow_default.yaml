@@ -13,7 +13,7 @@ doc: |
   This is done via scripts, which in turn are utilizing helper-functions from
   cijoe.qemu.wrapper.
 
-steps:    
+steps:
 - name: build
   uses: qemu.build
 
