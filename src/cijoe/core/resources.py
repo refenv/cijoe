@@ -158,7 +158,7 @@ class Resource(object):
 
 class Config(Resource):
     """
-    Encapsulation of a CIJOE config-file, e.g. 'default-config.toml'
+    Encapsulation of a CIJOE config-file, e.g. 'example_config_default.toml'
 
     ivar: options: dict of configuration options populated by load() / from_path()
     """

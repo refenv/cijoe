@@ -34,7 +34,7 @@ steps:
     - hostname
 
 - name: example_script
-  uses: core.example
+  uses: core.example_script_default
   with:
     repeat: 2
 
