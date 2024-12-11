@@ -1,22 +1,22 @@
 ---
-name: cijoe_pkg_qemu
+name: cijoe_packages
 
 on:
-  workflow_dispatch:
   pull_request:
   push:
-    branches: cijoe_pkg_qemu
+    branches:
+    - "cijoe_pkg_*"
     tags:
     - "v*"
 
-defaults:
-  run:
-    shell: bash
+# This is needed for 'guestmount' / 'libguestfs'
+env:
+  LIBGUESTFS_BACKEND: direct
 
 jobs:
 
-  qemu:
-    runs-on: ${{ matrix.os }}
+  examples:
+    runs-on: ubuntu-latest
 
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
@@ -25,15 +25,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        usage_example: ['system_imaging', 'qemu.build']
         python-version: ['3.12']
-        usage_example: ['qemu.build']
 
     steps:
     - name: Grab source
       uses: actions/checkout@v4.2.2
       with:
-        path: cijoe
+        path: repository
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.3.0
@@ -43,7 +42,7 @@ jobs:
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
-        cd cijoe
+        cd repository
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -52,8 +51,6 @@ jobs:
         cijoe --example ${{ matrix.usage_example }}
 
     - name: Run it!
-      env:
-        LIBGUESTFS_BACKEND: direct
       run: |
         cijoe --monitor -l
 
@@ -61,6 +58,6 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4.3.0
       with:
-        name: report-cijoe_pkg_qemu-${{ matrix.usage_example }}
+        name: report-cijoe_packages-${{ matrix.usage_example }}
         path: cijoe-output/*
         if-no-files-found: error
