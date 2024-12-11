@@ -4,9 +4,9 @@
 PROJECT_NAME=cijoe
 BUILD=pyproject-build
 PIPX=pipx
-PYTEST="$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest"
+PYTEST="$(shell pipx environment --value PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest"
 PYTHON_SYS=python3
-PYTHON_VENV="$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3"
+#PYTHON_VENV="$(shell pipx environment --value PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3"
 TWINE=twine
 CIJOE_VERSION=$(shell cd src; python3 -c "from cijoe import core;print(core.__version__)")
 
@@ -42,7 +42,6 @@ info:
 	${PIPX} --version || true
 	${PYTEST} --version || true
 	${PYTHON_SYS} --version || true
-	${PYTHON_VENV} --version || true
 	${TWINE} --version || true
 	@echo "## ${PROJECT_NAME}: make info [DONE]"
 
@@ -123,7 +122,8 @@ endef
 install:
 	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz --include-deps --force --python python3
-	@${PIPX} inject cijoe coverage --include-apps --force
+	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
+	@${PIPX} inject cijoe pytest-cov --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
@@ -143,7 +143,7 @@ endef
 .PHONY: test
 test:
 	@echo "## ${PROJECT_NAME}: make test"
-	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/example_config_default.toml -v -s
+	${PYTEST} --cov --pyargs cijoe.core.selftest --config src/cijoe/core/configs/example_config_default.toml -v -s
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
 define examples-help

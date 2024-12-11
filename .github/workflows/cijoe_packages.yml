@@ -13,10 +13,85 @@ on:
 env:
   LIBGUESTFS_BACKEND: direct
 
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
+  format:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.1.7
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Python dependencies and their versions
+      run: |
+        brew update || true
+        brew upgrade pipx || true
+        make deps
+        make info
+        echo $HOME
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install pre-commit
+      run: |
+        pipx install pre-commit --python ${{ matrix.python-version }}
+
+    - name: Run pre-commit
+      run: |
+        make format-all
+
+  selftest:
+    needs: format
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.1.7
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Python dependencies and their versions
+      run: |
+        pip install pipx
+        pipx environment
+        pipx ensurepath
+        brew update || true
+        brew upgrade pipx || true
+        make deps
+        make info
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Run make all
+      run: |
+        make all
+        ls -lha
+        cat .coverage
+        cijoe -r
 
   examples:
     runs-on: ubuntu-latest
+    needs: format
 
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
@@ -26,14 +101,12 @@ jobs:
       fail-fast: false
       matrix:
         usage_example:
-        - core.default
         - fio.default
+        - core.default
         - linux.default
-        - qemu.bootimage
         - qemu.build
-        - qemu.cloudinit
         - system_imaging.default
-        python-version: ['3.12']
+        python-version: ['3.11']
 
     steps:
     - name: Grab source
@@ -56,16 +129,100 @@ jobs:
     - name: Emit the example configuration file and workflow
       run: |
         cijoe --example ${{ matrix.usage_example }}
+        ls -lha
+        pwd
+        which cijoe
+        which coverage
 
     - name: Run it!
       run: |
-        cd cijoe-example-${{ matrix.usage_example }}
-        cijoe --monitor -l
+        cd cijoe-example-${{ matrix.usage_example}}
+        coverage run \
+          --data-file=.coverage \
+          --rcfile=../repository/.coveragerc \
+          $(which cijoe) --monitor
+        coverage report
 
     - name: Upload report
       if: always()
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-cijoe_packages-${{ matrix.usage_example }}
-        path: cijoe-example-${{ matrix.usage_example }}/cijoe-output/*
+        path: cijoe-example-${{ matrix.usage_example}}/cijoe-output/*
         if-no-files-found: error
+
+    - name: Upload coverage
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-coverage-${{ matrix.usage_example }}
+        path: cijoe-example-${{ matrix.usage_example}}/.coverage
+        if-no-files-found: error
+
+  collect-coverage:
+    runs-on: ubuntu-latest
+    needs: [examples, selftest]
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: --privileged
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+      with:
+        path: repository
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        cd repository
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4.1.8
+      with:
+          # If you omit 'name', all artifacts from previous jobs are downloaded.
+        path: ./all_artifacts
+
+    - name: Show downloaded artifacts
+      run: |
+        coverage combine \
+          --rcfile=repository/.coveragerc \
+          all_artifacts/**/.coverage
+        coverage report \
+          --debug=trace,config \
+          --rcfile=repository/.coveragerc
+
+    - name: Coveralls upload
+      uses: coverallsapp/github-action@v2
+
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: selftest
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.1.7
+    - name: Set up Python
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: '3.9'
+
+    - name: Python dependencies and their versions
+      run: |
+        make deps
+        make info
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |-
+        make release
