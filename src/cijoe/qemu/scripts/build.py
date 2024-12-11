@@ -11,8 +11,8 @@ Arguments
 * repository.path
 * build.prefix
 
-Retargetable: False
--------------------
+Retargetable: True
+------------------
 """
 import errno
 import logging as log
@@ -32,14 +32,14 @@ def main(args, cijoe, step):
         log.error("missing qemu.repository")
         return errno.EINVAL
 
-    err, _ = cijoe.run_local(f'[ -d "{repos["path"]}" ]')
+    err, _ = cijoe.run(f'[ -d "{repos["path"]}" ]')
     if err:
         log.error(f"No qemu git-repository at repos({repos['path']})")
         return err
 
     build_dir = Path(repos["path"]) / "build"
 
-    err, _ = cijoe.run_local(f"mkdir -p {build_dir}")
+    err, _ = cijoe.run(f"mkdir -p {build_dir}")
     if err:
         return err
 
@@ -62,11 +62,11 @@ def main(args, cijoe, step):
         "--enable-virtfs",
         "--target-list=x86_64-softmmu,aarch64-softmmu",
     ]
-    err, _ = cijoe.run_local("../configure " + " ".join(configure_args), cwd=build_dir)
+    err, _ = cijoe.run("../configure " + " ".join(configure_args), cwd=build_dir)
     if err:
         return err
 
-    err, _ = cijoe.run_local("make -j $(nproc)", cwd=build_dir)
+    err, _ = cijoe.run("make -j $(nproc)", cwd=build_dir)
     if err:
         return err
 

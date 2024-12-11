@@ -1,0 +1,23 @@
+---
+doc: |
+  This workflow demonstrates how to build qemu from source
+
+  * Build qemu from source (x86_64 and aarch64)
+  * Install qemu
+  * Check the qemu system version -- which the helper resolves to
+
+  This is done via scripts, which in turn are utilizing helper-functions from
+  cijoe.qemu.wrapper.
+
+steps:
+- name: repository_prep
+  uses: core.repository_prep
+
+- name: build
+  uses: qemu.build
+
+- name: install
+  uses: qemu.install
+
+- name: qemu_system_version
+  uses: qemu.qemu_system_version
