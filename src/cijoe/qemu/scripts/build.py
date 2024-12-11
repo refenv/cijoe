@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-build qemu-system(x86_64 aarch64)
-=================================
+Build qemu system and default tools
+===================================
 
 In the build, virtfs and debugging enabled.
 
@@ -22,15 +22,29 @@ from pathlib import Path
 def main(args, cijoe, step):
     """Build qemu"""
 
-    conf = cijoe.config.options.get("qemu", None)
-    if not conf:
+    conf_qemu = cijoe.getconf("qemu", None)
+    if not conf_qemu:
         log.error("config is missing 'qemu' section")
         return errno.EINVAL
 
-    build_dir = Path(conf["repository"]["path"]) / "build"
+    repos = cijoe.getconf("qemu.repository", None)
+    if not repos:
+        log.error("missing qemu.repository")
+        return errno.EINVAL
+
+    err, _ = cijoe.run_local(f'[ -d "{repos["path"]}" ]')
+    if err:
+        log.error(f"No qemu git-repository at repos({repos['path']})")
+        return err
+
+    build_dir = Path(repos["path"]) / "build"
+
+    err, _ = cijoe.run_local(f"mkdir -p {build_dir}")
+    if err:
+        return err
 
     configure_args = [
-        f"--prefix={conf['build']['prefix']}",
+        f"--prefix={conf_qemu['build']['prefix']}",
         "--audio-drv-list=''",
         "--disable-docs",
         "--disable-glusterfs",
@@ -48,11 +62,6 @@ def main(args, cijoe, step):
         "--enable-virtfs",
         "--target-list=x86_64-softmmu,aarch64-softmmu",
     ]
-
-    err, _ = cijoe.run_local(f"mkdir -p {build_dir}")
-    if err:
-        return err
-
     err, _ = cijoe.run_local("../configure " + " ".join(configure_args), cwd=build_dir)
     if err:
         return err
