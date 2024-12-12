@@ -60,6 +60,16 @@ RUN apt-get -qy -f install --no-install-recommends \
 	qemu-utils \
 	ssh \
 	time \
+	kmod \
+	pciutils \
+	flex \
+	bison \
+	bc \
+	cpio \
+	libelf-dev \
+	libssl-dev \
+	rsync \
+	debhelper-compat \
 	&& \
 	apt-get -qy clean && \
 	apt-get -qy autoremove && \
