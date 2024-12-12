@@ -72,3 +72,45 @@ jobs:
         name: report-cijoe_packages-${{ matrix.usage_example }}
         path: cijoe-output/*
         if-no-files-found: error
+
+  collect-coverage:
+    runs-on: ubuntu-latest
+    needs: examples
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: --privileged
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+      with:
+        path: repository
+
+    - name: Set up Python
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: 3.12
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        cd repository
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH     
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4.1.8
+      with:
+          # If you omit 'name', all artifacts from previous jobs are downloaded.
+        path: ./all_artifacts
+
+    - name: Show downloaded artifacts
+      run: |
+        ls -lha all_artifacts
+        coverage combine all_artifacts/**/.coverage
+        coverage report\
+          --rcfile=repository/.coveragerc
+
