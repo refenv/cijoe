@@ -58,6 +58,21 @@ docker:
 				bash
 	@echo "## ${PROJECT_NAME}: docker [DONE]"
 
+
+define docker-privileged-help
+# drop into a privileged docker instance with the repository bind-mounted at /tmp/source
+endef
+.PHONY: docker-privileged
+docker-privileged:
+	@echo "## ${PROJECT_NAME}: docker"
+	@docker run -it \
+				--privileged \
+				-w /tmp/source \
+				--mount type=bind,source="$(shell pwd)",target=/tmp/source \
+				ghcr.io/refenv/cijoe-docker \
+				bash
+	@echo "## ${PROJECT_NAME}: docker [DONE]"
+
 define format-help
 # run code format (style, code-conventions and language-integrity) on staged changes
 endef
