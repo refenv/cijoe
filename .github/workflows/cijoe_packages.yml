@@ -114,3 +114,5 @@ jobs:
         coverage report\
           --rcfile=repository/.coveragerc
 
+    - name: Coveralls upload
+      uses: coverallsapp/github-action@v2
