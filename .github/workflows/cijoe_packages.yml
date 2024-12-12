@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        usage_example: ['fio', 'system_imaging', 'qemu.build']
+        usage_example: ['fio', 'system_imaging', 'qemu.build', 'linux']
         python-version: ['3.12']
 
     steps:
