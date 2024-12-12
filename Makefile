@@ -51,7 +51,11 @@ endef
 .PHONY: docker
 docker:
 	@echo "## ${PROJECT_NAME}: docker"
-	@docker run -it -w /tmp/source --mount type=bind,source="$(shell pwd)",target=/tmp/source ghcr.io/xnvme/xnvme-deps-debian-bullseye:next bash
+	@docker run -it \
+				-w /tmp/source \
+				--mount type=bind,source="$(shell pwd)",target=/tmp/source \
+				ghcr.io/refenv/cijoe-docker \
+				bash
 	@echo "## ${PROJECT_NAME}: docker [DONE]"
 
 define format-help
