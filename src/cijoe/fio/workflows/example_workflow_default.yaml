@@ -1,8 +1,12 @@
 ---
 doc: |
-  This workflow demonstrates how to use build and install fio via cijoe
+  This workflow demonstrates how to use build and install fio using scripts and
+  workflow defined by cijoe
 
 steps:
+- name: repository_prep
+  uses: core.repository_prep
+
 - name: build
   uses: fio.build
 
