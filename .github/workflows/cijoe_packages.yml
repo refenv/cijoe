@@ -26,6 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         usage_example:
+        - core.default
         - fio.default
         - linux.default
         - qemu.build
