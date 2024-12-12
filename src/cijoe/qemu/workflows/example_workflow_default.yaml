@@ -2,10 +2,7 @@
 doc: |
   This workflow demonstrates how to use qemu via cijoe in steps of
 
-  * Build qemu from source (x86_64 and aarch64)
-  * Install qemu
   * Provision a guest using a cloud-init image
-    - inject "$HOME/.ssh/id_rsa.pub" into guest as authorized_keys
   * Start the guest
   * Run a command within the guest (via SSH)
   * Stop the guest again
@@ -14,12 +11,6 @@ doc: |
   cijoe.qemu.wrapper.
 
 steps:
-- name: build
-  uses: qemu.build
-
-- name: install
-  uses: qemu.install
-
 - name: cloudinit
   uses: qemu.guest_init_using_cloudinit
 
