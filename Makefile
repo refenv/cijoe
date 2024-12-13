@@ -8,6 +8,7 @@ PYTEST="$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest
 PYTHON_SYS=python3
 PYTHON_VENV="$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/python3"
 TWINE=twine
+CIJOE_VERSION=$(shell cd src; python3 -c "from cijoe import core;print(core.__version__)")
 
 define default-help
 # invoke: 'make uninstall', 'make install'
@@ -57,6 +58,21 @@ docker:
 				ghcr.io/refenv/cijoe-docker \
 				bash
 	@echo "## ${PROJECT_NAME}: docker [DONE]"
+
+
+define docker-build-help
+# Build docker image
+endef
+.PHONY: docker-build
+docker-build:
+	@echo "## ${PROJECT_NAME}: docker"
+	@docker buildx build \
+		--build-arg CIJOE_VERSION=${CIJOE_VERSION} \
+		--tag ghcr.io/refenv/cijoe-docker:latest \
+		--file .github/cijoe-docker/Dockerfile \
+		.
+	@echo "## ${PROJECT_NAME}: docker [DONE]"
+
 
 
 define docker-privileged-help
