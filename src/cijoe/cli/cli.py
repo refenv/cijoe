@@ -187,33 +187,64 @@ def cli_example(args):
 
     resources = get_resources()
 
+    # Print examples when called like "cijoe --example"
+    if args.example == "list_examples_and_exit":
+        for workflow_name, workflow in sorted(resources.get("workflows").items()):
+            if "example" not in workflow_name:
+                continue
+
+            pkg_name, tail = workflow_name.split(".", 1)
+            example_name = tail.replace("example_workflow_", "")
+
+            print(f"{pkg_name}.{example_name}")
+        return 0
+
     pkg_name, *tail = args.example.split(".")
     if len(tail) > 1:
         log.error(f"Invalid argument: {args.example}")
         return errno.EINVAL
 
-    for section, default_filename in [
-        ("config", DEFAULT_CONFIG_FILENAME),
-        ("workflow", DEFAULT_WORKFLOW_FILENAME),
-        ("script", DEFAULT_SCRIPT_FILENAME),
-    ]:
-        example_name = tail[0] if tail else "default"
-        label = f"{pkg_name}.example_{section}_{example_name}"
-
-        resource = resources.get(f"{section}s", {}).get(label, None)
-        if resource is None:
-            if section == "script":  # Providing an example script is optional
-                continue
-
-            log.error(f"'No example '{section}' in example({args.example})")
-            return errno.EINVAL
-
-        dst = Path.cwd().joinpath(default_filename)
-        if dst.exists():
-            log.info(f"skipping dst({dst}); already exists")
+    # Emit examples
+    for workflow_name, workflow in sorted(resources.get("workflows").items()):
+        if not workflow_name.startswith(pkg_name):  # Not the requested package
+            continue
+        if "example" not in workflow_name:  # Not an example workflow
             continue
 
-        shutil.copyfile(resource.path, dst)
+        cur_example_id = workflow_name.replace("example_workflow_", "")
+        cur_pkg_name, cur_example_name = cur_example_id.split(".", 1)
+        cur_example_dir = Path.cwd() / f"cijoe-example-{cur_example_id}"
+
+        log.info(f"cur_pkg_name{cur_pkg_name} cur_example_name{cur_example_name}")
+        if tail and "".join(tail) != cur_example_name:
+            log.debug(f"skipping example_name({cur_example_name})")
+            continue
+
+        cur_example_dir.mkdir()
+
+        for section, default_filename in [
+            ("config", DEFAULT_CONFIG_FILENAME),
+            ("workflow", DEFAULT_WORKFLOW_FILENAME),
+            ("script", DEFAULT_SCRIPT_FILENAME),
+        ]:
+            label = f"{pkg_name}.example_{section}_{cur_example_name}"
+
+            log.info(f"{args.example}, label({label})")
+
+            resource = resources.get(f"{section}s", {}).get(label, None)
+            if resource is None:
+                if section == "script":  # Providing an example script is optional
+                    continue
+
+                log.error(f"'No example '{section}' in example({args.example})")
+                return errno.EINVAL
+
+            dst = cur_example_dir.joinpath(default_filename)
+            if dst.exists():
+                log.info(f"skipping dst({dst}); already exists")
+                continue
+
+            shutil.copyfile(resource.path, dst)
 
     return 0
 
@@ -467,12 +498,14 @@ def parse_args():
     utils_group.add_argument(
         "--example",
         "-e",
-        action="store",
-        const="core",
         type=str,
         nargs="?",
+        const="list_examples_and_exit",
         default=None,
-        help=f"Create '{DEFAULT_CONFIG_FILENAME}', '{DEFAULT_WORKFLOW_FILENAME}' and '{DEFAULT_SCRIPT_FILENAME}' and exit.",
+        help=(
+            "Emits the given example. When no example is given, "
+            "then it prints a list of available examples."
+        ),
     )
     utils_group.add_argument(
         "--version",
