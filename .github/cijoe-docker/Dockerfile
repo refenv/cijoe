@@ -85,9 +85,9 @@ ENV PIPX_HOME=/root/.local/pipx
 ENV PATH=/root/.local/bin::$PATH
 
 # Install cijoe itself
-RUN pipx install cijoe==$CIJOE_VERSION \
-	pipx inject cijoe coverage --include-apps --force \
-	pipx inject cijoe pytest-cov --force
+RUN pipx install cijoe==$CIJOE_VERSION && \
+    pipx inject cijoe coverage --force && \
+    pipx inject cijoe pytest-cov --force
 
 #
 # Modified SSH Configuration, this is done enable the use of ssh to localhost
