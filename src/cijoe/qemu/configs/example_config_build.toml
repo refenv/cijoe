@@ -1,7 +1,8 @@
-# The SSH options are passed verbatim to paramiko; see
-# https://www.paramiko.org/ This is common CIJOE infrastructure
 #
-# Used by: cijoe.run() / cijoe.get() / cijoe.put()
+# This part of the CIJOE qemu package is not retargetable, that means, this
+# scripts only run on the initiator, thus, there is no "cijoe.transport"
+# configuration here.
+#
 
 [cijoe.workflow]
 fail_fast=true
@@ -18,5 +19,10 @@ prefix = "{{ local.env.HOME }}/opt/qemu"
 
 # Used by: the qemu.*.py scripts
 [qemu]
-system_bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-system-x86_64"
 img_bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-img"
+
+[qemu.systems.x86_64]
+bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-system-x86_64"
+
+[qemu.systems.aarch64]
+bin = "{{ local.env.HOME }}/opt/qemu/bin/qemu-system-aarch64"

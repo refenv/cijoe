@@ -14,9 +14,9 @@ script via workflow, such as these::
     with:
       pattern: "*"
 
-    # This will build all those starting with alpine
+    # This will build all those starting with debian
     with:
-      pattern: "alpine*"
+      pattern: "debian*"
 
 Retargetable: False
 -------------------
