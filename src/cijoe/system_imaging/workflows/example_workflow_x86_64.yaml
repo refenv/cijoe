@@ -24,17 +24,17 @@ doc: |
   It uses the 'system_imaging' section of the configuration file as input, the
   system images matching 'pattern' are processed.
 
-  Note: This example uses Alpine Linux because it is fast to build and requires
-  minimal disk space. However, any cloud image, including those provided by
-  FreeBSD, can be used.
+  NOTE: This creates images for all x86_64 system images described in the
+        "system_imaging" section of the cijoe configuration file. This could be
+        swapped with aarch64, however, it has not been tested yet.
 
 steps:
 - name: diskimage_from_cloudimage
   uses: system_imaging.diskimage_from_cloudimage
   with:
-    pattern: "alpine*"
+    pattern: "*x86_64*"
 
 - name: dockerimage_from_diskimage
   uses: system_imaging.dockerimage_from_diskimage
   with:
-    pattern: "alpine*"
+    pattern: "*x86_64*"

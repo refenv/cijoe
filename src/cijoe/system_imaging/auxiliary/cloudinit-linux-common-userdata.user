@@ -1,0 +1,34 @@
+#cloud-config
+disable_root: false
+ssh_pwauth: true
+
+chpasswd:
+  expire: false
+  users:
+  - {name: root, password: root, type: text}
+
+package_update: true
+package_upgrade: true
+packages:
+- htop
+- lshw
+- pciutils
+
+write_files:
+- path: /etc/ssh/sshd_config
+  content: |
+    PermitRootLogin yes
+    PermitEmptyPasswords yes
+    PasswordAuthentication yes
+  owner: root:root
+  permissions: '0644'
+
+runcmd:
+- systemctl restart ssh
+  
+final_message: "The system is up, after $UPTIME seconds"
+power_state:
+  mode: poweroff
+  message: So long and thanks for all the fish
+  timeout: 30
+  condition: true

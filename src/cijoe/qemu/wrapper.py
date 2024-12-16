@@ -9,12 +9,14 @@
     machine to serve as a 'target' for tests.
 """
 
+import errno
 import logging as log
 import os
 import shutil
 import time
 from pathlib import Path
 from pprint import pformat
+from typing import Optional
 
 import psutil
 
@@ -24,17 +26,38 @@ from cijoe.core.misc import download_and_verify
 def qemu_img(cijoe, args=""):
     """Helper function wrapping around 'qemu-img'"""
 
-    return cijoe.run_local(f"{cijoe.config.options['qemu']['img_bin']} {args}")
+    qemu_img_bin_default = "qemu-img"
+
+    qemu_img_bin = cijoe.config.options.get("qemu", {}).get("img_bin", None)
+    if qemu_img_bin is None:
+        log.error("Could not determine 'qemu-img' binary")
+        qemu_img_bin = qemu_img_bin_default
+
+    log.info(
+        f"qemu_img_bin({qemu_img_bin}), qemu_img_bin_default({qemu_img_bin_default})"
+    )
+
+    return cijoe.run_local(f"{qemu_img_bin} {args}")
 
 
-def qemu_system(cijoe, args=""):
-    """Wrapping the qemu system binary"""
+def qemu_system(cijoe, system_label, args=""):
+    """Resolves and invokes the qemu-system by its system_label e.g. 'x86_64'"""
 
-    return cijoe.run_local(f"{cijoe.config.options['qemu']['system_bin']} {args}")
+    system_bin = (
+        cijoe.config.options.get("qemu", {})
+        .get("systems", {})
+        .get(system_label, {})
+        .get("bin", None)
+    )
+    if system_bin is None:
+        log.error(f"Cannot determine system using system_label({system_label})")
+        return errno.EINVAL, None
+
+    return cijoe.run_local(f"{system_bin} {args}")
 
 
 class Guest(object):
-    def __init__(self, cijoe, config, guest_name=None):
+    def __init__(self, cijoe, config, guest_name):
         """."""
 
         qemu_config = config.options.get("qemu", {})
@@ -42,13 +65,9 @@ class Guest(object):
         if not (qemu_config and qemu_guests):
             raise ValueError(f"Invalid qemu_config({pformat(qemu_config)})")
 
-        guest_name = qemu_config.get("default_guest", list(qemu_guests.keys())[0])
-        if not guest_name:
-            raise ValueError(f"Invalid qemu_config({pformat(qemu_config)})")
-
         guest_config = qemu_guests.get(guest_name, None)
         if not guest_config:
-            raise ValueError(f"Invalid qemu_config({pformat(qemu_config)})")
+            raise ValueError(f"Invalid guest_config({pformat(guest_config)})")
 
         guest_path = guest_config.get("path", None)
         if not (guest_config and guest_path):
@@ -59,8 +78,9 @@ class Guest(object):
         self.qemu_config = qemu_config
         self.guest_config = guest_config
         self.guest_path = Path(guest_path).resolve()
+
+        self.bios_img = self.guest_path / "bios.img"
         self.boot_img = self.guest_path / "boot.img"
-        self.seed_img = self.guest_path / "seed.img"
         self.pid = self.guest_path / "guest.pid"
         self.monitor = self.guest_path / "monitor.sock"
         self.serial = self.guest_path / "serial.output"
@@ -99,15 +119,50 @@ class Guest(object):
 
         return pid
 
-    def initialize(self):
+    def initialize(self, diskimage_path: Optional[Path] = None):
         """Create a 'home' for the guest'"""
 
         os.makedirs(self.guest_path, exist_ok=True)
+
+        if diskimage_path:
+            err, _ = self.cijoe.run_local(f"cp {diskimage_path} {self.boot_img}")
+            if err:
+                log.error(f"Failed copying diskimage({diskimage_path}); err({err})")
+                return err
+
+        if self.guest_config.get("system_label", None) != "aarch64":
+            return 0
+
+        # aarch64
+        bios_path = None
+        for location in [
+            "/usr/share/edk2/aarch64/QEMU_EFI.fd",
+            "/usr/share/qemu-efi-aarch64/QEMU_EFI.fd",
+        ]:
+            if (cand_path := Path(location)).exists():
+                bios_path = cand_path
+
+        if bios_path is None:
+            log.error("Could not find aarch64 bios/firmware")
+            return errno.EINVAL
+
+        err, _ = self.cijoe.run_local(f"cp {bios_path} {self.bios_img}")
+        if err:
+            log.error("copy failed")
+            return errno.EINVAL
+
+        err, _ = self.cijoe.run_local(f"truncate -s 64m {self.bios_img}")
+        if err:
+            log.error("truncate failed")
+            return errno.EINVAL
+
+        return 0
 
     def is_up(self, timeout=120):
         """Wait at most 'timeout' seconds for the guest to print 'login' to serial"""
 
         if not self.is_running():
+            log.error("is_running(), check via pid, is False")
             return False
 
         began = time.time()
@@ -128,10 +183,16 @@ class Guest(object):
             if elapsed_iter < 5.0:
                 time.sleep(5.0 - elapsed_iter)
             if elapsed_total > timeout:
+                log.error(f"System did not come up within timeout({timeout}) seconds")
                 return False
 
     def start(self, daemonize=True, extra_args=[]):
         """."""
+
+        system_label = self.guest_config.get("system_label", None)
+        if system_label is None:
+            log.error(f"invalid qemu.guests.GUEST.system_label({system_label})")
+            return errno.EINVAL
 
         args = []
 
@@ -145,7 +206,18 @@ class Guest(object):
             else:
                 args.append(str(value))
 
-        # Magic: when 'boot.img' exists, add it is as boot-drive
+        #
+        # Managed: when 'bios.img' exists, add it as a 'pflash'
+        #
+        if self.bios_img.exists():
+            args += [
+                "-drive",
+                f"file={self.bios_img},format=raw,if=pflash,readonly=on",
+            ]
+
+        #
+        # Managed: when 'boot.img' exists, add it is as boot-drive
+        #
         if self.boot_img.exists():
             args += [
                 "-blockdev",
@@ -198,9 +270,12 @@ class Guest(object):
         #
         args += [system_args.get("raw", "")]
 
-        err, _ = qemu_system(self.cijoe, " ".join(args))
+        err, _ = qemu_system(self.cijoe, system_label, " ".join(args))
+        if err:
+            log.error(f"qemu_system failed with err({err})")
+            return err
 
-        return err
+        return 0
 
     def kill(self):
         """Shutdown qemu guests by killing the process using the 'guest.pid'"""
@@ -220,117 +295,3 @@ class Guest(object):
             log.info("Got 'NoSuchProcess', that is OK, continue.")
 
         return err
-
-    def init_using_cloudinit(self):
-        """Provision a guest OS using cloudinit"""
-
-        self.kill()  # Ensure the guest is *not* running
-        self.initialize()  # Ensure the guest has a "home"
-
-        # Ensure the guest has a cloudinit-image available for "installation"
-        cloudinit = self.guest_config.get("init_using_cloudinit", {})
-        if not cloudinit:
-            log.error("missing config([qemu.guest.init_using_cloudinit])")
-            return 1
-
-        if not all(key in cloudinit for key in ["img", "url", "url_checksum"]):
-            log.error(
-                'missing config. [qemu.guest.init_using_cloudinit] must have keys "img", "url", "url_checksum"'
-            )
-            return 1
-
-        url = cloudinit["url"]
-        url_checksum = cloudinit["url_checksum"]
-        img = cloudinit["img"]
-
-        img = Path(img).resolve()
-        if not img.exists():
-            img.parent.mkdir(parents=True, exist_ok=True)
-            err, img = download_and_verify(url, url_checksum, img)
-            if err:
-                log.error(f"download({url}), {img}: failed")
-                return err
-
-        # Create the boot.img based on cloudinit_img
-        shutil.copyfile(str(img), str(self.boot_img))
-        qemu_img(self.cijoe, f"resize {self.boot_img} 10G")
-
-        # Create seed.img, with data and meta embedded
-        metadata_path = shutil.copyfile(
-            cloudinit["meta"], self.guest_path / "meta-data"
-        )
-        userdata_path = shutil.copyfile(
-            cloudinit["user"], self.guest_path / "user-data"
-        )
-
-        # Inject the "pubkey" from config
-        if "pubkey" in cloudinit:
-            with Path(cloudinit["pubkey"]).resolve().open() as kfile:
-                pubkey = kfile.read()
-            with userdata_path.open("a") as userdatafile:
-                userdatafile.write("ssh_authorized_keys:\n")
-                userdatafile.write(f"- {pubkey}\n")
-
-        # This uses mkisofs instead of cloud-localds, such that it works on
-        # macOS and Linux, the 'mkisofs' should be available with 'cdrtools'
-        cloud_cmd = " ".join(
-            [
-                "mkisofs",
-                "-output",
-                str(self.seed_img),
-                "-volid",
-                "cidata",
-                "-joliet",
-                "-rock",
-                str(userdata_path),
-                str(metadata_path),
-            ]
-        )
-        err, _ = self.cijoe.run_local(cloud_cmd)
-
-        # Additional args to pass to the guest when starting it
-        system_args = []
-        system_args += ["-drive", f"file={self.seed_img},if=virtio,format=raw"]
-
-        err = self.start(daemonize=False, extra_args=system_args)
-        if err:
-            log.error("failed starting...")
-            return err
-
-        return 0
-
-    def init_using_bootimage(self):
-        """Provision a guest OS using a bootable disk-image"""
-
-        self.kill()  # Ensure the guest is *not* running
-        self.initialize()  # Ensure the guest has a "home"
-
-        # Ensure the guest has an image available to boot from
-        boot = self.guest_config.get("init_using_bootimage", {})
-        if not boot:
-            log.error("missing config([qemu.guest.init_using_bootimage])")
-            return 1
-
-        if not all(key in boot for key in ["img", "url", "url_checksum"]):
-            log.error(
-                'missing config. [qemu.guest.init_using_bootimage] must have keys "img", "url", "url_checksum"'
-            )
-            return 1
-
-        url = boot["url"]
-        url_checksum = boot["url_checksum"]
-        img = boot["img"]
-
-        img = Path(img).resolve()
-        if not img.exists():
-            img.parent.mkdir(parents=True, exist_ok=True)
-            err, img = download_and_verify(url, url_checksum, img)
-            if err:
-                log.error(f"download({url}), {img}: failed")
-                return err
-
-        # Create the boot.img based on cloudinit_img
-        shutil.copyfile(str(img), str(self.boot_img))
-        qemu_img(self.cijoe, f"resize {self.boot_img} 10G")
-
-        return 0
