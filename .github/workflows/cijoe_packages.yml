@@ -29,7 +29,9 @@ jobs:
         - core.default
         - fio.default
         - linux.default
+        - qemu.bootimage
         - qemu.build
+        - qemu.cloudinit
         - system_imaging.default
         python-version: ['3.12']
 

@@ -2,6 +2,10 @@
 # https://www.paramiko.org/ This is common CIJOE infrastructure
 #
 # Used by: cijoe.run() / cijoe.get() / cijoe.put()
+# The SSH options are passed verbatim to paramiko; see
+# https://www.paramiko.org/ This is common CIJOE infrastructure
+#
+# Used by: cijoe.run() / cijoe.get() / cijoe.put()
 [cijoe.transport.qemu_guest]
 username = "root"
 password = "root"

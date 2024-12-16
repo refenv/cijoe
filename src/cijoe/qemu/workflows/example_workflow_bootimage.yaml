@@ -1,0 +1,25 @@
+---
+doc: |
+  This workflow demonstrates how to use qemu via cijoe in steps of
+
+  * Provision a guest using a cloud-init image
+  * Start the guest
+  * Run a command within the guest (via SSH)
+  * Stop the guest again
+
+  This is done via scripts, which in turn are utilizing helper-functions from
+  cijoe.qemu.wrapper.
+
+steps:
+- name: bootimage
+  uses: qemu.guest_init_using_bootimage
+
+- name: start
+  uses: qemu.guest_start
+
+- name: check
+  run: |
+    hostname
+
+- name: kill
+  uses: qemu.guest_kill
