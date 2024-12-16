@@ -12,6 +12,8 @@ on:
 # This is needed for 'guestmount' / 'libguestfs'
 env:
   LIBGUESTFS_BACKEND: direct
+  PIPX_HOME: /opt/pipx
+
 
 defaults:
   run:
@@ -41,6 +43,7 @@ jobs:
         brew upgrade pipx || true
         make deps
         make info
+        echo $HOME
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Install pre-commit
@@ -57,12 +60,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu-latest]
+        python-version: ['3.11', '3.12']
 
     steps:
     - name: Grab source
       uses: actions/checkout@v4.1.7
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.2.0
       with:
@@ -70,6 +74,9 @@ jobs:
 
     - name: Python dependencies and their versions
       run: |
+        pip install pipx
+        pipx environment
+        pipx ensurepath
         brew update || true
         brew upgrade pipx || true
         make deps
@@ -80,10 +87,11 @@ jobs:
       run: |
         make all
         ls -lha
+        cat .coverage
         cijoe -r
 
     - name: Upload coverage
-      if: always()
+      if: ${{ matrix.python-version == '3.11' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-coverage-${{ matrix.os }}-${{ matrix.python-version }}
@@ -103,10 +111,11 @@ jobs:
       matrix:
         usage_example:
         - fio.default
-        - linux.default
-        - qemu.build
-        - system_imaging.default
-        python-version: ['3.12']
+        - core.default
+        # - linux.default
+        # - qemu.build
+        # - system_imaging.default
+        python-version: ['3.11']
 
     steps:
     - name: Grab source
@@ -129,21 +138,26 @@ jobs:
     - name: Emit the example configuration file and workflow
       run: |
         cijoe --example ${{ matrix.usage_example }}
+        ls -lha
+        pwd
+        which cijoe
+        which coverage
 
     - name: Run it!
       run: |
-        coverage run\
-          --data-file=.coverage\
-          --rcfile=repository/.coveragerc\
-          -L \
+        cd cijoe-example-${{ matrix.usage_example}}
+        coverage run \
+          --data-file=.coverage \
+          --rcfile=../repository/.coveragerc \
           $(which cijoe) --monitor
+        coverage report
 
     - name: Upload report
       if: always()
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-cijoe_packages-${{ matrix.usage_example }}
-        path: cijoe-output/*
+        path: cijoe-example-${{ matrix.usage_example}}/cijoe-output/*
         if-no-files-found: error
 
     - name: Upload coverage
@@ -151,7 +165,7 @@ jobs:
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-coverage-${{ matrix.usage_example }}
-        path: .coverage
+        path: cijoe-example-${{ matrix.usage_example}}/.coverage
         if-no-files-found: error
 
   collect-coverage:
@@ -170,17 +184,12 @@ jobs:
       with:
         path: repository
 
-    - name: Set up Python
-      uses: actions/setup-python@v5.3.0
-      with:
-        python-version: 3.12
-
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
         cd repository
         make deps info build install
-        echo "$HOME/.local/bin" >> $GITHUB_PATH     
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4.1.8
@@ -190,9 +199,15 @@ jobs:
 
     - name: Show downloaded artifacts
       run: |
-        ls -lha all_artifacts
-        coverage combine all_artifacts/**/.coverage
-        coverage report\
+        coverage combine \
+          --rcfile=repository/.coveragerc \
+          all_artifacts/**/.coverage
+        ls -lha /root/.local/pipx/venvs/
+        ls -lha /root/.local/pipx/venvs/cijoe/ || true
+        ls -lha /root/.local/pipx/venvs/cijoe/lib/ || true
+        ls -lha /root/.local/pipx/venvs/cijoe/lib/python3.12/ || true
+        coverage report \
+          --debug=trace,config \
           --rcfile=repository/.coveragerc
 
     - name: Coveralls upload

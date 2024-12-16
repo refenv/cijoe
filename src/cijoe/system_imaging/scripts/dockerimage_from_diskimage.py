@@ -67,7 +67,7 @@ def dockerimage_from_diskimage(cijoe, image):
 
     cijoe.run_local(f'echo "Needs cleanup!" && find {workdir}')
     cijoe.run_local(
-        f'echo "Run with: docker run -it {image['docker']['name']}:{image['docker']['tag']} bash"'
+        f'echo "Run with: docker run -it {image["docker"]["name"]}:{image["docker"]["tag"]} bash"'
     )
 
     return 0
