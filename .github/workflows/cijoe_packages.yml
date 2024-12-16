@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-    - "cijoe_pkg_*"
+    - "main"
     tags:
     - "v*"
 
