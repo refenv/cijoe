@@ -14,19 +14,21 @@ script via workflow, such as these::
     with:
       pattern: "*"
 
-    # This will build all those starting with alpine
+    # This will build all those starting with "debian"
     with:
-      pattern: "alpine*"
+      pattern: "debian*"
 
 Retargetable: False
 -------------------
 
 This script only runs on the iniator; due to the use of 'shutil', 'download' etc.
 """
+import errno
 import logging as log
 import shutil
 from fnmatch import fnmatch
 from pathlib import Path
+from pprint import pformat
 
 from cijoe.core.misc import download
 from cijoe.qemu.wrapper import Guest, qemu_img
@@ -37,13 +39,8 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     Build a diskimage, using qemu and cloudimage, and copy it to the diskimage location
     """
 
-    guest = Guest(cijoe, cijoe.config)
-    guest.kill()  # Ensure the guest is *not* running
-    guest.initialize()  # Ensure the guest has a "home"
-
-    cloud = image.get("cloud", {})
-    if not cloud:
-        log.error("missing entry({entry}.cloud) in configuration file")
+    if not (cloud := image.get("cloud", {})):
+        log.error("missing .cloud entry in configuration file")
         return 1
 
     cloud_image_path = Path(cloud.get("path"))
@@ -51,9 +48,8 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     cloud_image_metadata_path = Path(cloud.get("metadata_path"))
     cloud_image_userdata_path = Path(cloud.get("userdata_path"))
 
-    disk = image.get("disk", {})
-    if not disk:
-        log.error("missing entry({entry}.disk) in configuration file")
+    if not (disk := image.get("disk", {})):
+        log.error("missing .disk entry in configuration file")
         return 1
 
     if not cloud_image_path.exists():
@@ -64,9 +60,34 @@ def diskimage_from_cloudimage(cijoe, image: dict):
             log.error(f"download({cloud_image_url}), {cloud_image_path}: failed")
             return err
 
+    if (system_label := image.get("system_label", None)) is None:
+        log.error("missing .system_label entry in configuration file")
+        pass
+
+    # Get the first guest with a matching system_label
+    guest_name = None
+    for cur_guest_name, cur_guest in (
+        cijoe.config.options.get("qemu", {}).get("guests", {}).items()
+    ):
+        guest_system_label = cur_guest.get("system_label", None)
+        if guest_system_label is None:
+            log.error(f"guest_name({cur_guest_name}) is missing 'system_label'")
+            return errno.EINVAL
+
+        if guest_system_label == system_label:
+            guest_name = cur_guest_name
+            break
+
+    if guest_name is None:
+        log.error("Could not find a guest to use for diskimage creation")
+        return errno.EINVAL
+
+    guest = Guest(cijoe, cijoe.config, guest_name)
+    guest.kill()  # Ensure the guest is *not* running
+    guest.initialize(cloud_image_path)  # Initialize using the cloudimage
+
     # Copy cloudimage into guest as "boot.img" and grow it to 10G
-    shutil.copyfile(str(cloud_image_path), str(guest.boot_img))
-    qemu_img(cijoe, f"resize {guest.boot_img} 10G")
+    # qemu_img(cijoe, f"resize {guest.boot_img} 10G")
 
     # Create seed.img, with data and meta embedded
     metadata_path = shutil.copyfile(
@@ -75,6 +96,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     userdata_path = shutil.copyfile(
         cloud_image_userdata_path, guest.guest_path / "user-data"
     )
+    seed_img = guest.guest_path / "seed.img"
 
     # This uses mkisofs instead of cloud-localds, such that it works on macOS and Linux,
     # the 'mkisofs' should be available with 'cdrtools'
@@ -82,7 +104,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
         [
             "mkisofs",
             "-output",
-            str(guest.seed_img),
+            f"{seed_img}",
             "-volid",
             "cidata",
             "-joliet",
@@ -95,7 +117,9 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     # Additional args to pass to the guest when starting it
     system_args = []
-    system_args += ["-drive", f"file={guest.seed_img},if=virtio,format=raw"]
+
+    # system_args += ["-drive", f"file={seed_img},if=virtio,format=raw"]
+    system_args += ["-cdrom", f"{seed_img}"]
 
     # When not daemonized then this will block until the machine shuts down, which is
     # what we want, as we want to wait for the cloudinit process to finalize
@@ -107,7 +131,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     # Copy to disk-location
     disk_path = Path(disk.get("path"))
     disk_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(cloud_image_path, disk_path)
+    shutil.copyfile(guest.boot_img, disk_path)
 
     # Compute sha256sum of the disk-image
     err, _ = cijoe.run_local(f"sha256sum {disk_path} > {disk_path}.sha256")
@@ -137,12 +161,13 @@ def main(args, cijoe, step):
         log.error(f"missing: '{entry_name}' in configuration file")
         return 1
 
-    count = 0
+    build_status = {}
     for image_name, image in cijoe.getconf("system-imaging.images", {}).items():
         if not fnmatch(image_name.lower(), pattern.lower()):
             log.info(f"image_name({image_name}); did not match pattern({pattern}")
             continue
 
+        build_status[image_name] = False
         log.info(f"image_name({image_name}); matched pattern({pattern})")
 
         err = diskimage_from_cloudimage(cijoe, image)
@@ -150,7 +175,10 @@ def main(args, cijoe, step):
             log.error(f"failed build_and_copy(); err({err})")
             return err
 
-        count += 1
+        build_status[image_name] = True
+
+    count = sum([1 for status in build_status.values() if status])
+    log.info(f"Build count({count}) disk images; status: {pformat(build_status)}")
 
     if not count:
         log.error(f"did not build anything, count({count}); invalid with.pattern?")
