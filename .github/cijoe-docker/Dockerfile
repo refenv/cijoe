@@ -73,7 +73,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	&& \
 	apt-get -qy clean && \
 	apt-get -qy autoremove && \
-	rm -rf /var/lib/apt/lists/* \
+	rm -rf /var/lib/apt/lists/* && \
 	pipx ensurepath
 
 # Proide the cijoe-version as argument to the build and expose it in ENV
