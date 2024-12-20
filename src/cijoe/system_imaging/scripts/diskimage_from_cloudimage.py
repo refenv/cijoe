@@ -41,7 +41,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     if not (cloud := image.get("cloud", {})):
         log.error("missing .cloud entry in configuration file")
-        return 1
+        return errno.EINVAL
 
     cloud_image_path = Path(cloud.get("path"))
     cloud_image_url = cloud.get("url")
@@ -50,7 +50,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     if not (disk := image.get("disk", {})):
         log.error("missing .disk entry in configuration file")
-        return 1
+        return errno.EINVAL
 
     if not cloud_image_path.exists():
         cloud_image_path.parent.mkdir(parents=True, exist_ok=True)
@@ -151,7 +151,7 @@ def main(args, cijoe, step):
     pattern = step.get("with", {}).get("pattern", None)
     if pattern is None:
         log.error("missing step-argument: with.pattern")
-        return 1
+        return errno.EINVAL
 
     log.info(f"Got pattern({pattern})")
 
@@ -159,7 +159,7 @@ def main(args, cijoe, step):
     images = cijoe.getconf(entry_name, {})
     if not images:
         log.error(f"missing: '{entry_name}' in configuration file")
-        return 1
+        return errno.EINVAL
 
     build_status = {}
     for image_name, image in cijoe.getconf("system-imaging.images", {}).items():
@@ -182,6 +182,6 @@ def main(args, cijoe, step):
 
     if not count:
         log.error(f"did not build anything, count({count}); invalid with.pattern?")
-        return err
+        return errno.EINVAL
 
     return 0

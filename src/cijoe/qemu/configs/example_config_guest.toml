@@ -96,3 +96,41 @@ disk.url_checksum = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.
 docker.url = "ghcr.io/refenv/debian-12-x86_64:main"
 docker.name = "debian-12-x86_64"
 docker.tag = "example"
+
+[system-imaging.images.fedora-41-x86_64]
+system_label = "x86_64"
+
+cloud.url ="https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-fedora-metadata'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-fedora-userdata'] }}"
+
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+
+docker.url = "ghcr.io/refenv/fedora-41-x86_64:main"
+docker.name = "fedora-41-x86_64"
+docker.tag = "example"
+
+[system-imaging.images.ubuntu-2404-x86_64]
+system_label = "x86_64"
+
+cloud.url = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/noble-server-cloudimg-amd64.img"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-ubuntu-metadata'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-ubuntu-userdata'] }}"
+
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/noble-server-cloudimg-amd64.img"
+
+docker.url = "ghcr.io/refenv/ubuntu-2404-x86_64:main"
+docker.name = "ubuntu-2404-x86_64"
+docker.tag = "example"
+
+
+[system-imaging.images.freebsd-x86_64]
+system_label = "x86_64"
+
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.ufs.qcow2"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-meta'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-user'] }}"
+
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.ufs.qcow2"
