@@ -1,0 +1,9 @@
+[run]
+source =
+    cijoe.core
+    cijoe.cli
+    cijoe.fio
+    cijoe.gha
+    cijoe.linux
+    cijoe.qemu
+    cijoe.system_imaging
