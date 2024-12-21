@@ -1,0 +1,39 @@
+---
+doc: |
+  Build disk and docker images
+  ============================
+
+  Here is what the workflow consumes and produces:
+
+  * cloud image ==> disk image (.qcow2) ==> docker image
+
+  This images are usable for:
+
+  * Disk image for a virtual machine
+
+    - This can be e.g. a qemu-guest or other host-vmm / hypervisor
+
+  * Disk image for a physical machine
+
+    - By writing to bootable media using qemu-img
+
+  * Docker image
+
+    - Run locally using Docker engine, desktop e.g. GitHUB
+
+  It uses the 'system_imaging' section of the configuration file as input, the
+  system images matching 'pattern' are processed.
+
+  NOTE: This creates images for all aarch64 system images described in the
+        "system_imaging" section of the cijoe configuration file.
+
+steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
+  with:
+    pattern: "*aarch64*"
+
+- name: dockerimage_from_diskimage
+  uses: system_imaging.dockerimage_from_diskimage
+  with:
+    pattern: "*aarch64*"

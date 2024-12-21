@@ -118,13 +118,13 @@ class Guest(object):
 
         return pid
 
-    def initialize(self, disk_path: Optional[Path] = None):
+    def initialize(self, diskimage_path: Optional[Path] = None):
         """Create a 'home' for the guest'"""
 
         os.makedirs(self.guest_path, exist_ok=True)
 
-        if disk_path:
-            shutil.copyfile(disk_path, self.boot_img)
+        if diskimage_path:
+            shutil.copyfile(diskimage_path, self.boot_img)
 
         return 0
 

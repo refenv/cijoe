@@ -30,8 +30,10 @@ jobs:
         - fio.default
         - linux.default
         - qemu.build
-        - qemu.guest
-        - system_imaging.default
+        - qemu.guest_aarch64
+        - qemu.guest_x86_64
+        - system_imaging.aarch64
+        - system_imaging.x86_64
         python-version: ['3.12']
 
     steps:

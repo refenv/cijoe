@@ -32,39 +32,38 @@ def main(args, cijoe, step):
     guest_name = step.get("with", {}).get("guest_name", None)
     if guest_name is None:
         log.error("missing step-argument: with.guest_name")
-        return 1
+        return errno.EINVAL
 
     guest = Guest(cijoe, cijoe.config, guest_name)
 
-    diskimage_name = (
+    system_image_name = (
         cijoe.config.options.get("qemu", {})
         .get("guests", {})
         .get(guest_name, {})
-        .get("system_args", {})
-        .get("diskimage", None)
+        .get("system_image_name", step.get("with", {}).get("system_image_name", None))
     )
-    if diskimage_name is None:
-        log.error("qemu.guests.THIS.system_args.diskimage is not set")
+    if system_image_name is None:
+        log.error("qemu.guests.THIS.system_args.system_image_name is not set")
         return errno.EINVAL
 
     disk = (
         cijoe.config.options.get("system-imaging", {})
         .get("images", {})
-        .get(diskimage_name, {})
+        .get(system_image_name, {})
         .get("disk", None)
     )
     if disk is None:
-        log.error(f"system-imaging.images.{diskimage_name}.disk is not set")
+        log.error(f"system-imaging.images.{system_image_name}.disk is not set")
         return errno.EINVAL
 
-    disk_path = Path(disk.get("path"))
-    if not disk_path.exists():
-        disk_path.parent.mkdir(exist_ok=True, parents=True)
+    diskimage_path = Path(disk.get("path"))
+    if not diskimage_path.exists():
+        diskimage_path.parent.mkdir(exist_ok=True, parents=True)
         err, path = download_and_verify(
-            disk.get("url"), disk.get("url_checksum"), disk_path
+            disk.get("url"), disk.get("url_checksum"), diskimage_path
         )
         log.info(f"err({err}, path({path})")
         if err:
             return err
 
-    return guest.initialize(disk_path)
+    return guest.initialize(diskimage_path)

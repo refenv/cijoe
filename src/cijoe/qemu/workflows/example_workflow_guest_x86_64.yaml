@@ -22,12 +22,13 @@ steps:
 - name: diskimage_from_cloudimage
   uses: system_imaging.diskimage_from_cloudimage
   with:
-    pattern: "debian*"
+    pattern: "debian-12-x86_64"
 
 - name: guest_initialize
   uses: qemu.guest_initialize
   with:
     guest_name: generic-bios-kvm-x86_64
+    system_image_name: debian-12-x86_64
 
 - name: guest_start
   uses: qemu.guest_start
