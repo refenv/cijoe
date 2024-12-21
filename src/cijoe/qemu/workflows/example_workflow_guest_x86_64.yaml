@@ -1,0 +1,45 @@
+---
+doc: |
+  This use of the 'qemu' shows how to initialize, start, and stop a qemu guest
+
+  * Create a diskimage using a cloudimage
+
+    - This is done using the 'system_imaging' package
+    - Using Debian cloudinit as a reference
+
+  * Initialize a 'system_imaging' provided disk image
+
+    - See the 'system_imaging' package for examples of creating disk-images
+    
+  * Start the guest
+  * Run a command within the guest (via SSH)
+  * Stop the guest again
+
+  This is done via scripts, which in turn are utilizing helper-functions from
+  cijoe.qemu.wrapper.
+
+steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
+  with:
+    pattern: "debian-12-x86_64"
+
+- name: guest_initialize
+  uses: qemu.guest_initialize
+  with:
+    guest_name: generic-bios-kvm-x86_64
+    system_image_name: debian-12-x86_64
+
+- name: guest_start
+  uses: qemu.guest_start
+  with:
+    guest_name: generic-bios-kvm-x86_64
+
+- name: guest_check
+  run: |
+    hostname
+
+- name: guest_kill
+  uses: qemu.guest_kill
+  with:
+    guest_name: generic-bios-kvm-x86_64

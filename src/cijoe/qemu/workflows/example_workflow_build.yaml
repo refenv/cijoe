@@ -20,4 +20,4 @@ steps:
   uses: qemu.install
 
 - name: qemu_system_version
-  uses: qemu.qemu_system_version
+  uses: qemu.qemu_version
