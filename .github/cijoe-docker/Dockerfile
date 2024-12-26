@@ -54,6 +54,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	procps \
 	python3-build \
 	python3-jinja2 \
+	qemu-efi-aarch64 \
 	qemu-kvm \
 	qemu-system-arm \
 	qemu-system-x86 \
