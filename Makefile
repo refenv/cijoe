@@ -122,6 +122,7 @@ install:
 	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz --include-deps --force --python python3
 	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
+	@${PIPX} inject cijoe pytest-cov --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
@@ -141,7 +142,7 @@ endef
 .PHONY: test
 test:
 	@echo "## ${PROJECT_NAME}: make test"
-	${PYTEST} --pyargs cijoe.core.selftest --config src/cijoe/core/configs/example_config_default.toml -v -s
+	${PYTEST} --cov --pyargs cijoe.core.selftest --config src/cijoe/core/configs/example_config_default.toml -v -s
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
 define examples-help
