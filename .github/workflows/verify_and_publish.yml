@@ -133,8 +133,12 @@ jobs:
 
     - name: Run it!
       run: |
-        cd cijoe-example-${{ matrix.usage_example }}
-        cijoe --monitor -l
+        cd cijoe-example-${{ matrix.usage_example}}
+        coverage run \
+          --data-file=.coverage \
+          --rcfile=../repository/.coveragerc \
+          $(which cijoe) --monitor -l
+        coverage report
 
     - name: Upload report
       if: always()
@@ -143,6 +147,15 @@ jobs:
         name: report-cijoe_packages-${{ matrix.usage_example }}
         path: cijoe-example-${{ matrix.usage_example }}/cijoe-output/*
         if-no-files-found: error
+
+    - name: Upload coverage files
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-coverage-${{ matrix.usage_example }}
+        path: cijoe-example-${{ matrix.usage_example}}/.coverage
+        if-no-files-found: error
+
 
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -172,3 +185,50 @@ jobs:
       run: |
         make release
 
+  publish-coverage:
+    runs-on: ${{ matrix.os }}
+    needs: [examples, unittest]
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: --privileged
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+      with:
+        path: repository
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.2.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        cd repository
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4.1.8
+      with:
+          # If you omit 'name', all artifacts from previous jobs are downloaded.
+        path: ./all_artifacts
+
+    - name: Show downloaded artifacts
+      run: |
+        coverage combine \
+          --rcfile=repository/.coveragerc \
+          all_artifacts/**/.coverage
+        coverage report \
+          --debug=trace,config \
+          --rcfile=repository/.coveragerc
+    - name: Coveralls upload
+      uses: coverallsapp/github-action@v2
