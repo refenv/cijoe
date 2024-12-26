@@ -146,7 +146,9 @@ jobs:
 
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: unittest
+    needs:
+    - unittest
+    - examples
 
     runs-on: ubuntu-latest
     steps:
