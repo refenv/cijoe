@@ -121,7 +121,7 @@ endef
 install:
 	@echo "## ${PROJECT_NAME}: make install"
 	@${PIPX} install dist/*.tar.gz --include-deps --force --python python3
-	@${PIPX} inject cijoe coverage --include-apps --force
+	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
 define uninstall-help
