@@ -31,16 +31,9 @@ them easy to **review** and **reproduce**.
 Quickstart
 ==========
 
-**Try it yourself!** The commands below install **cijoe** and then invoke
-``cijoe --example`` which generates an example
-:ref:`script <sec-resources-scripts>`,
-:ref:`configuration file <sec-resources-configs>`, and a 
-:ref:`workflow <sec-resources-workflows>` in your current working directory.
-Finally, when ``cijoe`` is executed, it picks up the example
-:ref:`workflow <sec-resources-workflows>` and
-:ref:`configuration file <sec-resources-configs>`, runs them, captures output,
-produces an HTML report, and opens it using your preferred browser if one is
-available.
+**Try it yourself!** The commands below install **cijoe**, prints a list of
+examples, emits and runs one of them, produces an HTML report, and opens
+it using your preferred browser if one is available.
 
 .. literalinclude:: 200_quickstart.cmd
    :language: bash

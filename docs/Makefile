@@ -20,6 +20,7 @@ clean:
 .PHONY: emit-section-packages
 emit-section-packages:
 	@echo "## section:packages"
+	@rm -rf "${SPHINX_SOURCEDIR}/packages/"
 	${PYTHON} ./emit.py
 
 .PHONY: docker-build

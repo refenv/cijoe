@@ -2,13 +2,7 @@
 rm: cannot remove 'cijoe-output': No such file or directory
 
 
-rm: cannot remove 'cijoe-config.toml': No such file or directory
+rm: cannot remove 'cijoe-example-*': No such file or directory
 
 
 rm: cannot remove 'cijoe-output.tar.gz': No such file or directory
-
-
-rm: cannot remove 'cijoe-script.py': No such file or directory
-
-
-rm: cannot remove 'cijoe-workflow.yaml': No such file or directory

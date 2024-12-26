@@ -32,10 +32,10 @@ the :ref:`sec-resources-configs` section for reference.
 Content Overview
 ================
 
-Let's take a look at what the workflow file produced by ``cijoe --example``
+Let's take a look at what the workflow file produced by ``cijoe --example core.default``
 looks like:
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow-default.yaml
+.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
    :language: yaml
 
 At a first glance, then it might feel a bit similar to GitHub Actions workflow,
@@ -84,7 +84,7 @@ Inline Commands
 
 A step with **inline commands** take the form:
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow-default.yaml
+.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
    :language: yaml
    :lines: 24-27
 
@@ -111,7 +111,7 @@ Steps with Scripts
 
 When a step runs a script, then you give it a **name** and you tell it
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example-workflow-default.yaml
+.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
    :language: yaml
    :lines: 29-34
 

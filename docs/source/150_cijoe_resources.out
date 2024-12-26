@@ -8,42 +8,50 @@ auxiliary:
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/auxiliary/example.perfreq
   - ident: emit
     path: /cijoe/docs/emit.py
-  - ident: qemu.cloudinit-debian-meta
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-meta.meta
-  - ident: qemu.cloudinit-debian-user-amd64
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-user-amd64.user
-  - ident: qemu.cloudinit-debian-user-arm64
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-debian-user-arm64.user
-  - ident: qemu.cloudinit-freebsd-meta
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-freebsd-meta.meta
-  - ident: qemu.cloudinit-freebsd-user
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/auxiliary/cloudinit-freebsd-user.user
+  - ident: system_imaging.Dockerfile
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/Dockerfile
+  - ident: system_imaging.cloudinit-freebsd-metadata
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/cloudinit-freebsd-metadata.meta
+  - ident: system_imaging.cloudinit-freebsd-userdata
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/cloudinit-freebsd-userdata.user
+  - ident: system_imaging.cloudinit-linux-alpine-userdata
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/cloudinit-linux-alpine-userdata.user
+  - ident: system_imaging.cloudinit-linux-common-metadata
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/cloudinit-linux-common-metadata.meta
+  - ident: system_imaging.cloudinit-linux-common-userdata
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/cloudinit-linux-common-userdata.user
+  - ident: system_imaging.dockerignore
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/auxiliary/dockerignore
 configs:
-  - ident: core.default-config
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/configs/default-config.toml
+  - ident: core.example_config_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/configs/example_config_default.toml
   - ident: core.transport-ssh
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/configs/transport-ssh.toml
-  - ident: fio.default-config
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/configs/default-config.toml
-  - ident: gha.default-config
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/configs/default-config.toml
-  - ident: linux.default-config
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/configs/default-config.toml
-  - ident: qemu.debian-bookworm-amd64-kvm
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bookworm-amd64-kvm.toml
-  - ident: qemu.debian-bookworm-arm64-hvf
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bookworm-arm64-hvf.toml
-  - ident: qemu.debian-bullseye-amd64-kvm
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/debian-bullseye-amd64-kvm.toml
-  - ident: qemu.default-config
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/default-config.toml
-  - ident: qemu.freebsd-13-amd64-kvm
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/freebsd-13-amd64-kvm.toml
+  - ident: fio.example_config_benchmark
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/configs/example_config_benchmark.toml
+  - ident: fio.example_config_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/configs/example_config_default.toml
+  - ident: gha.example_config_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/configs/example_config_default.toml
+  - ident: linux.example_config_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/configs/example_config_default.toml
+  - ident: linux.example_config_null_blk
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/configs/example_config_null_blk.toml
+  - ident: qemu.example_config_build
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/example_config_build.toml
+  - ident: qemu.example_config_guest_aarch64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/example_config_guest_aarch64.toml
+  - ident: qemu.example_config_guest_x86_64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/configs/example_config_guest_x86_64.toml
+  - ident: system_imaging.example_config_aarch64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/configs/example_config_aarch64.toml
+  - ident: system_imaging.example_config_x86_64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/configs/example_config_x86_64.toml
 scripts:
   - ident: core.cmdrunner
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/cmdrunner.py
-  - ident: core.example
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/example.py
+  - ident: core.example_script_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/example_script_default.py
   - ident: core.get
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/scripts/get.py
   - ident: core.put
@@ -76,32 +84,44 @@ scripts:
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/scripts/transfer_and_install_kdebs.py
   - ident: qemu.build
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/build.py
-  - ident: qemu.guest_init_using_bootimage
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_init_using_bootimage.py
-  - ident: qemu.guest_init_using_cloudinit
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_init_using_cloudinit.py
+  - ident: qemu.guest_initialize
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_initialize.py
   - ident: qemu.guest_kill
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_kill.py
   - ident: qemu.guest_start
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/guest_start.py
   - ident: qemu.install
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/install.py
+  - ident: qemu.qemu_version
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/scripts/qemu_version.py
+  - ident: system_imaging.diskimage_from_cloudimage
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/scripts/diskimage_from_cloudimage.py
+  - ident: system_imaging.dockerimage_from_diskimage
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/scripts/dockerimage_from_diskimage.py
 templates:
   - ident: core.example-tmp-workflow.yaml
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/example-tmp-workflow.yaml.jinja2
   - ident: core.report-workflow.html
     path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/templates/report-workflow.html.jinja2
 workflows:
-  - ident: core.example-workflow
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/workflows/example-workflow.yaml
-  - ident: fio.example
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/workflows/example.workflow
-  - ident: gha.example-workflow
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/workflows/example-workflow.yaml
-  - ident: linux.example-null_blk
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example-null_blk.yaml
-  - ident: linux.example-workflow
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example-workflow.yaml
-  - ident: qemu.example-workflow
-    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/workflows/example-workflow.yaml
+  - ident: core.example_workflow_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/core/workflows/example_workflow_default.yaml
+  - ident: fio.example_workflow_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/fio/workflows/example_workflow_default.yaml
+  - ident: gha.example_workflow_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/gha/workflows/example_workflow_default.yaml
+  - ident: linux.example_workflow_default
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example_workflow_default.yaml
+  - ident: linux.example_workflow_null_blk
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/linux/workflows/example_workflow_null_blk.yaml
+  - ident: qemu.example_workflow_build
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/workflows/example_workflow_build.yaml
+  - ident: qemu.example_workflow_guest_aarch64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/workflows/example_workflow_guest_aarch64.yaml
+  - ident: qemu.example_workflow_guest_x86_64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/qemu/workflows/example_workflow_guest_x86_64.yaml
+  - ident: system_imaging.example_workflow_aarch64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/workflows/example_workflow_aarch64.yaml
+  - ident: system_imaging.example_workflow_x86_64
+    path: /home/developer/.local/pipx/venvs/cijoe/lib64/python3.12/site-packages/cijoe/system_imaging/workflows/example_workflow_x86_64.yaml
 
