@@ -1,5 +1,5 @@
 ---
-name: selftest
+name: verify_and_publish
 
 on:
   workflow_dispatch:
@@ -13,6 +13,10 @@ on:
 defaults:
   run:
     shell: bash
+
+# This is needed for 'guestmount' / 'libguestfs'
+env:
+  LIBGUESTFS_BACKEND: direct
 
 jobs:
   format:
@@ -78,6 +82,68 @@ jobs:
         make all
         cijoe -r
 
+  examples:
+    needs: format
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: --privileged
+
+    strategy:
+      fail-fast: false
+      matrix:
+        usage_example:
+        - core.default
+        - fio.default
+        - linux.default
+        - qemu.build
+        - qemu.guest_aarch64
+        - qemu.guest_x86_64
+        - system_imaging.aarch64
+        - system_imaging.x86_64
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+      with:
+        path: repository
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install packages
+      run: |
+        apt-get -qy update
+        apt-get -qy install qemu-efi-aarch64
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        cd repository
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Emit the example configuration file and workflow
+      run: |
+        cijoe --example ${{ matrix.usage_example }}
+
+    - name: Run it!
+      run: |
+        cd cijoe-example-${{ matrix.usage_example }}
+        cijoe --monitor -l
+
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-cijoe_packages-${{ matrix.usage_example }}
+        path: cijoe-example-${{ matrix.usage_example }}/cijoe-output/*
+        if-no-files-found: error
+
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: selftest
@@ -103,3 +169,4 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
         make release
+
