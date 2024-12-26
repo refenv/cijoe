@@ -43,8 +43,9 @@ utilities:
                         exit. (default: False)
   --resources, -r       List collected resources and exit. (default: False)
   --example [EXAMPLE], -e [EXAMPLE]
-                        Create 'default-config.toml', 'example-workflow.yaml'
-                        and 'cijoe-script.py' and exit. (default: None)
+                        Emits the given example. When no example is given,
+                        then it prints a list of available examples. (default:
+                        None)
   --version, -v         Print the version number of 'cijoe' and exit.
                         (default: False)
 

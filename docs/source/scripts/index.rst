@@ -19,7 +19,7 @@ Content Overview
 
 Let's take a look at the example script provided by ``cijoe --example``:
 
-.. literalinclude:: ../../../src/cijoe/core/scripts/example.py
+.. literalinclude:: ../../../src/cijoe/core/scripts/example_script_default.py
    :language: Python
 
 As you can see, then it is just a regular Python script making use the

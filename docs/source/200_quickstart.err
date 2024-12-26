@@ -1,7 +1,7 @@
 
 
 'cijoe' already seems to be installed. Not modifying existing installation in
-'/home/developer/.local/pipx/venvs/cijoe'. Pass '--force' to force
+'/home/safl/.local/share/pipx/venvs/cijoe'. Pass '--force' to force
 installation.
 
 
@@ -32,3 +32,4 @@ system_imaging.x86_64
 
 
 
+ERROR:cli:main(): config(cijoe-config.toml) does not exist; exiting
