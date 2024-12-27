@@ -138,6 +138,9 @@ jobs:
           --data-file=.coverage \
           --rcfile=../repository/.coveragerc \
           $(which cijoe) --monitor -l
+
+    - name: Coverage report
+      run: |
         coverage report
 
     - name: Upload report
