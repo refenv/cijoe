@@ -14,10 +14,6 @@ defaults:
   run:
     shell: bash
 
-# This is needed for 'guestmount' / 'libguestfs'
-env:
-  LIBGUESTFS_BACKEND: direct
-
 jobs:
   format:
     runs-on: ${{ matrix.os }}
@@ -85,6 +81,10 @@ jobs:
   examples:
     needs: format
     runs-on: ubuntu-latest
+
+    # This is needed for 'guestmount' / 'libguestfs'
+    env:
+      LIBGUESTFS_BACKEND: direct
 
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
