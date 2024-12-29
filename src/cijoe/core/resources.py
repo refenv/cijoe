@@ -246,8 +246,17 @@ class Script(Resource):
         if not self.content_has_script_func():
             return ["Missing script_entry() function in ast"]
 
-        mod_name = str(Path(self.path).resolve().stem)
-        mod_path = str(Path(self.path).resolve())
+        path = Path(self.path).resolve()
+
+        mod_path = str(path)
+        mod_name = ".".join(
+            [
+                path.parent.parent.parent.stem,  # This should be cijoe
+                path.parent.parent.stem,  # This should be the "package" name
+                path.parent.stem,  # This should be "scripts"
+                path.stem,  # This is the name of the module
+            ]
+        )
 
         parent_path = str(Path(self.path).resolve().parent)
         if parent_path not in sys.path:
