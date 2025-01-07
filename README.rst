@@ -13,6 +13,10 @@ cijoe: tools for systems development and testing
    :target: https://cijoe.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
+.. image:: https://coveralls.io/repos/github/refenv/cijoe/badge.svg?branch=main
+   :target: https://coveralls.io/github/refenv/cijoe?branch=main
+   :alt: Coverage status
+
 Tools for systems development and testing.
 
 Please take a look at the documentation for how to install and use ``cijoe``:
