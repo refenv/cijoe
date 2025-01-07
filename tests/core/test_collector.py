@@ -34,7 +34,11 @@ def test_collect_scripts_from_path():
     """Uses the core package, to have something to collect."""
 
     collector = Collector()
-    collector.collect_from_path(Path(__file__).parent.parent.joinpath("scripts"))
+    collector.collect_from_path(
+        Path(__file__)
+        .parent.parent.parent.joinpath("src", "cijoe", "core", "scripts")
+        .resolve()
+    )
 
     assert (
         len(collector.resources["scripts"]) == CORE_RESOURCE_COUNTS["scripts"]
