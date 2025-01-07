@@ -4,7 +4,7 @@
 PROJECT_NAME=cijoe
 BUILD=pyproject-build
 PIPX=pipx
-PYTEST="$(shell pipx environment -V PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest"
+PYTEST="$(shell pipx environment --value PIPX_LOCAL_VENVS)/${PROJECT_NAME}/bin/pytest"
 PYTHON_SYS=python3
 TWINE=twine
 CIJOE_VERSION=$(shell cd src; python3 -c "from cijoe import core;print(core.__version__)")
@@ -39,6 +39,7 @@ info:
 	@echo "## ${PROJECT_NAME}: make info"
 	${BUILD} --version || true
 	${PIPX} --version || true
+	${PIPX} environment || true
 	${PYTEST} --version || true
 	${PYTHON_SYS} --version || true
 	${TWINE} --version || true
@@ -120,7 +121,7 @@ endef
 .PHONY: install
 install:
 	@echo "## ${PROJECT_NAME}: make install"
-	@${PIPX} install dist/*.tar.gz --include-deps --force --python python3
+	@${PIPX} install dist/*.tar.gz --force --python python3
 	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
 	@${PIPX} inject cijoe pytest-cov --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
@@ -136,13 +137,13 @@ uninstall:
 	@${PIPX} uninstall ${PROJECT_NAME} || echo "Cannot uninstall => That is OK"
 	@echo "## ${PROJECT_NAME}: make uninstall [DONE]"
 
-define examples-help
+define test-help
 # Run pytest on the testcase-test
 endef
 .PHONY: test
 test:
 	@echo "## ${PROJECT_NAME}: make test"
-	${PYTEST} --cov tests --config src/cijoe/core/configs/example_config_default.toml -v -s
+	@${PYTEST} --cov --cov-branch --config src/cijoe/core/configs/example_config_default.toml -s
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
 define examples-help
