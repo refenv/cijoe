@@ -78,6 +78,15 @@ jobs:
         make all
         cijoe -r
 
+    - name: Upload coverage file
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-coverage-${{ matrix.python-version }}-${{ matrix.os }}
+        path: .coverage
+        if-no-files-found: error
+
+
   examples:
     needs: format
     runs-on: ubuntu-latest
@@ -107,9 +116,6 @@ jobs:
     steps:
     - name: Grab source
       uses: actions/checkout@v4.2.2
-      with:
-        path: repository
-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.3.0
       with:
@@ -123,7 +129,6 @@ jobs:
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
-        cd repository
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -133,22 +138,21 @@ jobs:
 
     - name: Run it!
       run: |
-        cd cijoe-example-${{ matrix.usage_example}}
         coverage run \
-          --data-file=../.coverage.${{ matrix.usage_example}} \
-          --rcfile=../repository/.coveragerc \
-          $(which cijoe) --monitor -l
+          $(which cijoe) --monitor -l \
+            --config cijoe-example-${{ matrix.usage_example}}/cijoe-config.toml \
+            --workflow cijoe-example-${{ matrix.usage_example}}/cijoe-workflow.yaml
 
     - name: Coverage report
       run: |
-        coverage report --data-file=.coverage.${{ matrix.usage_example}}
+        coverage report
 
     - name: Upload report
       if: always()
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-cijoe_packages-${{ matrix.usage_example }}
-        path: cijoe-example-${{ matrix.usage_example }}/cijoe-output/*
+        path: cijoe-output/*
         if-no-files-found: error
 
     - name: Upload coverage files
@@ -156,7 +160,7 @@ jobs:
       uses: actions/upload-artifact@v4.3.0
       with:
         name: report-coverage-${{ matrix.usage_example }}
-        path: .coverage.${{ matrix.usage_example}}
+        path: .coverage
         if-no-files-found: error
 
 
@@ -188,6 +192,7 @@ jobs:
       run: |
         make release
 
+
   publish-coverage:
     runs-on: ${{ matrix.os }}
     needs: [examples, unittest]
@@ -204,8 +209,6 @@ jobs:
     steps:
     - name: Grab source
       uses: actions/checkout@v4.2.2
-      with:
-        path: repository
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.2.0
@@ -214,8 +217,7 @@ jobs:
 
     - name: Build and install cijoe from source
       run: |
-        pipx uninstall cijoe
-        cd repository
+        pipx uninstall cijoe || true
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -229,10 +231,8 @@ jobs:
       run: |
         find all_artifacts -name '.coverage*' -exec coverage debug data {} \;
         coverage combine \
-          --rcfile=repository/.coveragerc \
           all_artifacts/report-coverage**/.coverage**
-        coverage report \
-          --debug=trace,config \
-          --rcfile=repository/.coveragerc
+        coverage report
+
     - name: Coveralls upload
       uses: coverallsapp/github-action@v2
