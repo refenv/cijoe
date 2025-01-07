@@ -30,14 +30,3 @@ shared_tags = 0
 zoned = 0
 zone_size = 256
 zone_nr_conv = 0
-
-#
-# kmemleak
-#
-# CONFIG_DEBUG_KMEMLEAK, has to be enabled, for details see:
-#   https://www.kernel.org/doc/html/v4.10/dev-tools/kmemleak.html
-#
-# The 'enabled' flag is here to skip the use of kmemleak module in case it is not enabled
-#
-[kmemleak]
-enabled = false
