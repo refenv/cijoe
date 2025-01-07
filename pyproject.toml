@@ -88,3 +88,25 @@ lint.extend-ignore = ["E203", "F401", "F811", "E501"]
 [tool.mypy]
 ignore_missing_imports = true
 exclude = "docs/source/conf.py"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source_pkgs = [
+    "cijoe.core",
+    "cijoe.cli",
+    "cijoe.fio",
+    "cijoe.gha",
+    "cijoe.linux",
+    "cijoe.qemu",
+    "cijoe.system_imaging",
+]
+
+# Setting variable to enable debugging when running coverage
+# debug = ["trace", "config", "sys", "data", "premain", "pybehave", "pathmap", "dataio", "plugin", "sql", "sqldata"]
+
+[tool.coverage.paths]
+source = [
+    "src/cijoe",
+    "*/site-packages/cijoe/",
+]
