@@ -142,7 +142,7 @@ endef
 .PHONY: test
 test:
 	@echo "## ${PROJECT_NAME}: make test"
-	${PYTEST} --cov --pyargs cijoe.core.selftest --config src/cijoe/core/configs/example_config_default.toml -v -s
+	${PYTEST} --cov tests --config src/cijoe/core/configs/example_config_default.toml -v -s
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
 define examples-help
