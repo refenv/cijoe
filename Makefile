@@ -146,8 +146,8 @@ test:
 	@${PYTEST} --cov --cov-branch --config src/cijoe/core/configs/example_config_default.toml -s
 	@echo "## ${PROJECT_NAME}: make test [DONE]"
 
-define examples-help
-# Run pytest on the testcase-test
+define release-help
+# Run release with twine
 endef
 .PHONY: release
 release: all
