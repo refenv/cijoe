@@ -182,7 +182,6 @@ def cli_produce_report(args):
 
 def cli_example(args):
     """Create example config.toml and workflow.yaml"""
-
     log.info("cli: examples")
 
     resources = get_resources()
