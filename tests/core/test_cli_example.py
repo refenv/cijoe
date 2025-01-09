@@ -1,4 +1,4 @@
-import subprocess
+import os
 
 
 def test_cli_example_emit_listing(cijoe):
@@ -26,18 +26,54 @@ def test_cli_example_emit_all_in_package(cijoe, tmp_path):
         assert not err
 
 
-def test_cli_resource_script(tmp_path):
-    config_path = (tmp_path / "test-config-empty.toml").resolve()
-    config_path.write_text("")
+def test_emit_example_core(cijoe, tmp_path):
+    err, _ = cijoe.run("cijoe --example core.default", cwd=tmp_path)
+    assert not err
 
-    result = subprocess.run(
-        [
-            "cijoe",
-            "core.example_script_default",
-            "--config",
-            str(config_path),
-        ],
-        cwd=str(tmp_path),
+
+def test_cli_version(cijoe):
+    err, _ = cijoe.run("cijoe --version")
+    pass
+    assert not err
+
+
+def test_cli_resources(cijoe):
+    err, _ = cijoe.run("cijoe --resources")
+    assert not err
+
+
+def test_cli_integration_check(cijoe, tmp_path):
+    # Get a temporary path and change directory so it is possible
+    # to rerun test and it wont pollute the test environment
+
+    err, _ = cijoe.run("cijoe --example core.default", cwd=tmp_path)
+    assert not err
+
+    err, _ = cijoe.run(
+        "cijoe --integrity-check ",
+        cwd=tmp_path / "cijoe-example-core.default",
     )
+    assert not err
 
-    assert result.returncode == 0
+
+def test_cli_environment_variables(cijoe):
+    # This test needs to be run in a session since we set a environment
+    # variable and it should not pollute.
+    os.environ["HELLO_WORLD"] = "true"
+    message = cijoe.getconf("hello.world", None)
+    assert message
+
+    os.environ["HELLO_WORLD"] = "1"
+    message = cijoe.getconf("hello.world", None)
+
+    os.environ["HELLO_WORLD"] = "0x1"
+    message = cijoe.getconf("hello.world", None)
+    assert message == 1
+
+    os.environ["HELLO_WORLD"] = "Hello World!"
+    message = cijoe.getconf("hello.world", None)
+    assert message == "Hello World!"
+
+    # This should fail since 0xg is not a valid hex value
+    os.environ["HELLO_WORLD"] = "0xg"
+    message = cijoe.getconf("hello.world", None)
