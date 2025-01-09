@@ -89,7 +89,7 @@ jobs:
 
   examples:
     needs: format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
     env:
@@ -106,6 +106,7 @@ jobs:
         - core.default
         - fio.default
         - linux.default
+        - linux.null_blk
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
@@ -203,7 +204,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         python-version: ['3.12']
 
     steps:
