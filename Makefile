@@ -126,6 +126,17 @@ install:
 	@${PIPX} inject cijoe pytest-cov --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
 
+define install-source-help
+# install for current user
+endef
+.PHONY: install-source
+install-source:
+	@echo "## ${PROJECT_NAME}: make install"
+	@${PIPX} install . --editable --force --python python3
+	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
+	@${PIPX} inject cijoe pytest-cov --force
+	@echo "## ${PROJECT_NAME}: make install [DONE]"
+
 define uninstall-help
 # uninstall
 #
