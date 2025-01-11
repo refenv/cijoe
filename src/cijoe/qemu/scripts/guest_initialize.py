@@ -68,8 +68,12 @@ def main(args, cijoe, step):
             return errno.EINVAL
 
         diskimage_path.parent.mkdir(exist_ok=True, parents=True)
-        err, path = download_and_verify(
-            disk_url, disk.get("url_checksum"), diskimage_path
+
+        disk_url_checksum = disk.get("url_checksum", None)
+        err, path = (
+            download_and_verify(disk_url, disk_url_checksum, diskimage_path)
+            if disk_url_checksum
+            else download(disk_url, diskimage_path)
         )
         if err:
             log.error(f"err({err}, path({path})")
