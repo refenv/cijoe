@@ -3,16 +3,41 @@ doc: |
   This is an example of utilizing some of the Linux worklets and helpers
 
 steps:
-- name: sysinfo
-  uses: linux.sysinfo
-
-- name: null_blk_insert
-  uses: linux.null_blk
-
-- name: list
-  run: lsblk
-
-- name: null_blk_remove
-  uses: linux.null_blk
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
   with:
-    do: remove
+    pattern: "debian-12-x86_64"
+
+- name: guest_initialize
+  uses: qemu.guest_initialize
+  with:
+    guest_name: generic-bios-kvm-x86_64
+    system_image_name: debian-12-x86_64
+
+- name: guest_start
+  uses: qemu.guest_start
+  with:
+    guest_name: generic-bios-kvm-x86_64
+
+- name: guest_check
+  run: |
+    hostname
+
+# - name: sysinfo
+#   uses: linux.sysinfo
+# 
+# - name: null_blk_insert
+#   uses: linux.null_blk
+# 
+# - name: list
+#   run: lsblk
+# 
+# - name: null_blk_remove
+#   uses: linux.null_blk
+#   with:
+#     do: remove
+# 
+- name: guest_kill
+  uses: qemu.guest_kill
+  with:
+    guest_name: generic-bios-kvm-x86_64

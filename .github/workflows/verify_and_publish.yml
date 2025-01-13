@@ -104,8 +104,10 @@ jobs:
       matrix:
         usage_example:
         - core.default
+        - gha.default
         - fio.default
         - linux.default
+        - linux.null_blk
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
