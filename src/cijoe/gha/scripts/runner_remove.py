@@ -25,6 +25,7 @@ def main(args, cijoe):
     runner = cijoe.getconf("gha.runner", {})
 
     home = runner.get("home", None)
+    user = runner.get("user", None)
     count = runner.get("count", None)
     nameprefix = runner.get("nameprefix", None)
     token = os.getenv("GHA_RUNNER_TOKEN", runner.get("token", None))
@@ -41,11 +42,17 @@ def main(args, cijoe):
         for cmd in [
             "sudo ./svc.sh stop",
             "sudo ./svc.sh uninstall",
-            f"./config.sh remove --token {token}",
         ]:
             err, _ = cijoe.run(cmd, cwd=rdir)
             if err:
                 log.error(f"cmd({cmd}), err({err})")
                 errors.append(err)
+
+        err, _ = cijoe.run(
+            f"su {user} -c" f'"./config.sh remove --token {token}"', cwd=rdir
+        )
+        if err:
+            log.error(f"failed to remove runner err({err})")
+            return err
 
     return errors[0] if errors else 0
