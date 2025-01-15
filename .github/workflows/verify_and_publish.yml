@@ -111,6 +111,7 @@ jobs:
         - fio.default
         - linux.default
         - linux.null_blk
+        - gha.default
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
@@ -126,6 +127,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install packages
+      run: |
+        apt-get -qy update
+        apt-get -qy install qemu-efi-aarch64
+
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
@@ -137,6 +143,8 @@ jobs:
         cijoe --example ${{ matrix.usage_example }}
 
     - name: Run it!
+      env:
+        GHA_RUNNER_TOKEN: "BFGC6XRGGM7PUVLC5NYXARLHQ6FI6"
       run: |
         coverage run \
           $(which cijoe) --monitor -l \
@@ -192,11 +200,13 @@ jobs:
       run: |
         make release
 
+
   publish-coverage:
     runs-on: ${{ matrix.os }}
     needs: [examples, unittest]
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
+      options: --privileged
 
     strategy:
       fail-fast: false
