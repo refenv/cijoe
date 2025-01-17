@@ -28,6 +28,7 @@ If you find bugs or need help then feel free to submit an `Issue`_. If you want
 to get involved head over to the `GitHub page`_ to get the source code and
 submit a `Pull request`_ with your changes.
 
+
 .. _Quickstart Guide: https://cijoe.readthedocs.io/
 .. _Usage: https://cijoe.readthedocs.io/
 .. _GitHub page: https://github.com/refenv/cijoe

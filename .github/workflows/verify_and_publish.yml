@@ -89,7 +89,7 @@ jobs:
 
   examples:
     needs: format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
     env:
@@ -116,6 +116,7 @@ jobs:
     steps:
     - name: Grab source
       uses: actions/checkout@v4.2.2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5.3.0
       with:
@@ -125,6 +126,7 @@ jobs:
       run: |
         apt-get -qy update
         apt-get -qy install qemu-efi-aarch64
+        ldd --version
 
     - name: Build and install cijoe from source
       run: |
@@ -203,7 +205,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         python-version: ['3.12']
 
     steps:
