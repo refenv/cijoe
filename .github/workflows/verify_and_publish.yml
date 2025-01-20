@@ -89,7 +89,7 @@ jobs:
 
   examples:
     needs: format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
     env:
@@ -111,7 +111,7 @@ jobs:
         - qemu.guest_x86_64
         - system_imaging.aarch64
         - system_imaging.x86_64
-        python-version: ['3.12']
+        python-version: ['3.11']
 
     steps:
     - name: Grab source
@@ -124,11 +124,13 @@ jobs:
     - name: Install packages
       run: |
         apt-get -qy update
-        apt-get -qy install qemu-efi-aarch64
+        apt-get -qy upgrade
+        apt-get -qy install qemu-efi-aarch64 libc6
 
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
+        pipx install build
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -137,6 +139,8 @@ jobs:
         cijoe --example ${{ matrix.usage_example }}
 
     - name: Run it!
+      env:
+        GHA_RUNNER_TOKEN: "BFGC6XRGGM7PUVLC5NYXARLHQ6FI6"
       run: |
         coverage run \
           $(which cijoe) --monitor -l \
@@ -203,7 +207,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         python-version: ['3.12']
 
     steps:
