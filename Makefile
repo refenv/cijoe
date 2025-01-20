@@ -54,6 +54,7 @@ docker:
 	@docker run -it \
 				-w /tmp/source \
 				--mount type=bind,source="$(shell pwd)",target=/tmp/source \
+				--device=/dev/kvm \
 				ghcr.io/refenv/cijoe-docker \
 				bash
 	@echo "## ${PROJECT_NAME}: docker [DONE]"
