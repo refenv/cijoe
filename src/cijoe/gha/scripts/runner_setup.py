@@ -45,7 +45,10 @@ def main(args, cijoe, step):
     nameprefix = runner.get("nameprefix", None)
     token = os.getenv("GHA_RUNNER_TOKEN", runner.get("token", None))
 
-    if None in [url, home, count, labels, nameprefix, token]:
+    if token is None:
+        log.error("Could not run setup, GHA_RUNNER_TOKEN not set")
+        return 1
+    if None in [url, home, count, labels, nameprefix]:
         token = "your_secret_runner_token_set_here_or_env"
         log.error(f"missing or invalid config gha.runner({runner})")
         return 1
@@ -54,6 +57,7 @@ def main(args, cijoe, step):
     for number in range(int(count)):
         name = f"{nameprefix}{number:02d}"
         rdir = f"{home}/runners/{name}"
+        log.debug(f"Installing runner {name} at {rdir}")
 
         for cmd in [f"mkdir {rdir}/", f"cp -r {home}/ghar/. {rdir}/."]:
             err, _ = cijoe.run(cmd)
