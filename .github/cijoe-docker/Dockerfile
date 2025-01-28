@@ -25,6 +25,9 @@ FROM debian:bookworm
 
 WORKDIR /opt
 
+# User for running GHA Ruller
+RUN useradd -ms /bin/bash myrunner
+
 RUN apt-get -qy update && \
 	apt-get -qy \
 	-o "Dpkg::Options::=--force-confdef" \
