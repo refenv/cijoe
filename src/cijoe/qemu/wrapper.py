@@ -252,11 +252,19 @@ class Guest(object):
         #
         # Managed: config.qemu.guest.system_args.tcp_forward
         #
-        ports = system_args.get("tcp_forward", None)
-        if ports:
+        tcp_forward = system_args.get("tcp_forward", None)
+        if tcp_forward:
+            host_addr = tcp_forward.get("host_address", "127.0.0.1")
+            host_port = tcp_forward.get("host", None)
+            guest_port = tcp_forward.get("guest", None)
+
+            if None in [host_port, guest_port]:
+                log.error(f"Invalid tcp_forward({tcp_forward})")
+                return errno.EINVAL
+
             args += [
                 "-netdev",
-                f"user,id=n1,ipv6=off,hostfwd=tcp::{ports['host']}-:{ports['guest']}",
+                f"user,id=n1,ipv6=off,hostfwd=tcp:{host_addr}:{host_port}-:{guest_port}",
             ]
             args += ["-device", "virtio-net-pci,netdev=n1"]
 
