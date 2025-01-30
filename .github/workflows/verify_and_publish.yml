@@ -110,6 +110,7 @@ jobs:
         - core.default
         - fio.default
         - linux.default
+        - gha.default
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
@@ -136,6 +137,8 @@ jobs:
         cijoe --example ${{ matrix.usage_example }}
 
     - name: Run it!
+      env:
+        GHA_RUNNER_TOKEN: "BFGC6XRGGM7PUVLC5NYXARLHQ6FI6"
       run: |
         coverage run \
           $(which cijoe) --monitor -l \

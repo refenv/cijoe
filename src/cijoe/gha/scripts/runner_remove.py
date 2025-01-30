@@ -39,8 +39,8 @@ def main(args, cijoe, step):
         rdir = f"{home}/runners/{name}"
 
         for cmd in [
-            "sudo ./svc.sh stop",
-            "sudo ./svc.sh uninstall",
+            "./run.sh stop",
+            "./run.sh uninstall",
             f"./config.sh remove --token {token}",
         ]:
             err, _ = cijoe.run(cmd, cwd=rdir)
