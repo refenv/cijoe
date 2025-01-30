@@ -89,7 +89,7 @@ jobs:
 
   examples:
     needs: format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
     env:
@@ -187,7 +187,6 @@ jobs:
       run: |
         make release
 
-
   publish-coverage:
     runs-on: ${{ matrix.os }}
     needs: [examples, unittest]
@@ -198,7 +197,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         python-version: ['3.12']
 
     steps:
