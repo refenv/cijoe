@@ -97,7 +97,11 @@ jobs:
 
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
-      options: --privileged
+      options: >
+        --device=/dev/kvm
+        --device=/dev/fuse
+        --cap-add=SYS_ADMIN
+        --security-opt apparmor=unconfined
 
     strategy:
       fail-fast: false
@@ -192,7 +196,6 @@ jobs:
     needs: [examples, unittest]
     container:
       image: ghcr.io/refenv/cijoe-docker:latest
-      options: --privileged
 
     strategy:
       fail-fast: false

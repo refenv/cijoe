@@ -72,16 +72,21 @@ docker-build:
 		.
 	@echo "## ${PROJECT_NAME}: docker [DONE]"
 
-
-
-define docker-privileged-help
-# drop into a privileged docker instance with the repository bind-mounted at /tmp/source
+define docker-kvm-help
+# drop into a kvm-able docker instance with the repository bind-mounted at /tmp/source
+#
+# Previously, this utilized the "--privileged" flag this is replaced with
+# "--device / dev/kvm" to avoid unnecessary privilege escalation / collision
+# when running multiple instances.
 endef
-.PHONY: docker-privileged
-docker-privileged:
+.PHONY: docker-kvm
+docker-kvm:
 	@echo "## ${PROJECT_NAME}: docker"
 	@docker run -it \
-				--privileged \
+				--device=/dev/kvm \
+				--device=/dev/fuse \
+				--cap-add=SYS_ADMIN \
+				--security-opt apparmor=unconfined \
 				-w /tmp/source \
 				--mount type=bind,source="$(shell pwd)",target=/tmp/source \
 				ghcr.io/refenv/cijoe-docker \
