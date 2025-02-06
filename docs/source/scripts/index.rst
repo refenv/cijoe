@@ -4,9 +4,17 @@
  Scripts
 =========
 
-Let's start by running the script produced by ``cijoe --example``:
+There are multiple scripts in the :ref:`resources <sec-resources>` of **cijoe**.
+These can be run directly with the cli tool.
 
 .. literalinclude:: ../400_usage_script_all.cmd
+   :language: python
+
+You can also create your own **cijoe** scripts locally and run them which can
+be run in the same manner. Let's start by running the script produced by 
+``cijoe --example``:
+
+.. literalinclude:: ../400_usage_script_local.cmd
    :language: python
 
 When running, an **output** directory is populated with log files, statefiles,
