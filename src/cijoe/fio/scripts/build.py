@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 def main(args, cijoe, step):
-    """Install qemu"""
+    """Build fio"""
 
     commands = [
         "make clean",
