@@ -3,7 +3,7 @@ doc: |
   Temporary standalone script
 
 steps:
-{% for path in paths %}
-- name: {{path.stem}}
-  uses: {{path.stem}}
+{% for step in steps %}
+- name: {{step | replace(".", "_")}}
+  uses: {{step}}
 {% endfor %}

@@ -1,3 +1,3 @@
 # Run a script directly
 cijoe --config cijoe-example-core.default/cijoe-config.toml \
-	cijoe-example-core.default/cijoe-script.py
+	core.example_script_default

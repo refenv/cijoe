@@ -367,13 +367,23 @@ def cli_workflow(args):
     return err
 
 
-def create_adhoc_workflow(args, paths):
-    paths = list(map(Path, paths))
-    if len(set(path.stem for path in paths)) != len(paths):
+def create_adhoc_workflow(args, steps: list[str]):
+    parent_dirs = set()
+
+    def normalise(step: str):
+        if step.endswith(".py"):
+            path = Path(step)
+            parent_dirs.add(path.parent)
+            return path.stem
+        else:
+            return step
+
+    steps = list(map(normalise, steps))
+    if len(set(steps)) != len(steps):
         log.error("Duplicate script file names not allowed.")
         sys.exit(1)
 
-    resources = get_resources([step.parent for step in paths])
+    resources = get_resources(list(parent_dirs))
 
     template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
     jinja_env = jinja2.Environment(
@@ -385,7 +395,7 @@ def create_adhoc_workflow(args, paths):
         setattr(args, "workflow", Path(workflow.name))
         setattr(args, "step", [])
 
-        content = template.render(paths=paths)
+        content = template.render(steps=steps)
         workflow.write(bytes(content, "utf-8"))
         workflow.seek(0)
 
@@ -522,8 +532,12 @@ def main(args=None):
 
     if args is None:
         args = parse_args()
-        if args.step and all(step.endswith(".py") for step in args.step):
-            create_adhoc_workflow(args, args.step)
+        if args.step:
+            resource_scripts = list(get_resources()["scripts"].keys())
+            if all(
+                step.endswith(".py") or (step in resource_scripts) for step in args.step
+            ):
+                create_adhoc_workflow(args, args.step)
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
