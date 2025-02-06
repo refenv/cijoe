@@ -1,3 +1,4 @@
+.. _sec-packages-fio-install:
 
 fio.install
 ~~~~~~~~~~~
