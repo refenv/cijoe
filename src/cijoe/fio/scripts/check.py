@@ -9,12 +9,17 @@ fio-wrapper has the correct options set.
 Retargetable: True
 ------------------
 """
-from cijoe.fio.wrapper import fio
+import logging as log
 
 
 def main(args, cijoe, step):
     """Check version of fio"""
 
-    err, _ = fio(cijoe, "--help")
+    fio_bin = cijoe.getconf("fio.bin")
+    if not fio_bin:
+        log.error("missing config: fio.bin")
+        return 1
+
+    err, _ = cijoe.run(f"{fio_bin} --version")
 
     return err
