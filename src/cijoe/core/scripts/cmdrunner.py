@@ -10,6 +10,7 @@ Retargetable: True
 """
 
 import errno
+import logging as log
 
 
 def main(args, cijoe, step):
@@ -17,6 +18,7 @@ def main(args, cijoe, step):
 
     err = 0
     if not ("with" in step and "commands" in step["with"]):
+        log.error("missing step-argument: with.commands")
         return errno.EINVAL
 
     for cmd in step["with"]["commands"]:

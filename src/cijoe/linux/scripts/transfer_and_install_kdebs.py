@@ -22,6 +22,7 @@ from pathlib import Path
 def main(args, cijoe, step):
     deb_root = step.get("with", {}).get("local_kdebs_dir", None)
     if not deb_root:
+        log.error("missing step-argument: with.local_kdebs_dir")
         return errno.EINVAL
 
     deb_root = Path(deb_root)
