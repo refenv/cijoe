@@ -30,7 +30,7 @@ def url_to_latest_runner_on_x86():
 
 
 def main(args, cijoe, step):
-    runner = cijoe.config.options.get("gha", {}).get("runner", {})
+    runner = cijoe.getconf("gha.runner", {})
 
     url = runner.get("url", {}).get("download", url_to_latest_runner_on_x86())
     home = runner.get("home", None)

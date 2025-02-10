@@ -28,7 +28,7 @@ def qemu_img(cijoe, args=""):
 
     qemu_img_bin_default = "qemu-img"
 
-    qemu_img_bin = cijoe.config.options.get("qemu", {}).get("img_bin", None)
+    qemu_img_bin = cijoe.getconf("qemu.img_bin", None)
     if qemu_img_bin is None:
         log.error("Could not determine 'qemu-img' binary")
         qemu_img_bin = qemu_img_bin_default
@@ -43,12 +43,7 @@ def qemu_img(cijoe, args=""):
 def qemu_system(cijoe, system_label, args=""):
     """Resolves and invokes the qemu-system by its system_label e.g. 'x86_64'"""
 
-    system_bin = (
-        cijoe.config.options.get("qemu", {})
-        .get("systems", {})
-        .get(system_label, {})
-        .get("bin", None)
-    )
+    system_bin = cijoe.getconf(f"qemu.systems.{system_label}.bin", None)
     if system_bin is None:
         log.error(f"Cannot determine system using system_label({system_label})")
         return errno.EINVAL, None

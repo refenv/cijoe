@@ -66,9 +66,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     # Get the first guest with a matching system_label
     guest_name = None
-    for cur_guest_name, cur_guest in (
-        cijoe.config.options.get("qemu", {}).get("guests", {}).items()
-    ):
+    for cur_guest_name, cur_guest in cijoe.getconf("qemu.guests", {}).items():
         guest_system_label = cur_guest.get("system_label", None)
         if guest_system_label is None:
             log.error(f"guest_name({cur_guest_name}) is missing 'system_label'")
@@ -173,7 +171,7 @@ def main(args, cijoe, step):
         return errno.EINVAL
 
     build_status = {}
-    for image_name, image in cijoe.getconf("system-imaging.images", {}).items():
+    for image_name, image in images.items():
         if not fnmatch(image_name.lower(), pattern.lower()):
             log.info(f"image_name({image_name}); did not match pattern({pattern}")
             continue

@@ -22,7 +22,7 @@ from pathlib import Path
 
 
 def main(args, cijoe, step):
-    runner = cijoe.config.options.get("gha", {}).get("runner", {})
+    runner = cijoe.getconf("gha.runner", {})
 
     home = runner.get("home", None)
     count = runner.get("count", None)
