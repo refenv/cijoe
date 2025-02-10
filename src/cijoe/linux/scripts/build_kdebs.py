@@ -18,6 +18,7 @@ Worklet arguments
 with.localversion
 """
 
+import logging as log
 from pathlib import Path
 
 
@@ -25,6 +26,10 @@ def main(args, cijoe, step):
     """Configure, build and collect the build-artifacts"""
 
     path = cijoe.getconf("linux.repository.path")
+    if not path:
+        log.error("missing config: linux.repository.path")
+        return 1
+
     repos = Path(path).resolve()
     err, _ = cijoe.run(f"[ -d {repos} ]")
     if err:

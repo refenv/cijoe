@@ -7,6 +7,7 @@ Retargetable: False
 -------------------
 """
 import errno
+import logging as log
 from pathlib import Path
 
 
@@ -15,6 +16,7 @@ def main(args, cijoe, step):
 
     path = cijoe.getconf("qemu.repository.path", None)
     if not path:
+        log.error("missing 'qemu.repository.path' in configuration file")
         return errno.EINVAL
 
     build_dir = Path(path) / "build"
