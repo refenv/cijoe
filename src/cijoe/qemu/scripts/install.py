@@ -13,11 +13,11 @@ from pathlib import Path
 def main(args, cijoe, step):
     """Install qemu"""
 
-    conf = cijoe.config.options.get("qemu", None)
-    if not conf:
+    path = cijoe.getconf("qemu.repository.path", None)
+    if not path:
         return errno.EINVAL
 
-    build_dir = Path(conf["repository"]["path"]) / "build"
+    build_dir = Path(path) / "build"
 
     err, _ = cijoe.run_local("make install", cwd=build_dir)
 

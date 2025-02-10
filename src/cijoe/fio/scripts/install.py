@@ -14,7 +14,7 @@ from pathlib import Path
 def main(args, cijoe, step):
     """Install fio"""
 
-    err, _ = cijoe.run(
-        "make install", cwd=Path(cijoe.config.options["fio"]["repository"]["path"])
-    )
+    path = cijoe.getconf("fio.repository.path")
+
+    err, _ = cijoe.run("make install", cwd=Path(path))
     return err

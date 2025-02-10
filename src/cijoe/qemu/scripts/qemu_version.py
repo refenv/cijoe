@@ -24,7 +24,7 @@ def main(args, cijoe, step):
     err, _ = qemu_img(cijoe, "--version")
     errors.append(err)
 
-    for system_label in cijoe.config.options.get("qemu", {}).get("systems").keys():
+    for system_label in cijoe.getconf("qemu.systems", {}).keys():
         err, _ = qemu_system(cijoe, system_label, "--version")
         errors.append(err)
 

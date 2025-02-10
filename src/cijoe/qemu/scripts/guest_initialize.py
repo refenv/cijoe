@@ -37,25 +37,16 @@ def main(args, cijoe, step):
     guest = Guest(cijoe, cijoe.config, guest_name)
 
     if (
-        system_image_name := (
-            cijoe.config.options.get("qemu", {})
-            .get("guests", {})
-            .get(guest_name, {})
-            .get(
-                "system_image_name", step.get("with", {}).get("system_image_name", None)
-            )
+        system_image_name := cijoe.getconf(
+            f"qemu.guests.{guest_name}.system_image_name",
+            step.get("with", {}).get("system_image_name", None),
         )
     ) is None:
-        log.error("qemu.guests.THIS.system_args.system_image_name is not set")
+        log.error("qemu.guests.THIS.system_image_name is not set")
         return errno.EINVAL
 
     if (
-        disk := (
-            cijoe.config.options.get("system-imaging", {})
-            .get("images", {})
-            .get(system_image_name, {})
-            .get("disk", None)
-        )
+        disk := cijoe.getconf(f"system-imaging.images.{system_image_name}.disk", None)
     ) is None:
         log.error(f"system-imaging.images.{system_image_name}.disk is not set")
         return errno.EINVAL

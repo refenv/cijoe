@@ -24,7 +24,8 @@ from pathlib import Path
 def main(args, cijoe, step):
     """Configure, build and collect the build-artifacts"""
 
-    repos = Path(cijoe.config.options["linux"]["repository"]["path"]).resolve()
+    path = cijoe.getconf("linux.repository.path")
+    repos = Path(path).resolve()
     err, _ = cijoe.run(f"[ -d {repos} ]")
     if err:
         return err
