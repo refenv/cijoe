@@ -25,9 +25,6 @@ FROM debian:bookworm
 
 WORKDIR /opt
 
-# User for running GHA Runner
-RUN useradd -ms /bin/bash devuser
-
 RUN apt-get -qy update && \
 	apt-get -qy \
 	-o "Dpkg::Options::=--force-confdef" \
