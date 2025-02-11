@@ -33,23 +33,32 @@ RUN apt-get -qy update && \
 	apt-get -qy autoclean
 
 RUN apt-get -qy -f install --no-install-recommends \
+	bc \
+	bison \
 	bridge-utils \
 	build-essential \
 	ca-certificates \
 	cloud-image-utils \
+	cpio \
+	debhelper-compat \
 	docker.io \
+	flex \
 	fuse3 \
 	genisoimage \
 	git \
 	guestmount \
 	htop \
+	kmod \
+	libelf-dev \
 	libglib2.0-dev \
 	libguestfs-tools \
+	libssl-dev \
 	linux-image-amd64 \
 	lshw \
 	meson \
 	neovim \
 	openssh-server \
+	pciutils \
 	pipx \
 	procps \
 	python3-build \
@@ -59,18 +68,9 @@ RUN apt-get -qy -f install --no-install-recommends \
 	qemu-system-arm \
 	qemu-system-x86 \
 	qemu-utils \
+	rsync \
 	ssh \
 	time \
-	kmod \
-	pciutils \
-	flex \
-	bison \
-	bc \
-	cpio \
-	libelf-dev \
-	libssl-dev \
-	rsync \
-	debhelper-compat \
 	&& \
 	apt-get -qy clean && \
 	apt-get -qy autoremove && \
