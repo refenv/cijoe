@@ -60,6 +60,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	lshw \
 	meson \
 	neovim \
+	nodejs \
 	openssh-server \
 	pciutils \
 	pipx \
