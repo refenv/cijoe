@@ -15,7 +15,7 @@ packages:
 - pciutils
 
 write_files:
-- path: /etc/ssh/sshd_config
+- path: /etc/ssh/sshd_config.d/00-cijoe.conf
   content: |
     PermitRootLogin yes
     PermitEmptyPasswords yes
