@@ -133,6 +133,17 @@ def diskimage_from_cloudimage(cijoe, image: dict):
         log.error(f"Failed copying to {disk_path}")
         return err
 
+    # Resize the .qcow file This still requires that the partitions are resized with
+    # e.g. growpart as part of the cloud-init process
+    cijoe.run_local(f"qemu-img info {disk_path}")
+
+    err, _ = cijoe.run_local(f"qemu-img resize {disk_path} 12G")
+    if err:
+        log.error("Failed resizing .qcow image")
+        return err
+
+    cijoe.run_local(f"qemu-img info {disk_path}")
+
     # Compute sha256sum of the disk-image
     err, _ = cijoe.run_local(f"sha256sum {disk_path} > {disk_path}.sha256")
     if err:
