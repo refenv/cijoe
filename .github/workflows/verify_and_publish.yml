@@ -195,13 +195,11 @@ jobs:
   publish-coverage:
     runs-on: ${{ matrix.os }}
     needs: [examples, unittest]
-    container:
-      image: ghcr.io/refenv/cijoe-docker:latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-latest]
         python-version: ['3.12']
 
     steps:
