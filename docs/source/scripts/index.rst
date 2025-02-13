@@ -167,14 +167,3 @@ available, how to add it? This can be done by **injecting** it into the
 **cijoe** venv provided by **pipx**. Here is an example, of adding matplotlib:
 
 .. literalinclude:: ../100_inject.cmd
-
-Running a sequence of **cijoe** scripts
----------------------------------------
-
-If you have created multiple **cijoe** scripts that needs to be run
-sequentially, you can do so by adding all scripts as arguments to the **cijoe**
-command.
-
-.. code-block:: python
-
-   cijoe path/to/cijoe-script-A.py path/to/script-B.py [...]

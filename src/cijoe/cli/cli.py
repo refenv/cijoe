@@ -366,23 +366,15 @@ def cli_workflow(args):
     return err
 
 
-def create_adhoc_workflow(args, steps: list[str]):
-    parent_dirs = set()
+def create_adhoc_workflow(args, step: str):
+    parent_dirs = []
 
-    def normalise(step: str):
-        if step.endswith(".py"):
-            path = Path(step)
-            parent_dirs.add(path.parent)
-            return path.stem
-        else:
-            return step
+    if step.endswith(".py"):
+        path = Path(step)
+        parent_dirs.append(path.parent)
+        step = path.stem
 
-    steps = list(map(normalise, steps))
-    if len(set(steps)) != len(steps):
-        log.error("Duplicate script file names not allowed.")
-        sys.exit(1)
-
-    resources = get_resources(list(parent_dirs))
+    resources = get_resources(parent_dirs)
 
     template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
     jinja_env = jinja2.Environment(
@@ -394,7 +386,7 @@ def create_adhoc_workflow(args, steps: list[str]):
         setattr(args, "workflow", Path(workflow.name))
         setattr(args, "step", [])
 
-        content = template.render(steps=steps)
+        content = template.render(steps=[step])
         workflow.write(bytes(content, "utf-8"))
         workflow.seek(0)
 
@@ -416,7 +408,7 @@ def parse_args():
     workflow_group.add_argument(
         "step",
         nargs="*",
-        help="Given a workflow; one or more workflow steps to run. Else; one or more cijoe Python scripts to run.",
+        help="Given a workflow; one or more workflow steps to run. Else; one cijoe Python script to run.",
     )
 
     workflow_group.add_argument(
@@ -531,12 +523,12 @@ def main(args=None):
 
     if args is None:
         args = parse_args()
-        if args.step:
+        if args.step and len(args.step) == 1:
+            # Running stand-alone script
+            step = args.step[0]
             resource_scripts = list(get_resources()["scripts"].keys())
-            if all(
-                step.endswith(".py") or (step in resource_scripts) for step in args.step
-            ):
-                create_adhoc_workflow(args, args.step)
+            if step.endswith(".py") or step in resource_scripts:
+                create_adhoc_workflow(args, step)
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
