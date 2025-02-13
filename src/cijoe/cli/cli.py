@@ -288,7 +288,7 @@ def cli_workflow(args):
 
     workflow.state["tag"] = args.tag
     step_names = [step["name"] for step in workflow.state["steps"]]
-    for step_name in args.step:
+    for step_name in args.target:
         if step_name in step_names:
             continue
 
@@ -326,7 +326,7 @@ def cli_workflow(args):
         cijoe.set_output_ident(step["id"])
         os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
 
-        if args.step and step["name"] not in args.step:
+        if args.target and step["name"] not in args.target:
             step["status"]["skipped"] = 1
         else:
             script_ident = step["uses"]
@@ -366,15 +366,13 @@ def cli_workflow(args):
     return err
 
 
-def create_adhoc_workflow(args, step: str):
-    parent_dirs = []
+def create_adhoc_workflow(args):
+    target = args.script_name
+    if target.endswith(".py"):
+        path = Path(target)
+        target = path.stem
 
-    if step.endswith(".py"):
-        path = Path(step)
-        parent_dirs.append(path.parent)
-        step = path.stem
-
-    resources = get_resources(parent_dirs)
+    resources = get_resources()
 
     template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
     jinja_env = jinja2.Environment(
@@ -386,7 +384,7 @@ def create_adhoc_workflow(args, step: str):
         setattr(args, "workflow", Path(workflow.name))
         setattr(args, "step", [])
 
-        content = template.render(steps=[step])
+        content = template.render(steps=[target])
         workflow.write(bytes(content, "utf-8"))
         workflow.seek(0)
 
@@ -396,70 +394,85 @@ def create_adhoc_workflow(args, step: str):
 def parse_args():
     """Parse command-line interface."""
 
-    parser = argparse.ArgumentParser(
-        prog=Path(sys.argv[0]).stem,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    parent_dirs = set()
+
+    for i, argv in enumerate(sys.argv):
+        if i == 0 or sys.argv[i - 1].startswith("-"):
+            continue
+        if argv.endswith(".py"):
+            path = Path(argv).resolve()
+            parent_dirs.add(path.parent)
+            sys.argv[i] = path.stem
+            break
+        if argv.endswith(".yaml"):
+            sys.argv.insert(i, "--workflow")
+            sys.argv.insert(i, "workflow")
+            break
+
+    resource_scripts = get_resources(list(parent_dirs))["scripts"]
+
+    parent_parser = argparse.ArgumentParser(add_help=False)
+
+    run_group = parent_parser.add_argument_group(
+        "run", "Run a script or workflow, using config at '-c', and output at '-o'"
     )
 
-    workflow_group = parser.add_argument_group(
-        "workflow", "Run workflow at '-w', using config at '-c', and output at '-o'"
-    )
-
-    workflow_group.add_argument(
-        "step",
+    run_group.add_argument(
+        "target",
         nargs="*",
-        help="Given a workflow; one or more workflow steps to run. Else; one cijoe Python script to run.",
+        default=[],
+        help="Either; The name of or path to a cijoe script. Or; The path to a workflow file and optionally one or more workflow steps to run.",
     )
 
-    workflow_group.add_argument(
-        "--config",
-        "-c",
-        type=Path,
-        default=Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME)),
-        help="Path to the Configuration file.",
-    )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--workflow",
         "-w",
         type=Path,
         default=Path(
             os.environ.get("CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME)
         ),
-        help="Path to workflow file.",
+        help=argparse.SUPPRESS,
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
+        "--config",
+        "-c",
+        type=Path,
+        default=Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME)),
+        help="Path to the Configuration file.",
+    )
+    run_group.add_argument(
         "--output",
         "-o",
         type=Path,
         default=default_output_path(),
         help="Path to output directory.",
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--log-level",
         "-l",
         action="append_const",
         const=1,
         help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--monitor",
         "-m",
         action="store_true",
         help="Dump command output to stdout",
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--no-report",
         "-n",
         action="store_true",
         help="Skip the producing, and opening, a report at the end of the workflow-run",
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--skip-report",
         "-s",
         action="store_false",
         help="Skip the report opening at the end of the workflow-run",
     )
-    workflow_group.add_argument(
+    run_group.add_argument(
         "--tag",
         "-t",
         type=str,
@@ -468,7 +481,7 @@ def parse_args():
         " This will be prefixed while storing in archive",
     )
 
-    utils_group = parser.add_argument_group(
+    utils_group = parent_parser.add_argument_group(
         "utilities", "Workflow, and workflow-related utilities"
     )
     utils_group.add_argument(
@@ -515,6 +528,32 @@ def parse_args():
         help="Print the version number of 'cijoe' and exit.",
     )
 
+    parser = argparse.ArgumentParser(
+        prog=Path(sys.argv[0]).stem,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        parents=[parent_parser],
+    )
+
+    subparsers = parser.add_subparsers(help=argparse.SUPPRESS)
+
+    # Create subparser for workflows
+    subparsers.add_parser("workflow", parents=[parent_parser], help=argparse.SUPPRESS)
+
+    # Create subparser for scripts
+    for ident, script in resource_scripts.items():
+        script.load()
+        help_text = (
+            next(line for line in script.docs.splitlines() if line)
+            if script.docs
+            else ""
+        )
+        subparser = subparsers.add_parser(
+            ident, parents=[parent_parser], help=help_text, epilog=script.docs
+        )
+        subparser.add_argument("--script-name", default=ident)
+        if script.argparser_func:
+            script.argparser_func(subparser)
+
     return parser.parse_args()
 
 
@@ -523,12 +562,9 @@ def main(args=None):
 
     if args is None:
         args = parse_args()
-        if args.step and len(args.step) == 1:
+        if getattr(args, "script_name", None):
             # Running stand-alone script
-            step = args.step[0]
-            resource_scripts = list(get_resources()["scripts"].keys())
-            if step.endswith(".py") or step in resource_scripts:
-                create_adhoc_workflow(args, step)
+            create_adhoc_workflow(args)
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
@@ -552,6 +588,10 @@ def main(args=None):
 
     if args.archive:
         return cli_archive(args)
+
+    if not getattr(args, "workflow", None):
+        log.error("No target given; exiting")
+        return errno.EINVAL
 
     for filearg in ["config", "workflow"]:
         argv = getattr(args, filearg)
