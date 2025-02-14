@@ -204,13 +204,16 @@ class Script(Resource):
 
     SUFFIX = ".py"
     NAMING_CONVENTION = ["worklet_entry", "script_entry", "main"]
+    ARGPARSER_FUNC = "add_args"
 
     def __init__(self, path, pkg=None):
         super().__init__(path, pkg)
 
         self.func = None
+        self.argparser_func = None
         self.mod = None
         self.mod_name = None
+        self.docs = None
 
     def content_has_script_func(self):
         """Checks whether the resource-content has the script entry-function"""
@@ -234,6 +237,28 @@ class Script(Resource):
 
         return False
 
+    def content_has_argparser_func(self):
+        """Checks whether the resource-content has a function to add cli arguments"""
+
+        try:
+            tree = ast.parse(self.content)
+        except SyntaxError:
+            return False
+
+        for node in [x for x in ast.walk(tree) if isinstance(x, ast.FunctionDef)]:
+            if node.name != Script.ARGPARSER_FUNC:
+                log.debug(f"skipping; invalid argparser function name({node.name})")
+                continue
+
+            argnames = [arg.arg for arg in node.args.args]
+            if argnames != ["parser"]:
+                log.debug(f"skipping; invalid argnames({argnames})")
+                continue
+
+            return True
+
+        return False
+
     def load(self):
         """Loads the module and the script-entry function"""
 
@@ -245,6 +270,8 @@ class Script(Resource):
 
         if not self.content_has_script_func():
             return ["Missing script_entry() function in ast"]
+
+        has_argparser_func = self.content_has_argparser_func()
 
         path = Path(self.path).resolve()
 
@@ -267,16 +294,23 @@ class Script(Resource):
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
+        docstring = mod.__doc__
 
         # mod = SourceFileLoader("", str(self.path)).load_module()
         for function_name, function in inspect.getmembers(mod, inspect.isfunction):
+            if function_name == Script.ARGPARSER_FUNC and has_argparser_func:
+                self.argparser_func = function
+
             if function_name not in Script.NAMING_CONVENTION:
+                continue
+
+            if self.func:
                 continue
 
             self.mod = mod
             self.mod_name = mod_name
             self.func = function
-            return []
+            self.docs = docstring
 
         return ["Missing script_entry() function in loaded module"]
 
