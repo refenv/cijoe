@@ -61,10 +61,10 @@ Which yields the following output:
 Search Paths
 ============
 
-The :ref:`sec-usage-cli` for config-files (``--c / --config``) and workflows
-(``-w / --workflow``) by default search for files named ``cijoe-config.toml``
-and ``cijoe-workflow.yaml``, respectfully. These files are searched for, in
-order, in the following locations:
+The :ref:`sec-usage-cli` for the positional argument, and config-files 
+(``--c / --config``) and workflows (``-w / --workflow``) by default search for files
+named ``cijoe-workflow.yaml`` and ``cijoe-config.toml``, respectfully. These files
+are searched for, in order, in the following locations:
 
 ``$PWD``
    In your current working directory
@@ -102,5 +102,5 @@ CIJOE_DEFAULT_CONFIG
     ``-c/--config`` argument.
 
 CIJOE_DEFAULT_WORKFLOW
-    When set, the value will be used as the default for the command-line 
-    ``-w/--workflow`` argument.
+    When set, the value will be used as the default for the positional
+    command-line argument.

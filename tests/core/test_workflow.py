@@ -45,9 +45,8 @@ def test_workflow_lint_valid_workflow(tmp_path):
     result = subprocess.run(
         [
             "cijoe",
-            "--integrity-check",
-            "--workflow",
             str(workflow_file),
+            "--integrity-check",
             "--config",
             str(config_path),
         ],
@@ -72,9 +71,8 @@ def test_workflow_lint_invalid_step_name(tmp_path):
     result = subprocess.run(
         [
             "cijoe",
-            "--integrity-check",
-            "--workflow",
             str(workflow_file),
+            "--integrity-check",
             "--config",
             str(config_path),
         ],
@@ -104,10 +102,9 @@ def test_workflow_report_command_ordering(tmp_path):
     result = subprocess.run(
         [
             "cijoe",
+            str(workflow_file),
             "--output",
             str(output_path),
-            "--workflow",
-            str(workflow_file),
             "--config",
             str(config_path),
         ],
