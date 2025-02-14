@@ -43,6 +43,7 @@ import os
 import pkgutil
 import re
 import sys
+from argparse import Namespace
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -372,7 +373,7 @@ class Workflow(Resource):
         return errors
 
     @staticmethod
-    def dict_lint(topic: dict):
+    def dict_lint(args: Namespace, topic: dict):
         """Returns a list of integrity-errors for the given workflow-dict(topic)"""
 
         resources = get_resources()
@@ -424,9 +425,28 @@ class Workflow(Resource):
                 )
                 continue
 
+            if "with" in step:
+                reserved = [key for key in step["with"] if key in args]
+                if reserved:
+                    errors.append(
+                        f"Invalid step({nr}): 'with' keys reserved({','.join(reserved)})"
+                    )
+                    continue
+
+                for key, value in step["with"].items():
+                    if (
+                        type(value) is dict
+                        or type(value) is list
+                        and any(type(el) in [dict, list] for el in value)
+                    ):
+                        errors.append(
+                            f"Invalid step({nr}): 'with' values can only be primitive or lists of primitive types({key}: {value})"
+                        )
+                        continue
+
         return errors
 
-    def load(self, config: Config, extra_steps: list = []):
+    def load(self, args: Namespace, config: Config, extra_steps: list = []):
         """
         Load the workflow-yamlfile, normalize it, lint it, substitute, then construct
         the object properties
@@ -444,7 +464,7 @@ class Workflow(Resource):
         if errors:
             return errors
 
-        errors += Workflow.dict_lint(workflow_dict)
+        errors += Workflow.dict_lint(args, workflow_dict)
         if errors:
             return errors
 

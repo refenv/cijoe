@@ -97,7 +97,7 @@ def cli_integrity_check(args):
             return errno.EINVAL
 
     errors = Workflow.dict_normalize(workflow_dict)  # Normalize it
-    errors += Workflow.dict_lint(workflow_dict)  # Check the yaml-file
+    errors += Workflow.dict_lint(args, workflow_dict)  # Check the yaml-file
 
     config = Config.from_path(args.config)
     if not config:
@@ -286,7 +286,7 @@ def cli_workflow(args):
 
     workflow = Workflow(args.workflow)
 
-    errors = workflow.load(config)
+    errors = workflow.load(args, config)
     if errors:
         log_errors(errors)
         log.error("workflow.load(): see errors above or run 'cijoe -i'")
