@@ -175,6 +175,8 @@ def cli_produce_report(args):
     if reporter.func is None:
         reporter.load()
 
+    setattr(args, "report_open", args.skip_report)
+
     return reporter.func(
         args,
         cijoe,
@@ -336,9 +338,23 @@ def cli_workflow(args):
             step["status"]["skipped"] = 1
         else:
             script_ident = step["uses"]
+            script = resources["scripts"][script_ident]
+
+            arguments = []
+            if "with" in step:
+                for k, v in step["with"].items():
+                    if type(v) is list:
+                        arguments += [f"--{k}", *[f"{el}" for el in v]]
+                    else:
+                        arguments += [f"--{k}", f"{v}"]
+            parser = argparse.ArgumentParser()
+            if script.argparser_func:
+                script.argparser_func(parser)
+            script_args = parser.parse_args(arguments)
+            args = argparse.Namespace(**vars(args), **vars(script_args))
 
             try:
-                err = resources["scripts"][script_ident].func(args, cijoe, step)
+                err = script.func(args, cijoe, step)
                 if err:
                     log.error(f"script({script_ident}) : err({err})")
                 step["status"]["failed" if err else "passed"] = 1
@@ -348,6 +364,9 @@ def cli_workflow(args):
             except Exception:
                 log.exception(f"script({script_ident}) : failed")
                 step["status"]["failed"] = 1
+            finally:
+                for k in vars(script_args):
+                    delattr(args, k)
 
         for key in ["failed", "passed", "skipped"]:
             workflow.state["status"][key] += step["status"][key]
