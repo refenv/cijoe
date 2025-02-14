@@ -12,7 +12,7 @@ Retargetable: True
 import logging as log
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Check version of fio"""
 
     fio_bin = cijoe.getconf("fio.bin")
