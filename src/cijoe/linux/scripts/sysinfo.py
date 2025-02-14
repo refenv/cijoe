@@ -9,7 +9,7 @@ Retargetable: True
 """
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Collect Linux system information"""
 
     commands = [

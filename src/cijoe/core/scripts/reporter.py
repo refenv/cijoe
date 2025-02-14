@@ -19,6 +19,7 @@ report_open: true|false
 
 import logging as log
 import webbrowser
+from argparse import ArgumentParser
 from datetime import datetime
 
 import jinja2
@@ -26,6 +27,15 @@ import yaml
 
 from cijoe.core.processing import process_workflow_output
 from cijoe.core.resources import get_resources
+
+
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--report_open",
+        type=bool,
+        default=False,
+        help="Whether or not the generated report should be opened (in a browser)",
+    )
 
 
 def to_yaml(value):
@@ -50,10 +60,10 @@ def timestamp_to_txt(value):
     return datetime.fromtimestamp(float(value)).strftime("%d-%m-%Y, %H:%M:%S")
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Produce a HTML report of the 'workflow.state' file in 'args.output'"""
 
-    report_open = step.get("with", {"report_open"})["report_open"]
+    report_open = args.report_open
 
     resources = get_resources()
 

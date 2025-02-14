@@ -25,11 +25,16 @@ This script only runs on the iniator; due to the use of 'shutil', 'download' etc
 """
 import logging as log
 import shutil
+from argparse import ArgumentParser
 from fnmatch import fnmatch
 from pathlib import Path
 
 from cijoe.core.misc import download
 from cijoe.core.resources import get_resources
+
+
+def add_args(parser: ArgumentParser):
+    parser.add_argument("--pattern", type=str, help="Pattern for image names to build")
 
 
 def dockerimage_from_diskimage(cijoe, image):
@@ -73,13 +78,13 @@ def dockerimage_from_diskimage(cijoe, image):
     return 0
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Create a docker image using the content of a .qcow2 image"""
 
-    pattern = step.get("with", {}).get("pattern", None)
-    if pattern is None:
+    if "pattern" not in args:
         log.error("missing step-argument: with.pattern")
         return 1
+    pattern = args.pattern
 
     log.info(f"Got pattern({pattern})")
 

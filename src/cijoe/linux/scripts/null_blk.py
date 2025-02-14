@@ -15,14 +15,24 @@ Retargetable: True
 """
 
 import errno
+from argparse import ArgumentParser
 
 import cijoe.linux.null_blk as null_blk
 
 
-def main(args, cijoe, step):
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--do",
+        choices=["insert", "remove"],
+        default="insert",
+        help="The commands to be run",
+    )
+
+
+def main(args, cijoe):
     """Insert or remove the null_blk"""
 
-    do = step.get("with", {"do": "insert"}).get("do", "insert")
+    do = args.do
     if do == "insert":
         err, _ = null_blk.insert(cijoe)
     elif do == "remove":

@@ -61,13 +61,30 @@ use cijoe.run(). Such as tests implemented in Python.
 import copy
 import logging as log
 import uuid
+from argparse import ArgumentParser
 from pathlib import Path
 
 from cijoe.core.resources import dict_to_tomlfile
 
 
-def pytest_cmdline(args, step, config_path, output_path, reportlog_path):
-    """Contruct pytest command-line arguments given 'step' and paths"""
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--run_local",
+        type=bool,
+        default=True,
+        help="Whether 'pytest' should be executed in same environment as 'cijoe'",
+    )
+    parser.add_argument(
+        "--random_order",
+        type=bool,
+        default=True,
+        help="Whether the tests should be run in random order",
+    )
+    parser.add_argument("--args", type=str, help="Additional args given to 'pytest'")
+
+
+def pytest_cmdline(args, config_path, output_path, reportlog_path):
+    """Contruct pytest command-line arguments given args and paths"""
 
     log.info(f"config_path({config_path})")
     log.info(f"output_path({output_path})")
@@ -80,14 +97,16 @@ def pytest_cmdline(args, step, config_path, output_path, reportlog_path):
     cmdline += ["--output", output_path]
     cmdline += ["--report-log", reportlog_path]
 
-    cmdline += step.get("with").get("args", "").split(" ")
+    if "args" in args:
+        cmdline += args.args.split(" ")
 
-    cmdline += ["--random-order"] if step.get("with").get("random-order", True) else []
+    random_order = args.random_order
+    cmdline += ["--random-order"] if random_order else []
 
     return cmdline
 
 
-def pytest_remote(args, cijoe, step):
+def pytest_remote(args, cijoe):
     """
     Run pytest on remote, that is, transfer config, execute pytest on the
     remote and transfer the testreport.log from remote to local
@@ -125,7 +144,6 @@ def pytest_remote(args, cijoe, step):
 
     cmdline = pytest_cmdline(
         args,
-        step,
         str(config_path),
         str(output_path),
         str(reportlog_path),
@@ -148,7 +166,7 @@ def pytest_remote(args, cijoe, step):
     return err
 
 
-def pytest_local(args, cijoe, step):
+def pytest_local(args, cijoe):
     """
     Run pytest locally, that is, execute on the same system on which cijoe-cli
     was executed. The cijoe config provided via 'args.config' is forwarded to
@@ -157,7 +175,6 @@ def pytest_local(args, cijoe, step):
 
     cmdline = pytest_cmdline(
         args,
-        step,
         str(args.config),
         str(args.output / cijoe.output_ident),
         str(args.output / cijoe.output_ident / "testreport.log"),
@@ -168,11 +185,7 @@ def pytest_local(args, cijoe, step):
     return err
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Invoke the pytest + cijoe-plugin test-runner"""
 
-    return (
-        pytest_local
-        if step.get("with", {"run_local": True}).get("run_local", True)
-        else pytest_remote
-    )(args, cijoe, step)
+    return (pytest_local if args.run_local else pytest_remote)(args, cijoe)

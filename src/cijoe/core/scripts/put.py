@@ -16,13 +16,23 @@ Retargetable: True
 
 import errno
 import logging as log
+from argparse import ArgumentParser
 
 
-def main(args, cijoe, step):
-    """Copies the file at step.with.src on the local machine to step.with.dst on the remote machine"""
+def add_args(parser: ArgumentParser):
+    parser.add_argument("--src", type=str, help="path to the file on local machine")
+    parser.add_argument(
+        "--dst",
+        type=str,
+        help="path to where the file should be placed on the remote machine",
+    )
 
-    if not ("with" in step and "src" in step["with"] and "dst" in step["with"]):
+
+def main(args, cijoe):
+    """Copies the file at args.src on the local machine to args.dst on the remote machine"""
+
+    if not ("src" in args and "dst" in args):
         log.error("missing step-argument: with.src and/or with.dst")
         return errno.EINVAL
 
-    return int(not cijoe.put(step["with"]["src"], step["with"]["dst"]))
+    return int(not cijoe.put(args.src, args.dst))

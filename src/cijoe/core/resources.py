@@ -230,7 +230,7 @@ class Script(Resource):
                 continue
 
             argnames = [arg.arg for arg in node.args.args]
-            if argnames != ["args", "cijoe", "step"]:
+            if argnames != ["args", "cijoe"]:
                 log.debug(f"skipping; invalid argnames({argnames})")
                 continue
 

@@ -125,7 +125,7 @@ uses
 
 with
   Everything under this key is passed to the script's entry function:
-  ``main(args, cijoe, step)`` as the ``step`` argument.
+  ``main(args, cijoe)`` in the ``args`` argument.
 
 
 .. _sec-resources-workflows-linting:

@@ -177,15 +177,7 @@ def cli_produce_report(args):
 
     setattr(args, "report_open", args.skip_report)
 
-    return reporter.func(
-        args,
-        cijoe,
-        {
-            "name": "report",
-            "uses": "core.reporter",
-            "with": {"report_open": args.skip_report},
-        },
-    )
+    return reporter.func(args, cijoe)
 
 
 def cli_example(args):
@@ -354,7 +346,7 @@ def cli_workflow(args):
             args = argparse.Namespace(**vars(args), **vars(script_args))
 
             try:
-                err = script.func(args, cijoe, step)
+                err = script.func(args, cijoe)
                 if err:
                     log.error(f"script({script_ident}) : err({err})")
                 step["status"]["failed" if err else "passed"] = 1

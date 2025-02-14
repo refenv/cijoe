@@ -19,7 +19,7 @@ from cijoe.core.command import Cijoe
 from cijoe.core.resources import get_resources
 
 
-def main(args: Namespace, cijoe: Cijoe, step: dict):
+def main(args: Namespace, cijoe: Cijoe):
     resources = get_resources()
     template_path = resources["templates"]["template.html"].path
 

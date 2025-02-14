@@ -26,12 +26,17 @@ This script only runs on the iniator; due to the use of 'shutil', 'download' etc
 import errno
 import logging as log
 import shutil
+from argparse import ArgumentParser
 from fnmatch import fnmatch
 from pathlib import Path
 from pprint import pformat
 
 from cijoe.core.misc import download
 from cijoe.qemu.wrapper import Guest, qemu_img
+
+
+def add_args(parser: ArgumentParser):
+    parser.add_argument("--pattern", type=str, help="Pattern for image names to build")
 
 
 def diskimage_from_cloudimage(cijoe, image: dict):
@@ -154,13 +159,13 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     return 0
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Provision a qemu-guest using a cloud-init image"""
 
-    pattern = step.get("with", {}).get("pattern", None)
-    if pattern is None:
+    if "pattern" not in args:
         log.error("missing step-argument: with.pattern")
         return errno.EINVAL
+    pattern = args.pattern
 
     log.info(f"Got pattern({pattern})")
 

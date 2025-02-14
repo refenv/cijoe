@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     runner = cijoe.getconf("gha.runner", {})
 
     home = runner.get("home", None)
