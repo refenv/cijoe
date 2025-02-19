@@ -12,7 +12,7 @@ import logging as log
 from pathlib import Path
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Install fio"""
 
     path = cijoe.getconf("fio.repository.path")

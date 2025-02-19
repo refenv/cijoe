@@ -10,13 +10,10 @@ inspection in reports.
 Retargetable: False
 -------------------
 """
-import errno
-from pathlib import Path
-
 from cijoe.qemu.wrapper import qemu_img, qemu_system
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Install qemu"""
 
     errors = []

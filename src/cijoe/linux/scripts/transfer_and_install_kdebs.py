@@ -16,16 +16,22 @@ Transfer from local to remote, the config.cijoe.transport determines the remote.
 
 import errno
 import logging as log
+from argparse import ArgumentParser
 from pathlib import Path
 
 
-def main(args, cijoe, step):
-    deb_root = step.get("with", {}).get("local_kdebs_dir", None)
-    if not deb_root:
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--local_kdebs_dir", type=str, help="Path to local kdebs directory"
+    )
+
+
+def main(args, cijoe):
+    if "local_kdebs_dir" not in args:
         log.error("missing step-argument: with.local_kdebs_dir")
         return errno.EINVAL
 
-    deb_root = Path(deb_root)
+    deb_root = Path(args.local_kdebs_dir)
     deb_root = (
         deb_root if deb_root.is_absolute() else Path(args.output).parent / deb_root
     )

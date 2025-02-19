@@ -11,17 +11,24 @@ Retargetable: True
 
 import errno
 import logging as log
+from argparse import ArgumentParser
 
 
-def main(args, cijoe, step):
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--commands", nargs="+", type=str, help="The commands to be run"
+    )
+
+
+def main(args, cijoe):
     """Run commands one at a time via cijoe.run()"""
 
     err = 0
-    if not ("with" in step and "commands" in step["with"]):
+    if "commands" not in args:
         log.error("missing step-argument: with.commands")
         return errno.EINVAL
 
-    for cmd in step["with"]["commands"]:
+    for cmd in args.commands:
         err, state = cijoe.run(cmd)
         if err:
             break

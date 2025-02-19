@@ -20,30 +20,36 @@ Retargetable: False
 """
 import errno
 import logging as log
+from argparse import ArgumentParser
 from pathlib import Path
 
 from cijoe.core.misc import download, download_and_verify
 from cijoe.qemu.wrapper import Guest
 
 
-def main(args, cijoe, step):
+def add_args(parser: ArgumentParser):
+    parser.add_argument("--guest_name", type=str, help="qemu guest name")
+    parser.add_argument("--system_image_name", type=str, help="system image name")
+
+
+def main(args, cijoe):
     """Provision using an existing boot image"""
 
-    guest_name = step.get("with", {}).get("guest_name", None)
-    if guest_name is None:
+    if "guest_name" not in args:
         log.error("missing step-argument: with.guest_name")
         return errno.EINVAL
 
-    guest = Guest(cijoe, cijoe.config, guest_name)
+    guest = Guest(cijoe, cijoe.config, args.guest_name)
 
-    if (
-        system_image_name := cijoe.getconf(
-            f"qemu.guests.{guest_name}.system_image_name",
-            step.get("with", {}).get("system_image_name", None),
-        )
-    ) is None:
+    system_image_name = cijoe.getconf(
+        f"qemu.guests.{args.guest_name}.system_image_name", None
+    )
+
+    if (not system_image_name and "system_image_name" not in args) is None:
         log.error("qemu.guests.THIS.system_image_name is not set")
         return errno.EINVAL
+    else:
+        system_image_name = args.system_image_name
 
     if (
         disk := cijoe.getconf(f"system-imaging.images.{system_image_name}.disk", None)

@@ -42,21 +42,21 @@ from cijoe.core.command import Cijoe
 def add_args(parser: ArgumentParser):
     """Optional function for defining command-line arguments for this script"""
     parser.add_argument(
-        "--message", type=str, default=None, help="The message to be printed"
+        "--repeat",
+        type=int,
+        default=1,
+        help="Amount of times the message will be repeated",
     )
 
 
-def main(args: Namespace, cijoe: Cijoe, step: dict):
+def main(args: Namespace, cijoe: Cijoe):
     """Entry-point of the cijoe-script"""
 
-    # Grab message from command-line arguments, if none is given, grab it from
-    # the configuration-file
-    message = getattr(args, "message", None) or cijoe.getconf(
-        "example.message", "Hello World!"
-    )
+    # Grab message from the configuration-file
+    message = cijoe.getconf("example.message", "Hello World!")
 
     # When executed via workflow, grab the step-argument
-    repeat = int(step.get("with", {}).get("repeat", 1))
+    repeat = args.repeat
     if repeat < 1:
         log.error(f"Invalid step-argument: repeat({repeat}) < 1")
         return 1

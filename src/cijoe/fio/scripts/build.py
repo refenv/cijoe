@@ -12,7 +12,7 @@ import logging as log
 from pathlib import Path
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     """Build fio"""
 
     prefix = cijoe.getconf("fio.build.prefix")

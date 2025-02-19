@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 
-def main(args, cijoe, step):
+def main(args, cijoe):
     runner = cijoe.getconf("gha.runner", {})
 
     url = runner.get("url", {}).get("repository", None)

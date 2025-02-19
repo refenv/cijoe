@@ -1,5 +1,6 @@
 import copy
 import subprocess
+from argparse import Namespace
 from pathlib import Path
 
 import yaml
@@ -28,7 +29,7 @@ def test_workflow_load():
     workflow = resources["workflows"]["core.example_workflow_default"]
     assert workflow
 
-    errors = workflow.load(config, [])
+    errors = workflow.load(Namespace(), config, [])
     assert not errors
 
 

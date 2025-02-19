@@ -19,10 +19,26 @@ with.localversion
 """
 
 import logging as log
+from argparse import ArgumentParser
 from pathlib import Path
 
 
-def main(args, cijoe, step):
+def add_args(parser: ArgumentParser):
+    parser.add_argument(
+        "--local_version",
+        type=str,
+        default="custom",
+        help="Path to local version of kdebs",
+    )
+    parser.add_argument(
+        "--run_local",
+        type=bool,
+        default=True,
+        help="Whether or not to execute in the same environment as 'cijoe'.",
+    )
+
+
+def main(args, cijoe):
     """Configure, build and collect the build-artifacts"""
 
     path = cijoe.getconf("linux.repository.path")
@@ -35,9 +51,7 @@ def main(args, cijoe, step):
     if err:
         return err
 
-    localversion = step.get("with", {}).get("localversion", "custom")
-    run_local = step.get("with", {}).get("run_local", True)
-    run = cijoe.run_local if run_local else cijoe.run
+    run = cijoe.run_local if args.run_local else cijoe.run
 
     commands = [
         "[ -f .config ] && rm .config || true",
@@ -45,7 +59,7 @@ def main(args, cijoe, step):
         "./scripts/config --disable CONFIG_DEBUG_INFO",
         "./scripts/config --disable SYSTEM_TRUSTED_KEYS",
         "./scripts/config --disable SYSTEM_REVOCATION_KEYS",
-        f"yes '' | make -j$(nproc) bindeb-pkg LOCALVERSION={localversion}",
+        f"yes '' | make -j$(nproc) bindeb-pkg LOCALVERSION={args.local_version}",
         f"mkdir -p {cijoe.output_path}/artifacts/linux",
         f"mv ../*.deb {cijoe.output_path}/artifacts/linux",
         f"mv ../*.changes {cijoe.output_path}/artifacts/linux",
