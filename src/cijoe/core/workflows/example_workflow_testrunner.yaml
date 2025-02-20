@@ -1,0 +1,59 @@
+---
+doc: |
+  This workflow file is an example of how to use the CIJOE testrunner. 
+
+  The testrunner script takes three optional arguments. The purpose of this
+  workflow is to run the testrunner with different combinations of these
+  arguments.
+
+steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
+  with:
+    pattern: "debian-12-x86_64"
+
+- name: guest_initialize
+  uses: qemu.guest_initialize
+  with:
+    guest_name: generic-bios-kvm-x86_64
+    system_image_name: debian-12-x86_64
+
+- name: guest_start
+  uses: qemu.guest_start
+  with:
+    guest_name: generic-bios-kvm-x86_64
+
+- name: guest_check
+  run: |
+    hostname
+
+- name: install_cijoe
+  run: |
+    apt-get -qy install python3 python3-pip
+    python3 -m pip install --upgrade pip
+    python3 -m pip install pipx
+    pipx install cijoe --include-deps
+
+- name: testrunner_local
+  uses: core.testrunner
+  with:
+    run_local: true
+    random_order: false
+    args: "cijoe-example-core.testrunner/"
+
+- name: testrunner_remote
+  uses: core.testrunner
+  with:
+    run_local: false
+    random_order: true
+    args: "cijoe-example-core.testrunner/"
+
+- name: testrunner_keywords
+  uses: core.testrunner
+  with:
+    args: "-k 'true' cijoe-example-core.testrunner/"
+
+- name: guest_kill
+  uses: qemu.guest_kill
+  with:
+    guest_name: generic-bios-kvm-x86_64
