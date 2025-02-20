@@ -133,16 +133,37 @@ jobs:
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+    # This is necessary for running pytest, which is invoked in 
+    # the testrunner example
+    - name: Inject pytest
+      if: matrix.usage_example == 'core.testrunner'
+      run: |
+        pipx inject cijoe --force pytest --include-apps
+
     - name: Emit the example configuration file and workflow
       run: |
         cijoe --example ${{ matrix.usage_example }}
+
+    - name: Rename cijoe-script to match pytest naming conventions
+      if: matrix.usage_example == 'core.testrunner'
+      run: |
+        mv cijoe-example-${{ matrix.usage_example }}/cijoe-script.py \
+          cijoe-example-${{ matrix.usage_example }}/test_cijoe-script.py
 
     - name: Run it!
       run: |
         coverage run \
           $(which cijoe) --monitor -l \
-            --config cijoe-example-${{ matrix.usage_example}}/cijoe-config.toml \
-            --workflow cijoe-example-${{ matrix.usage_example}}/cijoe-workflow.yaml
+            --config cijoe-example-${{ matrix.usage_example }}/cijoe-config.toml \
+            --workflow cijoe-example-${{ matrix.usage_example }}/cijoe-workflow.yaml
+
+    - name: Pytest
+      if: matrix.usage_example == 'core.testrunner'
+      run: |
+        coverage run \
+          $(which pytest) \
+            --config cijoe-example-${{ matrix.usage_example }}/cijoe-config.toml \
+            cijoe-example-${{ matrix.usage_example }}/
 
     - name: Coverage report
       run: |
