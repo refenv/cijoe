@@ -108,6 +108,7 @@ jobs:
       matrix:
         usage_example:
         - core.default
+        - core.testrunner
         - fio.default
         - linux.default
         - linux.null_blk
