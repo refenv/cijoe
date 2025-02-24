@@ -19,7 +19,7 @@ report_open: true|false
 
 import logging as log
 import webbrowser
-from argparse import ArgumentParser
+from argparse import ArgumentParser, _StoreAction
 from datetime import datetime
 
 import jinja2
@@ -30,10 +30,15 @@ from cijoe.core.resources import get_resources
 
 
 def add_args(parser: ArgumentParser):
+    class StringToBoolAction(_StoreAction):
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
     parser.add_argument(
         "--report_open",
-        type=bool,
+        choices=["true", "false"],
         default=False,
+        action=StringToBoolAction,
         help="Whether or not the generated report should be opened (in a browser)",
     )
 

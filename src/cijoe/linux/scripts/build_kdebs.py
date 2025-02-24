@@ -19,11 +19,15 @@ with.localversion
 """
 
 import logging as log
-from argparse import ArgumentParser
+from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
 
 
 def add_args(parser: ArgumentParser):
+    class StringToBoolAction(_StoreAction):
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
     parser.add_argument(
         "--local_version",
         type=str,
@@ -32,8 +36,9 @@ def add_args(parser: ArgumentParser):
     )
     parser.add_argument(
         "--run_local",
-        type=bool,
+        choices=["true", "false"],
         default=True,
+        action=StringToBoolAction,
         help="Whether or not to execute in the same environment as 'cijoe'.",
     )
 

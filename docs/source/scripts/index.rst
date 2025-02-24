@@ -150,6 +150,47 @@ example, if the environment variable ``EXAMPLE_MAX_VALUE`` is set, its value
 will be used instead of the value specified in the configuration file.
 
 
+.. _sec-resources-scripts-arguments:
+
+Script Arguments
+================
+
+Some **cijoe** scripts have command-line arguments, which are evaluated with the 
+:argparse:`argparse<>` library. These arguments are added by defining a function 
+`add_args(parser: argparse.ArgumentParser)` in the **cijoe** script file.
+
+.. code-block:: python
+
+   from argparse import ArgumentParser
+
+   def add_args(parser: argparse.ArgumentParser):
+      parser.add_argument(
+        "--message",
+        type=str,
+      )
+
+Note that the :argparse:`argparse documentation<#type>` advices against using the 
+``bool()`` function as type converter. The **cijoe** scripts that has boolean 
+cli-arguments use the ``choices`` parameter and a custom store action to convert
+the strings ``"true"`` and ``"false"`` to ``True`` and ``False``, respectively.
+
+.. code-block:: python
+
+   from argparse import ArgumentParser, _StoreAction
+
+   def add_args(parser: ArgumentParser):
+      class StringToBoolAction(_StoreAction):
+         def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
+      parser.add_argument(
+         "--run_local",
+         choices=["true", "false"],
+         default=True,
+         action=StringToBoolAction
+      )
+
+
 .. _sec-resources-scripts-python-pkgs:
 
 Adding Python packages
