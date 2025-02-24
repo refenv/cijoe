@@ -52,7 +52,7 @@ inserted as a step with arguments like below:
      uses: core.testrunner
      with:
        args: '-k "filtering" my_tests'
-       random-order: false
+       random_order: false
        run_local: false
 
 Here you see three "special" arguments to the testrunner:
@@ -73,7 +73,7 @@ args
   that the latter integrates the **pytest** report into **cijoe**, producing a
   cohesive and standalone report.
 
-random-order
+random_order
   This option **scrambles** the order in which tests are executed. It is
   generally recommended, as it helps reduce inter-test dependencies and
   assumptions about the environment's state.
