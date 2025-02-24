@@ -61,23 +61,29 @@ use cijoe.run(). Such as tests implemented in Python.
 import copy
 import logging as log
 import uuid
-from argparse import ArgumentParser
+from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
 
 from cijoe.core.resources import dict_to_tomlfile
 
 
 def add_args(parser: ArgumentParser):
+    class StringToBoolAction(_StoreAction):
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
     parser.add_argument(
         "--run_local",
-        type=bool,
+        choices=["true", "false"],
         default=True,
+        action=StringToBoolAction,
         help="Whether 'pytest' should be executed in same environment as 'cijoe'",
     )
     parser.add_argument(
         "--random_order",
-        type=bool,
+        choices=["true", "false"],
         default=True,
+        action=StringToBoolAction,
         help="Whether the tests should be run in random order",
     )
     parser.add_argument("--args", type=str, help="Additional args given to 'pytest'")
@@ -187,5 +193,4 @@ def pytest_local(args, cijoe):
 
 def main(args, cijoe):
     """Invoke the pytest + cijoe-plugin test-runner"""
-
     return (pytest_local if args.run_local else pytest_remote)(args, cijoe)

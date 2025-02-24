@@ -62,6 +62,7 @@ html_context = {
 
 extlinks = {
     "ansible": ("https://www.ansible.com/%s", None),
+    "argparse": ("https://docs.python.org/3/library/argparse.html%s", None),
     "chef": ("https://www.chef.io/%s", None),
     "expect": ("https://en.wikipedia.org/wiki/Expect%s", None),
     "fabric": ("https://www.fabfile.org/%s", None),

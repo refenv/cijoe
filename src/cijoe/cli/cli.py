@@ -338,7 +338,10 @@ def cli_workflow(args):
                     if type(v) is list:
                         arguments += [f"--{k}", *[f"{el}" for el in v]]
                     else:
+                        if type(v) is bool:
+                            v = str(v).lower()
                         arguments += [f"--{k}", f"{v}"]
+
             parser = argparse.ArgumentParser()
             if script.argparser_func:
                 script.argparser_func(parser)
