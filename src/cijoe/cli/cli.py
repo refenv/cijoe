@@ -343,7 +343,7 @@ def cli_workflow(args):
             if script.argparser_func:
                 script.argparser_func(parser)
             script_args = parser.parse_args(arguments)
-            args = argparse.Namespace(**vars(args), **vars(script_args))
+            args = parser.parse_args(arguments, namespace=args)
 
             try:
                 err = script.func(args, cijoe)
