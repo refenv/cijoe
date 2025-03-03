@@ -4,12 +4,6 @@ put
 
 Copies a file from local to remote.
 
-Step Arguments
---------------
-
-step.with.src: path to the file on local machine
-step.with.dst: path to where the file should be placed on the remote machine
-
 Retargetable: True
 ------------------
 """

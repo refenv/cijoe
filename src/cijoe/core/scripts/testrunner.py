@@ -30,32 +30,29 @@ Requires the following pytest plugins for correct behaviour:
   output and auxiliary files.
 
 Invocation of pytest is done in one of the following two ways, and controlled
-by ``step.with.run_local``, with boolean value True / False. The default is
+by ``args.run_local``, with boolean value True / False. The default is
 True.
 
-with.run_local: True
---------------------
+* args.run_local: True
 
-This is the most common, invoking pytest locally, which in turn will be using
-the same config as all other cijoe-scripts. To clarify, cijoe will execute
-'pytest' in the same environment/system where the ``cijoe`` cli was executed.
+  This is the most common, invoking pytest locally, which in turn will be using
+  the same config as all other cijoe-scripts. To clarify, cijoe will execute
+  'pytest' in the same environment/system where the ``cijoe`` cli was executed.
 
-with.run_local: False
----------------------
+* args.run_local: False
 
-This is a special-case, where a collection of pytests uses cijoe, but only the
-configuration, the that the pytest verify is Python code / statements /
-expressions, not CIJOE command executions cijoe.run(). In order ot run these
-remotely, then the code must be available, and then it does the following:
+  This is a special-case, where a collection of pytests uses cijoe, but only the
+  configuration, the that the pytest verify is Python code / statements /
+  expressions, not CIJOE command executions cijoe.run(). In order ot run these
+  remotely, then the code must be available, and then it does the following:
 
-* Create a copy of the currently used cijoe-config
-  - Remove the transport section if any is there
-* Transfer cijoe-config-copy to remote
-* Invoke pytest remotely using cijoe-config-copy
-* Download the testreport.log from remote
+  - Create a copy of the currently used cijoe-config and remove the transport section if any is there
+  - Transfer cijoe-config-copy to remote
+  - Invoke pytest remotely using cijoe-config-copy
+  - Download the testreport.log from remote
 
-Why this? This allows for executing pytests on a remote system which does not
-use cijoe.run(). Such as tests implemented in Python.
+  Why this? This allows for executing pytests on a remote system which does not
+  use cijoe.run(). Such as tests implemented in Python.
 """
 
 import copy

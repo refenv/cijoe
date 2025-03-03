@@ -4,12 +4,6 @@ get
 
 Copies a file from remote to local.
 
-Step Arguments
---------------
-
-step.with.src: path to the file on remote machine
-step.with.dst: path to where the file should be placed on the local machine
-
 Retargetable: True
 ------------------
 """

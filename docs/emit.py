@@ -2,6 +2,8 @@
 """
 Produce documentation for all cijoe packages
 """
+import re
+import subprocess
 from pathlib import Path
 from pprint import pprint
 
@@ -71,6 +73,10 @@ TEMPLATE_SCRIPT_INDEX = """
 
 .. automodule:: cijoe.{{ pkg_name }}.scripts.{{ script_name }}
    :members:
+
+CLI arguments
+-------------
+{{ options }}
 """
 
 
@@ -115,12 +121,27 @@ def main():
         for script_name in scripts:
             script_path = pkg_path / "scripts" / f"{script_name}.rst"
 
+            res = subprocess.run(
+                ["cijoe", f"{pkg_name}.{script_name}", "--help"],
+                capture_output=True,
+                text=True,
+            )
+            options = next(
+                args for args in res.stdout.split("\n\n") if args.startswith("options")
+            )
+            options = re.sub(
+                r"\n {2,}([^-])", r"  \1", options
+            )  # put arg help on same line as argument.
+            options = re.sub(
+                r"  (-.*?)\s{2,}(.*)", r"\n* ``\1``\n\n  \2", options
+            )  # setup as bullet points
+
             # Create package index
             script_path.parent.mkdir(parents=True, exist_ok=True)
             with script_path.open("w") as rst:
                 rst.write(
                     templates["script_index"].render(
-                        pkg_name=pkg_name, script_name=script_name
+                        pkg_name=pkg_name, script_name=script_name, options=options
                     )
                 )
 
