@@ -27,7 +27,6 @@ steps.
 
 
    core/index.rst
-   gha/index.rst
    linux/index.rst
    qemu/index.rst
    system_imaging/index.rst
