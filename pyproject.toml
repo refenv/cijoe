@@ -95,7 +95,6 @@ relative_files = true
 source_pkgs = [
     "cijoe.core",
     "cijoe.cli",
-    "cijoe.fio",
     "cijoe.gha",
     "cijoe.linux",
     "cijoe.qemu",
