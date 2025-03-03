@@ -119,7 +119,7 @@ Take note of the "magic" keys:
 
 uses
   Name of the script to run, without the ``.py`` extension. Packaged scripts
-  include a prefix, such as ``core.``, ``linux.``, or ``gha.``. As in the
+  include a prefix, such as ``core.`` or ``linux.``. As in the
   example above where the script ``cmdrunner.py`` from the ``core`` package
   is used.
 

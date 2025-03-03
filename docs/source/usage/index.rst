@@ -31,9 +31,9 @@ manner:
 
   - Producing example resources for the qemu package
 
-* ``cijoe --example gha``
+* ``cijoe --example linux``
 
-  - Producing example resources for the GitHub action package
+  - Producing example resources for the Linux package
 
 The following sections describe the use of :ref:`sec-resources-scripts`,
 :ref:`sec-resources-workflows`, the remainder of the current section
