@@ -11,11 +11,6 @@ Retargetable: False
 
 It is intended to be run "locally" since, currently the collection of the generated
 .debs are not retrieved via cijoe.get(), doing so would make it retargetable.
-
-Worklet arguments
------------------
-
-with.localversion
 """
 
 import logging as log

@@ -15,6 +15,7 @@ Scripts
 
    scripts/cmdrunner.rst
    scripts/example_script_default.rst
+   scripts/example_script_testrunner.rst
    scripts/get.rst
    scripts/put.rst
    scripts/reporter.rst

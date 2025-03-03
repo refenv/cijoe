@@ -3,7 +3,6 @@
 Start a qemu guest
 ==================
 
-
 Retargetable: false
 -------------------
 """
@@ -15,14 +14,14 @@ from cijoe.qemu.wrapper import Guest
 
 
 def add_args(parser: ArgumentParser):
-    parser.add_argument("--guest_name", type=str, help="qemu guest name")
+    parser.add_argument("--guest_name", type=str, help="Name of the qemu guest.")
 
 
 def main(args, cijoe):
     """Start a qemu guest"""
 
     if "guest_name" not in args:
-        log.error("missing step-argument: with.guest_name")
+        log.error("missing argument: guest_name")
         return 1
 
     guest = Guest(cijoe, cijoe.config, args.guest_name)
