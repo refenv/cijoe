@@ -3,6 +3,13 @@
 Install qemu
 ============
 
+Configuration
+-------------
+
+* qemu.repository.path: str
+
+  Path to the qemu repository on the target machine.
+
 Retargetable: False
 -------------------
 """

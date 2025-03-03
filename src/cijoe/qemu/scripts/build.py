@@ -5,11 +5,16 @@ Build qemu system and default tools
 
 In the build, virtfs and debugging enabled.
 
-Arguments
----------
+Configuration
+-------------
 
-* repository.path
-* build.prefix
+* qemu.repository.path: str
+
+  Path to the qemu repository on the target machine.
+
+* qemu.build.prefix: str
+
+  Prefix given to the qemu configuration in the `--prefix` argument
 
 Retargetable: True
 ------------------
@@ -22,29 +27,29 @@ from pathlib import Path
 def main(args, cijoe):
     """Build qemu"""
 
-    conf_qemu = cijoe.getconf("qemu", None)
-    if not conf_qemu:
-        log.error("config is missing 'qemu' section")
+    repos_path = cijoe.getconf("qemu.repository.path", None)
+    if not repos_path:
+        log.error("missing qemu.repository.path")
         return errno.EINVAL
 
-    repos = cijoe.getconf("qemu.repository", None)
-    if not repos:
-        log.error("missing qemu.repository")
+    prefix = cijoe.getconf("qemu.build.prefix")
+    if not prefix:
+        log.error("missing qemu.build.prefix")
         return errno.EINVAL
 
-    err, _ = cijoe.run(f'[ -d "{repos["path"]}" ]')
+    err, _ = cijoe.run(f'[ -d "{repos_path}" ]')
     if err:
-        log.error(f"No qemu git-repository at repos({repos['path']})")
+        log.error(f"No qemu git-repository at repos({repos_path})")
         return err
 
-    build_dir = Path(repos["path"]) / "build"
+    build_dir = Path(repos_path) / "build"
 
     err, _ = cijoe.run(f"mkdir -p {build_dir}")
     if err:
         return err
 
     configure_args = [
-        f"--prefix={conf_qemu['build']['prefix']}",
+        f"--prefix={prefix}",
         "--audio-drv-list=''",
         "--disable-docs",
         "--disable-glusterfs",

@@ -1,6 +1,6 @@
 SPHINX_SOURCEDIR=source
 SPHINX_BUILDDIR=build
-PYTHON=$(shell pipx environment --value PIPX_LOCAL_VENVS)/cijoe/bin/python
+PYTHON='$(shell pipx environment --value PIPX_LOCAL_VENVS)/cijoe/bin/python'
 
 .PHONY: common
 common: clean build view

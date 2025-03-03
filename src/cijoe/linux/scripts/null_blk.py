@@ -2,13 +2,7 @@
 insert / remove null_blk
 ========================
 
-Insert or remove null_blk instances, based on the value of step.args.do
-
-* steps.args.do == "insert"
-  - Insert the nullblk module
-
-* step.args.do == "remove"
-  - Remove the nullblk module
+Insert or remove null_blk instances, based on the value of args.do
 
 Retargetable: True
 ------------------
@@ -25,7 +19,7 @@ def add_args(parser: ArgumentParser):
         "--do",
         choices=["insert", "remove"],
         default="insert",
-        help="The commands to be run",
+        help="The commands to be run on the nullblk module.",
     )
 
 

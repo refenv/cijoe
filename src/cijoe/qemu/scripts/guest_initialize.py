@@ -28,15 +28,19 @@ from cijoe.qemu.wrapper import Guest
 
 
 def add_args(parser: ArgumentParser):
-    parser.add_argument("--guest_name", type=str, help="qemu guest name")
-    parser.add_argument("--system_image_name", type=str, help="system image name")
+    parser.add_argument("--guest_name", type=str, help="Name of the qemu guest.")
+    parser.add_argument(
+        "--system_image_name",
+        type=str,
+        help="Name of the system image. This will be overwritten if defined in the configuration file.",
+    )
 
 
 def main(args, cijoe):
     """Provision using an existing boot image"""
 
     if "guest_name" not in args:
-        log.error("missing step-argument: with.guest_name")
+        log.error("missing argument: guest_name")
         return errno.EINVAL
 
     guest = Guest(cijoe, cijoe.config, args.guest_name)
