@@ -18,6 +18,16 @@ def add_args(parser: ArgumentParser):
     parser.add_argument(
         "--commands", nargs="+", type=str, help="The commands to be run"
     )
+    parser.add_argument(
+        "--transport",
+        type=str,
+        default=None,
+        help=(
+            "The key of the transport from the cijoe config file on which the commands should be run. "
+            "Use 'initiator' if the commands should be run locally. "
+            "Defaults to the first transport in the config file ('initiator' if none are defined)."
+        ),
+    )
 
 
 def main(args, cijoe):
@@ -29,7 +39,7 @@ def main(args, cijoe):
         return errno.EINVAL
 
     for cmd in args.commands:
-        err, state = cijoe.run(cmd)
+        err, state = cijoe.run(cmd, transport_name=args.transport)
         if err:
             break
 
