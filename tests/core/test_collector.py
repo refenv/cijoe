@@ -4,7 +4,7 @@ import cijoe.core
 from cijoe.core.resources import Collector
 
 CORE_RESOURCE_COUNTS = {
-    "configs": 3,
+    "configs": 4,
     "templates": 2,
     "auxiliary": 2,
     "scripts": 8,

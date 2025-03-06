@@ -1,0 +1,48 @@
+---
+doc: |
+  This workflow file is an example of how to use core.put and core.get. 
+
+steps:
+- name: guest_initialize
+  uses: qemu.guest_initialize
+  with:
+    guest_name: generic-uefi-tcg-aarch64
+    system_image_name: debian-12-aarch64
+
+- name: guest_start
+  uses: qemu.guest_start
+  with:
+    guest_name: generic-uefi-tcg-aarch64
+
+- name: guest_check
+  run: |
+    hostname
+
+- name: create_file
+  run: |
+    echo "Hello World" > /tmp/hello.txt 
+  with:
+    transport: initiator
+
+- name: put
+  uses: core.put
+  with:
+    src: /tmp/hello.txt
+    dst: /tmp/hello_from_initiator.txt
+
+- name: get
+  uses: core.get
+  with:
+    src: /tmp/hello_from_initiator.txt
+    dst: /tmp/hello_from_target.txt
+
+- name: check
+  run: |
+    cat /tmp/hello_from_target.txt
+  with:
+    transport: initiator
+
+- name: guest_kill
+  uses: qemu.guest_kill
+  with:
+    guest_name: generic-uefi-tcg-aarch64
