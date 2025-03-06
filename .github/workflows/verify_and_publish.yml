@@ -110,7 +110,7 @@ jobs:
         - core.default
         - core.testrunner
         - core.get_put
-        - linux.default
+        - linux.build_kdebs
         - linux.null_blk
         - qemu.build
         - qemu.guest_aarch64
