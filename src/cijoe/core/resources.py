@@ -366,7 +366,15 @@ class Workflow(Resource):
                 continue
 
             step["uses"] = "core.cmdrunner"
-            step["with"] = {"commands": step["run"].splitlines()}
+            
+            if "with" not in step:
+                step["with"] = {}
+
+            if "commands" in step["with"]:
+                errors.append("Cannot define step.run and step.with.commands simultaneously.")
+                return errors
+            
+            step["with"]["commands"] = step["run"].splitlines()
 
             del step["run"]
 
