@@ -177,11 +177,85 @@ jobs:
         if-no-files-found: error
 
 
+  test_cli:
+    needs: format
+    runs-on: ubuntu-22.04
+
+    # This is needed for 'guestmount' / 'libguestfs'
+    env:
+      LIBGUESTFS_BACKEND: direct
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: >
+        --device=/dev/kvm
+        --device=/dev/fuse
+        --cap-add=SYS_ADMIN
+        --security-opt apparmor=unconfined
+
+    strategy:
+      fail-fast: false
+      matrix:
+        cli:
+        - name: "integrity-check"
+          cmd: "$(which cijoe) example/cijoe-workflow.yaml -c example/cijoe-config.toml --integrity-check"
+        - name: "script-target"
+          cmd: "$(which cijoe) core.example_script_default -c example/cijoe-config.toml"
+        - name: "workflow-steps"
+          cmd: "$(which cijoe) example/cijoe-workflow.yaml -c example/cijoe-config.toml script_with_args"
+        - name: "emit-example"
+          cmd: "$(which cijoe) --example core.default"
+        - name: "archive"
+          cmd: "$(which cijoe) --archive"
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Emit the example configuration file and workflow
+      run: |
+        cijoe --example core.default
+        mv ./cijoe-example-core.default ./example
+
+    - name: Create cijoe-output directory
+      if: matrix.cli.name == 'archive'
+      run: |
+        $(which cijoe) core.example_script_default -c example/cijoe-config.toml
+
+    - name: Run it!
+      run: |
+        coverage run ${{ matrix.cli.cmd }} -l --monitor
+
+    - name: Coverage report
+      run: |
+        coverage report
+
+    - name: Upload coverage files
+      if: always()
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: report-coverage-cli-${{ matrix.cli.name }}
+        path: .coverage
+        if-no-files-found: error
+
+
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
     - unittest
     - examples
+    - test_cli
 
     runs-on: ubuntu-latest
     steps:
@@ -207,7 +281,7 @@ jobs:
 
   publish-coverage:
     runs-on: ${{ matrix.os }}
-    needs: [examples, unittest]
+    needs: [examples, test_cli, unittest]
 
     strategy:
       fail-fast: false
