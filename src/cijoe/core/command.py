@@ -150,7 +150,6 @@ class Cijoe(object):
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
-        self.transport_local = transport.Local(self.config, self.output_path)
         self.transports = {}
 
         config_transports = self.config.options.get("cijoe", {}).get("transport", {})
@@ -159,10 +158,7 @@ class Cijoe(object):
                 self.config, self.output_path, transport_name
             )
 
-        if not config_transports:
-            # If there are no endpoints defined, create one transport which is the
-            # local transport.
-            self.transports["local"] = self.transport_local
+        self.transports["initiator"] = transport.Local(self.config, self.output_path)
 
     def set_output_ident(self, output_ident: str, transport_name=None):
         """
@@ -235,7 +231,7 @@ class Cijoe(object):
         convention and call set_output_ident("../..")
         """
 
-        return self._run(cmd, cwd, env, self.transport_local)
+        return self._run(cmd, cwd, env, self._get_transport("initiator"))
 
     def put(self, src, dst, transport_name=None):
         """Transfer 'src' on 'dev_box' to 'dst' on **test_target**"""

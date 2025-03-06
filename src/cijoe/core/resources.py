@@ -181,6 +181,10 @@ class Config(Resource):
         if errors:
             return errors
 
+        if config_dict.get("cijoe", {}).get("transport", {}).get("initiator"):
+            errors.append("The key cijoe.transport.initiator is reserved.")
+            return errors
+
         self.options = config_dict
         return []
 
@@ -366,14 +370,16 @@ class Workflow(Resource):
                 continue
 
             step["uses"] = "core.cmdrunner"
-            
+
             if "with" not in step:
                 step["with"] = {}
 
             if "commands" in step["with"]:
-                errors.append("Cannot define step.run and step.with.commands simultaneously.")
+                errors.append(
+                    "Cannot define step.run and step.with.commands simultaneously."
+                )
                 return errors
-            
+
             step["with"]["commands"] = step["run"].splitlines()
 
             del step["run"]
