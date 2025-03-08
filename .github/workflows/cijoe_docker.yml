@@ -16,7 +16,7 @@ on:
 
 env:
   DOCKER_IMAGE: ghcr.io/${{ github.repository_owner }}/cijoe-docker
-  DOCKER_TAG: v0.9.50
+  DOCKER_TAG: v0.9.51
 
 jobs:
   build_and_push:
