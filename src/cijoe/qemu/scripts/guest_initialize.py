@@ -15,6 +15,19 @@ related to the guest, such as:
 Additionally, the script prepares guest storage, including the boot drive, 
 using an existing `.qcow2` image (e.g., created via Cloud-init, Packer, etc.).
 
+Configuration
+-------------
+
+* ``qemu.guests.<GUEST NAME>.system_image_name``: str
+
+  Name of the system image. This will be overwritten if also given as script
+  argument.
+
+* ``system-imaging.images.<SYSTEM IMAGE NAME>.disk``: dict
+
+  A dictionary containing the path to the disk image and, if this path does not
+  exist, a URL from where the disk image cna be downloaded.
+
 Retargetable: False
 -------------------
 """
