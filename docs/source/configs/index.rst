@@ -204,3 +204,24 @@ In summary:
 - Convert the configuration path and name to uppercase.
 
 - Replace any dots (``.``) with underscores (``_``).
+
+
+.. _sec-resources-configs-multiple:
+
+Defining Multiple Configuration Files
+=====================================
+
+You can run cijoe with multiple configuration files by specifying the
+``--config``/``-c`` argument multiple times to the CLI.
+
+.. code-block:: bash
+
+   cijoe -c path/to/config1.toml -c path/to/config2.toml ...
+
+This allows you to reuse parts of your configuration across runs, reducing 
+redundancy.
+
+Although the :toml:`TOML <v1.0.0#keys>` specification states that defining the 
+same key multiple times is invalid, **cijoe** permits it across configuration 
+files. Files are processed in the order they appear in the command, so later
+files override conflicting keys from earlier ones.
