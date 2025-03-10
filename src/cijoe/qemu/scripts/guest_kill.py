@@ -3,6 +3,11 @@
 Kill a qemu guest
 =================
 
+Shutdown qemu guests by killing the process using the pid associated with the
+given guest name. 
+
+Note: The script will not fail if the guest does not exist.
+
 Retargetable: False
 -------------------
 """

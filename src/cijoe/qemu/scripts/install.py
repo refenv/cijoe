@@ -3,10 +3,13 @@
 Install qemu
 ============
 
+This script installs qemu on the host machine. It is assumed that qemu has been
+built in advance at the given repository path.
+
 Configuration
 -------------
 
-* qemu.repository.path: str
+* ``qemu.repository.path``: str
 
   Path to the qemu repository on the target machine.
 

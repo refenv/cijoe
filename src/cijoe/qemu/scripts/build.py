@@ -3,16 +3,18 @@
 Build qemu system and default tools
 ===================================
 
-In the build, virtfs and debugging enabled.
+This script automates the process of building QEMU from its source repository at
+the given repository path. It configures the build environment with VirtFS and 
+debugging enabled.
 
 Configuration
 -------------
 
-* qemu.repository.path: str
+* ``qemu.repository.path``: str
 
   Path to the qemu repository on the target machine.
 
-* qemu.build.prefix: str
+* ``qemu.build.prefix``: str
 
   Prefix given to the qemu configuration in the `--prefix` argument
 

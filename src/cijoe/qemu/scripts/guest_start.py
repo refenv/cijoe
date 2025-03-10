@@ -3,7 +3,10 @@
 Start a qemu guest
 ==================
 
-Retargetable: false
+Starts the qemu guest with the given guest name. Fails if the guest is not up
+within 180 seconds.
+
+Retargetable: False
 -------------------
 """
 import errno
