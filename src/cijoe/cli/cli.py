@@ -8,7 +8,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import jinja2
 
@@ -17,8 +17,10 @@ from cijoe.core.command import Cijoe, default_output_path
 from cijoe.core.resources import (
     Config,
     Workflow,
+    dict_from_tomlfile,
     dict_from_yamlfile,
     dict_substitute,
+    dict_to_tomlfile,
     get_resources,
 )
 
@@ -65,6 +67,14 @@ def search_for_file(path: Path) -> Optional[Path]:
     return None
 
 
+def create_combined_toml(configs: list[Path], path: Path):
+    combined_config: dict[str, Any] = {}
+    for config in configs:
+        combined_config |= dict_from_tomlfile(config)
+
+    dict_to_tomlfile(combined_config, path)
+
+
 def log_errors(errors):
     for error in errors:
         log.error(error)
@@ -99,12 +109,16 @@ def cli_integrity_check(args):
     errors = Workflow.dict_normalize(workflow_dict)  # Normalize it
     errors += Workflow.dict_lint(args, workflow_dict)  # Check the yaml-file
 
-    config = Config.from_path(args.config)
-    if not config:
-        log.error(f"failed: Config.from_path({args.config})")
-        return errno.EINVAL
+    with tempfile.NamedTemporaryFile() as config_file:
+        create_combined_toml(args.config, Path(config_file.name))
+        args.config = Path(config_file.name)
 
-    errors += dict_substitute(workflow_dict, config.options)
+        config = Config.from_path(args.config)
+        if not config:
+            log.error(f"failed: Config.from_path({args.config})")
+            return errno.EINVAL
+
+        errors += dict_substitute(workflow_dict, config.options)
 
     if errors:
         log_errors(errors)
@@ -261,7 +275,7 @@ def cli_workflow(args):
 
     log.info("cli: run")
     log.info(f"workflow: {args.workflow}")
-    log.info(f"config: {args.config}")
+    log.info(f"configs: {args.config}")
     log.info(f"output: {args.output}")
 
     cli_archive(args)
@@ -271,11 +285,20 @@ def cli_workflow(args):
         log.error(f"aborting; output({args.output}) directory already exists")
         return errno.EPERM
 
+    os.makedirs(args.output)
+    shutil.copyfile(args.workflow, args.output / "workflow.orig")
+    if len(args.config) > 1:
+        for i, c in enumerate(args.config):
+            shutil.copyfile(c, args.output / f"config{i}.orig")
+
+    create_combined_toml(args.config, args.output / "config.orig")
+    args.config = args.output / "config.orig"
+
     config = Config(args.config)
     errors = config.load()
     if errors:
         log_errors(errors)
-        log.error("failed: Config(args.config).load()")
+        log.error(f"failed: Config({args.config}).load()")
         return errno.EINVAL
 
     workflow = Workflow(args.workflow)
@@ -295,9 +318,6 @@ def cli_workflow(args):
         log.error(f"step({step_name}) not in workflow")
         return errno.EINVAL
 
-    os.makedirs(args.output)
-    shutil.copyfile(args.config, args.output / "config.orig")
-    shutil.copyfile(args.workflow, args.output / "workflow.orig")
     resources = get_resources()
 
     # pre-load scripts and augment state with step-descriptions.
@@ -459,9 +479,9 @@ def parse_args():
         "--config",
         "-c",
         type=Path,
-        default=Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME)),
-        help="Path to the Configuration file.",
-        action=OverrideDefaultAction,
+        action="append",
+        default=[],
+        help=f"Path a Configuration file. Multiple can be specified. (default: {os.environ.get('CIJOE_DEFAULT_CONFIG', DEFAULT_CONFIG_FILENAME)})",
     )
     run_group.add_argument(
         "--output",
@@ -648,14 +668,26 @@ def main(args=None):
         log.error("No target given; exiting")
         return errno.EINVAL
 
-    for filearg in ["config", "workflow"]:
-        argv = getattr(args, filearg)
+    if not args.config:
+        args.config = [
+            Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME))
+        ]
+
+    path = search_for_file(args.workflow)
+    if path is None:
+        log.error(f"workflow({args.workflow}) does not exist; exiting")
+        return errno.EINVAL
+    args.workflow = path
+
+    tmp = args.config
+    args.config = []
+    for argv in tmp:
         path = search_for_file(argv)
         if path is None:
-            log.error(f"{filearg}({argv}) does not exist; exiting")
+            log.error(f"config({argv}) does not exist; exiting")
             return errno.EINVAL
 
-        setattr(args, filearg, path)
+        args.config.append(path)
 
     if args.integrity_check:
         return cli_integrity_check(args)
