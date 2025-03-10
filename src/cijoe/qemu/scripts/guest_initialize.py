@@ -32,7 +32,7 @@ def add_args(parser: ArgumentParser):
     parser.add_argument(
         "--system_image_name",
         type=str,
-        help="Name of the system image. This will be overwritten if defined in the configuration file.",
+        help="Name of the system image. This will overwrite any system image name defined in the configuration file.",
     )
 
 
@@ -48,12 +48,12 @@ def main(args, cijoe):
     system_image_name = cijoe.getconf(
         f"qemu.guests.{args.guest_name}.system_image_name", None
     )
+    if "system_image_name" in args:
+        system_image_name = args.system_image_name
 
-    if (not system_image_name and "system_image_name" not in args) is None:
+    if system_image_name is None:
         log.error("qemu.guests.THIS.system_image_name is not set")
         return errno.EINVAL
-    else:
-        system_image_name = args.system_image_name
 
     if (
         disk := cijoe.getconf(f"system-imaging.images.{system_image_name}.disk", None)

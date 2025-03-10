@@ -19,4 +19,4 @@ options:
 
 * ``--system_image_name SYSTEM_IMAGE_NAME``
 
-  Name of the system image. This will be overwritten if defined in the configuration file.
+  Name of the system image. This will overwrite any system image name defined in the configuration file.
