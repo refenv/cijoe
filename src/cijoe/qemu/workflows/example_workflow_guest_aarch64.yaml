@@ -39,7 +39,17 @@ steps:
   run: |
     hostname
 
+- name: guest_shutdown
+  run: |
+    sudo shutdown -h now
+
+- name: guest_wait
+  uses: qemu.guest_wait_for_termination
+  with:
+    guest_name: generic-uefi-tcg-aarch64
+    timeout: 60
+
 - name: guest_kill
   uses: qemu.guest_kill
   with:
-    guest_name: generic-bios-kvm-x86_64
+    guest_name: generic-uefi-tcg-aarch64
