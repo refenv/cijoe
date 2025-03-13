@@ -55,43 +55,16 @@ In a :ref:`workflow <sec-resources-workflows>` the :ref:`core.testrunner
        random_order: false
        run_local: false
 
-Here you see three "special" arguments to the testrunner:
+This will result in the following invocation on the initiator:
 
-args
-  These arguments are passed verbatim to **pytest**, resulting in the following
-  invocation:
+.. code-block:: bash
 
-  .. code-block:: bash
+  pytest \
+    --config cijoe-config.toml \
+    --output output \
+    -k "filtering" my_tests
 
-    pytest \
-      --config cijoe-config.toml \
-      --output output \
-      -k "filtering" my_tests
-
-  The key difference between invoking the ``pytest`` command-line tool directly
-  and using the **cijoe** script :ref:`core.testrunner <sec-packages-core-testrunner>`
-  in the **cijoe** workflow is that the latter integrates the **pytest** report into 
-  **cijoe**, producing a cohesive and standalone report.
-
-random_order
-  This option **scrambles** the order in which tests are executed. It is
-  generally recommended, as it helps reduce inter-test dependencies and
-  assumptions about the environment's state.
-
-run_local
-  This option can take some time to understand fully. It controls where
-  **pytest** is executed.
-
-  - When ``run_local: false``, the behavior is "normal" — the
-    **pytest** command-line tool is executed on the **initiator**, and
-    the :ref:`configuration-file <sec-resources-configs>` provided to the
-    **cijoe** command-line tool is passed verbatim to **pytest**.
-
-  - When ``run_local: true``, this behavior changes. The **pytest**
-    command-line tool is executed on the **target** instead. Before execution,
-    the provided :ref:`configuration-file <sec-resources-configs>` is cloned,
-    modified by removing the transport section, and then transferred to the
-    **target**. Once transferred, **pytest** is executed on the **target** using
-    the modified configuration file. Finally, the **pytest** report generated on
-    the **target** is transferred back to the **initiator** for integration into
-    the **cijoe** report.
+The key difference between invoking the ``pytest`` command-line tool directly
+and using the **cijoe** script :ref:`core.testrunner <sec-packages-core-testrunner>`
+in the **cijoe** workflow is that the latter integrates the **pytest** report into 
+**cijoe**, producing a cohesive and standalone report.
