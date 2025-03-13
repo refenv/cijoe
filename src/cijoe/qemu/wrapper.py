@@ -280,6 +280,24 @@ class Guest(object):
 
         return 0
 
+    def wait_for_termination(self, timeout=60):
+        """
+        Wait for 'timeout' seconds for the qemu guest to terminate. This method does
+        not itself terminate the qemu guest. Returns (err: int, terminated: bool) where
+        'terminated' defines whether the qemu guest has been terminated or not.
+        """
+        err = 0
+
+        start = time.time()
+        while True:
+            if not self.get_pid():
+                return 0, True
+            if time.time() - start > timeout:
+                break
+            time.sleep(1)
+
+        return err, False
+
     def kill(self):
         """Shutdown qemu guests by killing the process using the 'guest.pid'"""
 
@@ -291,9 +309,13 @@ class Guest(object):
                 qemu_proc = psutil.Process(pid)
                 qemu_proc.terminate()
 
-                gone, alive = psutil.wait_procs([qemu_proc], timeout=3)
-                for proc in alive:
-                    proc.kill()
+                err, terminated = self.wait_for_termination(60)
+                if err:
+                    log.error(f"Could not terminate process({pid})")
+                    return err
+
+                if not terminated:
+                    qemu_proc.kill()
         except psutil.NoSuchProcess:
             log.info("Got 'NoSuchProcess', that is OK, continue.")
 
