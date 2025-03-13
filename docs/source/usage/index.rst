@@ -29,11 +29,11 @@ manner:
 
 * ``cijoe --example qemu``
 
-  - Producing example resources for the qemu package
+  - Producing example resources for the :ref:`qemu package <sec-packages-qemu>`
 
 * ``cijoe --example linux``
 
-  - Producing example resources for the Linux package
+  - Producing example resources for the :ref:`Linux package <sec-packages-linux>`
 
 The following sections describe the use of :ref:`sec-resources-scripts`,
 :ref:`sec-resources-workflows`, the remainder of the current section
