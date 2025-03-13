@@ -33,13 +33,13 @@ Invocation of pytest is done in one of the following two ways, and controlled
 by ``args.run_local``, with boolean value True / False. The default is
 True.
 
-* args.run_local: True
+* ``args.run_local: True``
 
   This is the most common, invoking pytest locally, which in turn will be using
   the same config as all other cijoe-scripts. To clarify, cijoe will execute
   'pytest' in the same environment/system where the ``cijoe`` cli was executed.
 
-* args.run_local: False
+* ``args.run_local: False``
 
   This is a special-case, where a collection of pytests uses cijoe, but only the
   configuration, the that the pytest verify is Python code / statements /
@@ -81,9 +81,15 @@ def add_args(parser: ArgumentParser):
         choices=["true", "false"],
         default=True,
         action=StringToBoolAction,
-        help="Whether the tests should be run in random order",
+        help=(
+            "Whether the tests should be run in random order. "
+            "This is generally recommended, as it helps reduce inter-test "
+            "dependencies and assumptions about the environment's state"
+        ),
     )
-    parser.add_argument("--args", type=str, help="Additional args given to 'pytest'")
+    parser.add_argument(
+        "--args", type=str, help="Additional arguments passed verbatim to 'pytest'."
+    )
 
 
 def pytest_cmdline(args, config_path, output_path, reportlog_path):
