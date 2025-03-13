@@ -1,4 +1,7 @@
 import os
+from pathlib import Path
+
+from cijoe.cli.cli import SEARCH_PATHS, search_for_file
 
 
 def test_cli_example_emit_listing(cijoe):
@@ -77,3 +80,40 @@ def test_cli_environment_variables(cijoe):
     # This should fail since 0xg is not a valid hex value
     os.environ["HELLO_WORLD"] = "0xg"
     message = cijoe.getconf("hello.world", None)
+
+
+def test_cli_search_for_file_exists():
+    filename = "tmpfile.txt"
+    file = (SEARCH_PATHS[0] / filename).resolve()
+    file.write_text("Hello World!")
+
+    path = search_for_file(Path(filename))
+    assert path
+
+    file.unlink()
+
+
+def test_cli_search_for_file_not_exists():
+    filename = "tmpfile.txt"
+
+    path = search_for_file(Path(filename))
+    assert not path
+
+
+def test_cli_search_for_file_absolute_exists():
+    filename = "tmpfile.txt"
+    file = (SEARCH_PATHS[0] / filename).resolve()
+    file.write_text("Hello World!")
+
+    path = search_for_file(file)
+    assert path
+
+    file.unlink()
+
+
+def test_cli_search_for_file_absolute_not_exists():
+    filename = "tmpfile.txt"
+    file = SEARCH_PATHS[0] / filename
+
+    path = search_for_file(file)
+    assert not path
