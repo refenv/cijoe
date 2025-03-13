@@ -1,4 +1,6 @@
 
+.. _sec-packages-qemu-qemu_version:
+
 qemu.qemu_version
 ~~~~~~~~~~~~~~~~~
 

@@ -1,4 +1,6 @@
 
+.. _sec-packages-qemu-guest_kill:
+
 qemu.guest_kill
 ~~~~~~~~~~~~~~~
 

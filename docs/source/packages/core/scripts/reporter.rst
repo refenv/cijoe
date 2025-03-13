@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-reporter:
+
 core.reporter
 ~~~~~~~~~~~~~
 

@@ -1,4 +1,6 @@
 
+.. _sec-packages-qemu-guest_initialize:
+
 qemu.guest_initialize
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,4 +1,6 @@
 
+.. _sec-packages-qemu-build:
+
 qemu.build
 ~~~~~~~~~~
 

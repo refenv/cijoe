@@ -1,4 +1,6 @@
 
+.. _sec-packages-system_imaging:
+
 system_imaging
 ==============
 

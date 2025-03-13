@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-put:
+
 core.put
 ~~~~~~~~
 

@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-repository_prep:
+
 core.repository_prep
 ~~~~~~~~~~~~~~~~~~~~
 

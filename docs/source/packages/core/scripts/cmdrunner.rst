@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-cmdrunner:
+
 core.cmdrunner
 ~~~~~~~~~~~~~~
 

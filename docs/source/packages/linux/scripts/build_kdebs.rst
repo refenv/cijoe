@@ -1,4 +1,6 @@
 
+.. _sec-packages-linux-build_kdebs:
+
 linux.build_kdebs
 ~~~~~~~~~~~~~~~~~
 
