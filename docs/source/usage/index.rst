@@ -104,3 +104,87 @@ CIJOE_DEFAULT_CONFIG
 CIJOE_DEFAULT_WORKFLOW
     When set, the value will be used as the default for the positional
     command-line argument.
+
+
+.. _sec-usage-docker:
+
+Docker Image
+============
+
+There is a **cijoe** Docker image available at 
+:github:`GitHub <refenv/cijoe/pkgs/container/cijoe-docker>`, which contains
+everything needed to build, install and run **cijoe**. This includes all the
+tools required by the built-in packages of **cijoe**, for example 
+:docker:`Docker <>` and :qemu:`QEMU <>`.
+
+
+A prebuilt **cijoe** Docker image is available at  
+:github:`GitHub <refenv/cijoe/pkgs/container/cijoe-docker>`. This image provides 
+a ready-to-use environment containing all necessary dependencies to build, install, 
+and run **cijoe**. It includes tools required by built-in **cijoe** packages, such as 
+:docker:`Docker <>` and :qemu:`QEMU <>`.
+
+
+Pulling the Docker Image
+------------------------
+
+To download the latest version of the **cijoe** Docker image, use:
+
+.. code-block:: bash
+   
+   docker pull ghcr.io/refenv/cijoe-docker:latest
+
+For a specific version, replace `latest` with the desired tag, e.g.:
+
+.. code-block:: bash
+
+   docker pull ghcr.io/refenv/cijoe-docker:v0.9.50
+
+Using the `latest` tag ensures you get the newest available image, while 
+using a specific version provides stability across runs.
+  
+
+GitHub Actions
+--------------
+
+The following GitHub Actions workflow demonstrates how to use the **cijoe** 
+Docker image to run the `core.default` example and upload the **cijoe** report
+as an artifact.
+
+.. code-block:: yaml
+
+   name: cijoe_example
+
+   on:
+     workflow_dispatch:
+
+   jobs:
+     run_cijoe_example:
+       runs-on: ubuntu-22.04
+       container:
+         image: ghcr.io/refenv/cijoe-docker:latest
+     
+       steps:
+       - name: Set up Python 3.12
+         uses: actions/setup-python@v5.3.0
+         with:
+           python-version: "3.12"
+
+       - name: Generate cijoe example
+         run: |
+           $(which cijoe) --example core.default
+           mv ./cijoe-example-core.default ./example
+
+       - name: Execute workflow
+         run: |
+           $(which cijoe) --monitor -l \
+             --config ./example/cijoe-config.toml \
+             --workflow ./example/cijoe-workflow.yaml
+
+       - name: Upload report
+         if: always()
+         uses: actions/upload-artifact@v4.3.0
+         with:
+           name: report-cijoe_example
+           path: cijoe-output/*
+           if-no-files-found: error
