@@ -16,4 +16,3 @@ Scripts
    scripts/build_kdebs.rst
    scripts/null_blk.rst
    scripts/sysinfo.rst
-   scripts/transfer_and_install_kdebs.rst
