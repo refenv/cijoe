@@ -291,7 +291,7 @@ class Guest(object):
                 qemu_proc = psutil.Process(pid)
                 qemu_proc.terminate()
 
-                gone, alive = psutil.wait_procs([qemu_proc], timeout=3)
+                gone, alive = psutil.wait_procs([qemu_proc], timeout=60)
                 for proc in alive:
                     proc.kill()
         except psutil.NoSuchProcess:
