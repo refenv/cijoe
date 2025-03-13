@@ -1,4 +1,6 @@
 
+.. _sec-packages-linux-null_blk:
+
 linux.null_blk
 ~~~~~~~~~~~~~~
 

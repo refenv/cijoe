@@ -46,6 +46,8 @@ steps.
 """
 
 TEMPLATE_PKG_INDEX = """
+.. _sec-packages-{{ pkg_name }}:
+
 {{ pkg_name }}
 {% set pkg_name_len = pkg_name | length -%}
 {{ "=" * pkg_name_len }}
@@ -66,6 +68,8 @@ Scripts
 """
 
 TEMPLATE_SCRIPT_INDEX = """
+.. _sec-packages-{{ pkg_name }}-{{script_name}}:
+
 {% set script_title = pkg_name + '.' + script_name -%}
 {% set script_title_len = script_title | length -%}
 {{ script_title }}

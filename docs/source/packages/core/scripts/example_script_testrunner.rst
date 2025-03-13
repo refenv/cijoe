@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-example_script_testrunner:
+
 core.example_script_testrunner
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

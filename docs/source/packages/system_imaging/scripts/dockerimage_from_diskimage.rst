@@ -1,4 +1,6 @@
 
+.. _sec-packages-system_imaging-dockerimage_from_diskimage:
+
 system_imaging.dockerimage_from_diskimage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

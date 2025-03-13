@@ -1,4 +1,6 @@
 
+.. _sec-packages-core-example_script_default:
+
 core.example_script_default
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

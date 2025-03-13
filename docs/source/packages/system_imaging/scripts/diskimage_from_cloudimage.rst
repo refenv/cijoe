@@ -1,4 +1,6 @@
 
+.. _sec-packages-system_imaging-diskimage_from_cloudimage:
+
 system_imaging.diskimage_from_cloudimage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
