@@ -99,9 +99,9 @@ into execution of functions in the **cijoe** Python module:
 
 .. note::
    This is implemented in **cijoe** as "syntactic-sugar" for
-   running the built-in script **core.cmdrunner**. Thus, have a look
-   at :ref:`sec-resources-workflows-step-scripts` to see what this **unfolds**
-   as.
+   running the built-in script :ref:`core.cmdrunner <sec-packages-core-cmdrunner>`. 
+   Thus, have a look at :ref:`sec-resources-workflows-step-scripts` to see what
+   this **unfolds** as.
 
 
 .. _sec-resources-workflows-step-scripts:
@@ -121,7 +121,7 @@ uses
   Name of the script to run, without the ``.py`` extension. Packaged scripts
   include a prefix, such as ``core.`` or ``linux.``. As in the
   example above where the script ``cmdrunner.py`` from the ``core`` package
-  is used.
+  is used (:ref:`core.cmdrunner <sec-packages-core-cmdrunner>`).
 
 with
   Everything under this key is passed to the script's entry function:

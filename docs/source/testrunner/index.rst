@@ -5,10 +5,10 @@ Testrunner
 ============
 
 **cijoe** provides a test runner implemented as a :pytest:`pytest <>` plugin,
-wrapped in a **cijoe** script named ``core.testrunner``. The plugin is included
-with the **cijoe** package, but to use it, you must ensure that :pytest:`pytest
-<>` has access to the rest of the **cijoe** virtual environment (venv) and that
-the ``pytest`` command-line tool is available.
+wrapped in a **cijoe** script named :ref:`core.testrunner <sec-packages-core-testrunner>`. 
+The plugin is included with the **cijoe** package, but to use it, you must ensure 
+that :pytest:`pytest<>` has access to the rest of the **cijoe** virtual
+environment (venv) and that the ``pytest`` command-line tool is available.
 
 This can be easily achieved by using **pipx** to install **cijoe** with its
 dependencies:
@@ -21,8 +21,8 @@ The test runner can be used in two main ways:
 
 1. Directly via the :pytest:`pytest <>` command-line: ``pytest --config cijoe-config.toml``
 
-2. Via a **cijoe** workflow, with a step using the ``core.testrunner``,
-   executed through the ``cijoe`` command-line tool.
+2. Via a **cijoe** workflow, with a step using the :ref:`core.testrunner 
+   <sec-packages-core-testrunner>`, executed through the ``cijoe`` command-line tool.
 
 While the first method may be more familiar and require no further explanation,
 the test runner was specifically designed to be used within a **cijoe**
@@ -43,8 +43,8 @@ essential differences.
 Usage
 =====
 
-In a :ref:`workflow <sec-resources-workflows>` the ``core.testrunner`` is
-inserted as a step with arguments like below:
+In a :ref:`workflow <sec-resources-workflows>` the :ref:`core.testrunner
+<sec-packages-core-testrunner>` is inserted as a step with arguments like below:
 
 .. code-block:: yaml
 
@@ -69,9 +69,9 @@ args
       -k "filtering" my_tests
 
   The key difference between invoking the ``pytest`` command-line tool directly
-  and using the **cijoe** script ``core.testrunner`` in the **cijoe** workflow is
-  that the latter integrates the **pytest** report into **cijoe**, producing a
-  cohesive and standalone report.
+  and using the **cijoe** script :ref:`core.testrunner <sec-packages-core-testrunner>`
+  in the **cijoe** workflow is that the latter integrates the **pytest** report into 
+  **cijoe**, producing a cohesive and standalone report.
 
 random_order
   This option **scrambles** the order in which tests are executed. It is
