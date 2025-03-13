@@ -626,7 +626,18 @@ def parse_args():
 
             break
 
-    return 0, parser.parse_args()
+    args = parser.parse_args()
+
+    levels = [log.ERROR, log.INFO, log.DEBUG]
+    log.basicConfig(
+        format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
+        level=levels[
+            min(sum(args.log_level), len(levels) - 1) if args.log_level else 0
+        ],
+        force=True,
+    )
+
+    return 0, args
 
 
 def main(args=None):
@@ -640,14 +651,6 @@ def main(args=None):
         if getattr(args, "script_name", None):
             # Running stand-alone script
             create_adhoc_workflow(args)
-
-    levels = [log.ERROR, log.INFO, log.DEBUG]
-    log.basicConfig(
-        format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
-        level=levels[
-            min(sum(args.log_level), len(levels) - 1) if args.log_level else 0
-        ],
-    )
 
     if args.resources:
         return cli_resources(args)
