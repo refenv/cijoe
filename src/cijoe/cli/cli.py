@@ -42,6 +42,12 @@ class OverrideDefaultAction(argparse._StoreAction):
         setattr(namespace, self.dest, values)
 
 
+class AppendDefaultAction(argparse._AppendAction):
+    def __call__(self, parser, namespace, values, option_string=None):
+        self.default.append(values)
+        super().__call__(parser, namespace, values, option_string)
+
+
 def search_for_file(path: Path) -> Optional[Path]:
     """
     Search for a file named path.name. In case the given 'path' does not
@@ -479,7 +485,7 @@ def parse_args():
         "--config",
         "-c",
         type=Path,
-        action="append",
+        action=AppendDefaultAction,
         default=[],
         help=f"Path a Configuration file. Multiple can be specified. (default: {os.environ.get('CIJOE_DEFAULT_CONFIG', DEFAULT_CONFIG_FILENAME)})",
     )
