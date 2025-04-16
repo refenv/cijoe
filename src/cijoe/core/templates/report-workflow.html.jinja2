@@ -79,7 +79,26 @@ div.image {
 .cmd_output {
   border-top: 1px solid;
 }
+
+[id^="CONTENT_TESTREPORT"]:has(.btn-success.selected) .list-group-item:not(.list-group-item-success) {
+  display: none;
+}
+[id^="CONTENT_TESTREPORT"]:has(.btn-danger.selected) .list-group-item:not(.list-group-item-danger) {
+  display: none;
+}
+[id^="CONTENT_TESTREPORT"]:has(.btn-secondary.selected) .list-group-item:not(.list-group-item-secondary) {
+  display: none;
+}
+[id^="CONTENT_TESTREPORT"] .btn.selected:not(.btn-primary) {
+  box-shadow: var(--bs-btn-focus-box-shadow);
+}
 </style>
+<script>
+function selectFilter(event) {
+  document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+</script>
 </head>
 <body>
 
@@ -361,22 +380,22 @@ div.image {
               <tbody>
                 <tr>
                   <td class="table-success w-25">
-                    <button class="btn btn-success">
+                    <button class="btn btn-success" onclick="selectFilter(event)">
                     Passed: {{ step["extras"]["testreport"]["status"]["passed"] }}
                     </button>
                   </td>
                   <td class="table-danger w-25">
-                    <button class="btn btn-danger">
+                    <button class="btn btn-danger" onclick="selectFilter(event)">
                     Failed: {{ step["extras"]["testreport"]["status"]["failed"] }}
                     </button>
                   </td>
                   <td class="table-secondary w-25">
-                    <button class="btn btn-secondary">
+                    <button class="btn btn-secondary" onclick="selectFilter(event)">
                     Skipped: {{ step["extras"]["testreport"]["status"]["skipped"] }}
                     </button>
                   </td>
                   <td class="table-primary w-25">
-                    <button class="btn btn-primary" disabled="disabled">
+                    <button class="btn btn-primary" onclick="selectFilter(event)">
                     Total: {{ step["extras"]["testreport"]["tests"] | length }}
                     </button>
                   </td>
