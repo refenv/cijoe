@@ -7,6 +7,14 @@ This script automates the process of building QEMU from its source repository at
 the given repository path. It configures the build environment with VirtFS and 
 debugging enabled.
 
+For the build ot succeed the dependencies must be met, this is out scope here,
+so install in which way fits your system, on Fedora one would atleast install the
+following::
+
+  dnf install glib2-devel
+
+Assuming a compiler and build-system is readily available.
+
 Configuration
 -------------
 
