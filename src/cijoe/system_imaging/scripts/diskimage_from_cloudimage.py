@@ -31,7 +31,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from pprint import pformat
 
-from cijoe.core.misc import download
+from cijoe.core.misc import decompress_file, download
 from cijoe.qemu.wrapper import Guest, qemu_img
 
 
@@ -60,10 +60,24 @@ def diskimage_from_cloudimage(cijoe, image: dict):
     if not cloud_image_path.exists():
         cloud_image_path.parent.mkdir(parents=True, exist_ok=True)
 
-        err, path = download(cloud_image_url, cloud_image_path)
+        err, _ = download(cloud_image_url, cloud_image_path)
         if err:
             log.error(f"download({cloud_image_url}), {cloud_image_path}: failed")
             return err
+
+    if cloud_image_decompressed_path := cloud.get("decompressed_path", None):
+        cloud_image_decompressed_path = Path(cloud_image_decompressed_path).resolve()
+        if not cloud_image_decompressed_path.exists():
+            cloud_image_decompressed_path.parent.mkdir(parents=True, exist_ok=True)
+
+            err, _ = decompress_file(cloud_image_path, cloud_image_decompressed_path)
+            if err:
+                log.error(
+                    f"decompress_file({cloud_image_path}, {cloud_image_decompressed_path}): failed"
+                )
+                return err
+
+            cloud_image_path = cloud_image_decompressed_path
 
     if (system_label := image.get("system_label", None)) is None:
         log.error("missing .system_label entry in configuration file")
