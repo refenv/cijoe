@@ -1,9 +1,12 @@
 import errno
+import gzip
 import hashlib
 import logging as log
+import lzma
 import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import Optional
 
 import requests
 
@@ -114,3 +117,38 @@ def download_and_verify(url: str, url_checksum: str, path: Path):
                 f.write(new_checksum)
 
     return 0, path
+
+
+def decompress_file(src: Path, dst: Optional[Path] = None):
+    """
+    Decompress the file at the given src path. If no destination path is given,
+    the file is decompressed at the src path without the compression suffix.
+    Returns (err, decompressed_path). Throws an error if the file ending does
+    not match any of the supported compression types.
+
+    Supported compression types: .xz, .gz
+    """
+
+    supported_compression_types = [".xz", ".gz"]
+
+    if src.suffix not in supported_compression_types:
+        log.error(f"Unsupported compression suffix: {src.suffix}")
+        return 1, None
+
+    src = src.resolve()
+
+    if not dst:
+        dst = Path(str(src).replace(src.suffix, "")).resolve()
+
+    if dst.exists():
+        log.info(f"File({dst}) already exists, skipping decompression")
+        return 0, dst
+
+    decompressor = lzma if src.suffix == ".xz" else gzip
+
+    with decompressor.open(src, mode="rb") as fsrc:
+        with open(dst, "xb") as fdst:
+            shutil.copyfileobj(fsrc, fdst)
+            log.info(f"Decompressed file({src}) to destination({dst})")
+
+    return 0, dst
