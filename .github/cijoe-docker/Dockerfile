@@ -49,6 +49,7 @@ RUN apt-get -qy -f install --no-install-recommends \
 	guestmount \
 	htop \
 	kmod \
+	libdw-dev \
 	libelf-dev \
 	libglib2.0-dev \
 	libguestfs-tools \
