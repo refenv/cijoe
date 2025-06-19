@@ -127,6 +127,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: tmp install deps
+      run: |
+        apt-get update -y
+        apt-get install libdw-dev -y
+
     - name: Build and install cijoe from source
       run: |
         pipx uninstall cijoe
