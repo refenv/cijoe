@@ -70,6 +70,7 @@ def dockerimage_from_diskimage(cijoe, image):
             log.error(f"command({command}); err({err})")
             return err
 
+    cijoe.run_local("docker builder prune -a -f")
     cijoe.run_local(f'echo "Needs cleanup!" && find {workdir}')
     cijoe.run_local(
         f'echo "Run with: docker run -it {image["docker"]["name"]}:{image["docker"]["tag"]} bash"'
