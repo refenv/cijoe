@@ -77,7 +77,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
                 )
                 return err
 
-            cloud_image_path = cloud_image_decompressed_path
+        cloud_image_path = cloud_image_decompressed_path
 
     if (system_label := image.get("system_label", None)) is None:
         log.error("missing .system_label entry in configuration file")
