@@ -3,11 +3,11 @@
 Create disk image using a cloud image
 =====================================
 
-This will produce disk images for all the system images described in config. section:
+This will produce disk images for all the system images described in config section:
 
 * ``system_imaging.images``
 
-You can reduce this by providing a case-incensitive fnmatch pattern as input to the
+You can reduce this by providing a case-insensitive fnmatch pattern as input to the
 script via workflow, such as these::
 
     # This will build all images
@@ -18,14 +18,23 @@ script via workflow, such as these::
     with:
       pattern: "debian*"
 
+BSD images and nuage-init
+-------------------------
+
+This script only supports system_images with cloud-init installed. Per default
+the "BASIC-CLOUDINIT" FreeBSD images are released with nuage-init instead of
+cloud-init. In our example configuration files, we have examples of FreeBSD
+images with cloud-init pre-installed.
+
+Use `cijoe --example system_imaging.x86_64` to see the example configuration.
+
 Retargetable: False
 -------------------
 
-This script only runs on the iniator; due to the use of 'shutil', 'download' etc.
+This script only runs on the iniator; due to the use of 'download' etc.
 """
 import errno
 import logging as log
-import shutil
 from argparse import ArgumentParser
 from fnmatch import fnmatch
 from pathlib import Path

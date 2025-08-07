@@ -154,16 +154,15 @@ docker.url = "ghcr.io/refenv/ubuntu-2404-x86_64:main"
 docker.name = "ubuntu-2404-x86_64"
 docker.tag = "example"
 
-# [system-imaging.images.freebsd-x86_64]
-# system_label = "x86_64"
+[system-imaging.images.freebsd-14-x86_64]
+system_label = "x86_64"
 
-# cloud.url ="https://download.freebsd.org/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.zfs.qcow2.xz"
-# cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.zfs.qcow2.xz"
-# cloud.decompressed_path = "{{ local.env.HOME }}/system_imaging/cloud/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.zfs.qcow2"
-# cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-metadata'] }}"
-# cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-userdata'] }}"
+cloud.url = "https://refenv.hel1.your-objectstorage.com/cloudinit/freebsd_14.2_x86_64.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/freebsd_14.2_x86_64.qcow2"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-metadata'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-userdata'] }}"
 
-# disk.path = "{{ local.env.HOME }}/system_imaging/disk/FreeBSD-14.2-RELEASE-amd64-BASIC-CLOUDINIT.ufs.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/freebsd_14.2_x86_64.qcow2"
 
 [system-imaging.images.debian-12-aarch64]
 system_label = "aarch64"
