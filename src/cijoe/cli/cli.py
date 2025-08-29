@@ -74,9 +74,28 @@ def search_for_file(path: Path) -> Optional[Path]:
 
 
 def create_combined_toml(configs: list[Path], path: Path):
+    def merge_dicts(a: dict, b: dict) -> dict:
+        """
+        Recursively merge two dictionaries.
+        Values in `b` overwrite values in `a` unless both values are dicts.
+        """
+        result = dict(a)
+
+        for key, value in b.items():
+            if (
+                key in result
+                and isinstance(result[key], dict)
+                and isinstance(value, dict)
+            ):
+                result[key] = merge_dicts(result[key], value)
+            else:
+                result[key] = value
+
+        return result
+
     combined_config: dict[str, Any] = {}
     for config in configs:
-        combined_config |= dict_from_tomlfile(config)
+        combined_config = merge_dicts(combined_config, dict_from_tomlfile(config))
 
     dict_to_tomlfile(combined_config, path)
 
