@@ -35,6 +35,12 @@ steps:
   with:
     guest_name: generic-uefi-tcg-aarch64
 
+- name: guest_wait_start
+  uses: qemu.guest_wait_for_ssh
+  with:
+    transport_name: qemu_guest
+    timeout: 120
+
 - name: guest_check
   run: |
     hostname
