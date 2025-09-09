@@ -218,7 +218,8 @@ class Guest(object):
                 "-blockdev",
                 f"qcow2,node-name=boot,file.driver=file,file.filename={self.boot_img}",
             ]
-            args += ["-device", "virtio-blk-pci,drive=boot"]
+            boot_driver = self.guest_config.get("boot_driver", "virtio-blk-pci")
+            args += ["-device", f"{boot_driver},drive=boot"]
 
         # Process Management stuff
         args += ["-pidfile", str(self.pid)]
