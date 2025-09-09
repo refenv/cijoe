@@ -349,6 +349,8 @@ function selectFilter(event) {
                     {% endif %}
                   </button>
                   <a href="{{ runlog["output_path"] }}" class="btn btn-primary bi bi-file-code">&nbsp;.output</a>
+                  <button class="btn btn-primary bi bi-clipboard" type="button" onclick="navigator.clipboard.writeText('{{ runlog["state"]["cmd"].replace("'", "\\'") }}')">
+                  </button>
                   <a href="{{ runlog["state_path"] }}" class="btn btn-primary bi bi-filetype-yml"></a>
                 </div>
               </li>
