@@ -25,7 +25,8 @@ write_files:
 
 runcmd:
 - systemctl restart ssh
-  
+- touch /etc/cloud/cloud-init.disabled
+
 final_message: "The system is up, after $UPTIME seconds"
 power_state:
   mode: poweroff
