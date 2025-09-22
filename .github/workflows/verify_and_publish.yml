@@ -115,8 +115,7 @@ jobs:
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
-        - system_imaging.aarch64
-        - system_imaging.x86_64
+        - system_imaging.debian
         python-version: ['3.12']
 
     steps:
@@ -138,7 +137,7 @@ jobs:
         make deps info build install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    # This is necessary for running pytest, which is invoked in 
+    # This is necessary for running pytest, which is invoked in
     # the testrunner example
     - name: Inject pytest
       if: matrix.usage_example == 'core.testrunner'
@@ -180,6 +179,95 @@ jobs:
       with:
         name: report-coverage-${{ matrix.usage_example }}
         path: .coverage
+        if-no-files-found: error
+
+
+  test_config_images:
+    needs: format
+    runs-on: ubuntu-22.04
+
+    # This is needed for 'guestmount' / 'libguestfs'
+    env:
+      LIBGUESTFS_BACKEND: direct
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: >
+        --device=/dev/kvm
+        --device=/dev/fuse
+        --cap-add=SYS_ADMIN
+        --security-opt apparmor=unconfined
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+        - debian-12
+        - fedora-41
+        - ubuntu-2404
+        - freebsd-14
+        architecture:
+        - x86_64
+        include:
+        - image: debian-12
+          architecture: aarch64
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v4.2.2
+    - name: Set up Python
+      uses: actions/setup-python@v5.3.0
+      with:
+        python-version: 3.12
+
+    - name: tmp install deps
+      run: |
+        apt-get update -y
+        apt-get install libdw-dev -y
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Get config file
+      run: |
+        cp \
+          $(cijoe -r | grep "system_imaging.example_config_debian" -A 1 | tail -n1 | sed -n -e 's/^.*path: //p') \
+          cijoe-config.toml
+
+    - name: Run system_imaging.diskimage_from_cloudimage
+      run: |
+        $(which cijoe) \
+          system_imaging.diskimage_from_cloudimage \
+          --monitor -l \
+          --config cijoe-config.toml \
+          --output report-${{ matrix.image }}-${{ matrix.architecture }}-diskimage_from_cloudimage \
+          --pattern ${{ matrix.image }}-${{ matrix.architecture }}
+
+    - name: Run system_imaging.dockerimage_from_diskimage
+      if: contains(matrix.image, 'freebsd') == false
+      run: |
+        $(which cijoe) \
+          system_imaging.dockerimage_from_diskimage \
+          --monitor -l \
+          --config cijoe-config.toml \
+          --output report-${{ matrix.image }}-${{ matrix.architecture }}-dockerimage_from_diskimage \
+          --pattern ${{ matrix.image }}-${{ matrix.architecture }}
+
+    - name: Archive reports
+      if: always()
+      run: |
+        tar czf report-config_img-${{ matrix.image }}_${{ matrix.architecture }}.tar.gz \
+          report-${{ matrix.image }}-${{ matrix.architecture }}-*
+
+    - name: Upload reports
+      uses: actions/upload-artifact@v4.3.0
+      if: always()
+      with:
+        name: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}
+        path: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}.tar.gz
         if-no-files-found: error
 
 
@@ -287,7 +375,7 @@ jobs:
 
   publish-coverage:
     runs-on: ${{ matrix.os }}
-    needs: [examples, test_cli, unittest]
+    needs: [examples, test_config_images, test_cli, unittest]
 
     strategy:
       fail-fast: false

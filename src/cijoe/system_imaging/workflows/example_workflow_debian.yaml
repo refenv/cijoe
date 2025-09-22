@@ -24,17 +24,16 @@ doc: |
   It uses the 'system_imaging' section of the configuration file as input, the
   system images matching 'pattern' are processed.
 
-  NOTE: This creates images for all x86_64 system images described in the
-        "system_imaging" section of the cijoe configuration file. This could be
-        swapped with aarch64, however, it has not been tested yet.
+  NOTE: This creates images for the debian system images described in 
+        the "system_imaging" section of the cijoe configuration file.
 
 steps:
 - name: diskimage_from_cloudimage
   uses: system_imaging.diskimage_from_cloudimage
   with:
-    pattern: "*x86_64*"
+    pattern: "*debian*"
 
 - name: dockerimage_from_diskimage
   uses: system_imaging.dockerimage_from_diskimage
   with:
-    pattern: "*x86_64*"
+    pattern: "*debian*"
