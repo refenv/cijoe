@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Wait for qemu guest SSH to be ready
-===================================
+Wait for transport SSH to be ready
+==================================
 
-Note: The script will not fail if the guest does not exist.
-Note: This script does not itself start the qemu guest.
+Note: The script will not fail if the transport does not exist.
 
 Retargetable: False
 -------------------
@@ -25,12 +24,12 @@ def add_args(parser: ArgumentParser):
         "--timeout",
         type=int,
         default=60,
-        help="Amount of seconds to wait for the qemu guest to terminate.",
+        help="Amount of seconds to wait for SHH to be ready.",
     )
 
 
 def main(args, cijoe):
-    """Wait for qemu guest to start"""
+    """Wait for SSH to be ready on a given transport"""
 
     began = time.time()
     while True:
