@@ -1,14 +1,38 @@
 #!/usr/bin/env python3
 """
-Wait for transport SSH to be ready
-==================================
+Wait for SSH transport state (up or down)
+=========================================
 
-Note: The script will not fail if the transport does not exist.
+This script is useful in CIJOE workflows where you want to block until a remote
+transport becomes available (e.g., after a reboot) or until it goes away (e.g.,
+while shutting down). A common usecase would look like the below steps in
+a workflow:
 
-Retargetable: False
--------------------
+- name: reboot
+  run: shutdown -r now
+
+- name: wait_for_down
+  uses: wait_for_transport
+  with:
+    state: "down"
+    timeout: 60
+
+- name: wait_for_up
+  uses: wait_for_transport
+  with:
+    state: "up"
+    timeout: 300
+
+The transport is considered "up" if a trivial command can be executed
+successfully over it. For portability across Linux, macOS, BSD, and Windows, the
+probe command used is: hostname.
+
+Retargetable: True
+------------------
 """
+
 import logging as log
+import socket
 import time
 from argparse import ArgumentParser
 
@@ -18,41 +42,92 @@ def add_args(parser: ArgumentParser):
         "--transport_name",
         type=str,
         default=None,
-        help="Name of the transport to be used. If none given, it uses the first defined transport in the config.",
+        help=(
+            "Name of the transport to be used. If none is given, use the first defined "
+            "transport in the config."
+        ),
+    )
+    parser.add_argument(
+        "--state",
+        choices=("down", "up"),
+        default="up",
+        help="Desired transport state to wait for: 'down' or 'up'. Default: up.",
     )
     parser.add_argument(
         "--timeout",
         type=int,
         default=60,
-        help="Amount of seconds to wait for SHH to be ready.",
+        help="Maximum seconds to wait for the desired state.",
     )
 
 
 def main(args, cijoe):
-    """Wait for SSH to be ready on a given transport"""
+    """
+    Wait until the given transport reaches the requested state.
+    Return 0 on success, 1 on timeout or invalid transport.
+    """
 
-    began = time.time()
-    while True:
-        enter = time.time()
+    # Pick transport name: explicit if given, else first defined
+    transport_name = args.transport_name or next(
+        iter(cijoe.getconf("cijoe.transport", {})), None
+    )
+    if not transport_name:
+        log.error("No transport_name given, and none to select in cijoe.transport")
+        return 1
+
+    transport = cijoe.getconf(f"cijoe.transport.{transport_name}", {})
+    hostname = transport.get("hostname", "")
+    if not transport or not hostname:
+        log.error(f"Invalid transport({transport})")
+        return 1
+
+    port = int(transport.get("port", 22))
+    want_up = args.state == "up"
+    start = int(time.monotonic())
+
+    log.info(
+        f"Waiting max seconds({args.timeout}) for transport({transport_name}) state({args.state})..."
+    )
+
+    while (int(time.monotonic()) - start) < args.timeout:
+        time.sleep(2.0)
+
         try:
-            err, state = cijoe.run(
-                "echo 'It is alive!'",
-                transport_name=args.transport_name,
+            with socket.create_connection((hostname, port), timeout=2.0):
+                tcp_up = True
+        except OSError:
+            tcp_up = False
+
+        # If waiting for DOWN and TCP is closed, we're done immediately.
+        if not want_up and not tcp_up:
+            log.info("Success: transport(%s) is now down (TCP closed).", transport_name)
+            return 0
+
+        # If waiting for UP and TCP is closed, skip SSH probe and try again.
+        if want_up and not tcp_up:
+            continue
+
+        # TCP is open - verify with the trivial command to distinguish usable vs. unusable SSH.
+        try:
+            err, _ = cijoe.run("hostname", transport_name=transport_name)
+            ssh_up = err == 0
+        except Exception as exc:
+            log.debug("Probe exception treated as down: %r", exc)
+            ssh_up = False
+
+        # Waiting for UP and the command works -> success.
+        if want_up and ssh_up:
+            log.info("Success: transport(%s) is now up.", transport_name)
+            return 0
+
+        # Waiting for DOWN and the command fails despite TCP open -> down.
+        if not want_up and not ssh_up:
+            log.info(
+                "Success: transport(%s) is now down (SSH unusable).", transport_name
             )
-            if not err and "It is alive!" in state.output():
-                break
-        except Exception:
-            # do nothing
-            ...
+            return 0
 
-        now = time.time()
-        elapsed_iter = now - enter
-        elapsed_total = now - began
-
-        if elapsed_iter < 5.0:
-            time.sleep(5.0 - elapsed_iter)
-        if elapsed_total > args.timeout:
-            log.error(f"System did not come up within timeout({args.timeout}) seconds")
-            return False
-
-    return 0
+    log.error(
+        f"Timeout after seconds({args.timeout}): transport({transport_name}) did not become {args.state}.",
+    )
+    return 1
