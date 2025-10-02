@@ -1,34 +1,56 @@
 #!/usr/bin/env python3
 """
-Wait for SSH transport state (up or down)
-=========================================
+Wait for Transport State (Up or Down)
+=====================================
 
-This script is useful in CIJOE workflows where you want to block until a remote
-transport becomes available (e.g., after a reboot) or until it goes away (e.g.,
-while shutting down). A common usecase would look like the below steps in
-a workflow:
+This script is useful in CIJOE workflows where execution should block until a
+transport becomes available (e.g., after a reboot) or unavailable (e.g., during
+shutdown).
 
-- name: reboot
-  run: shutdown -r now
+Transport Configuration
+-----------------------
 
-- name: wait_for_down
-  uses: wait_for_transport
-  with:
-    state: "down"
-    timeout: 60
+Transports are defined in ``config.toml`` under the key
+``cijoe.transport.{transport_name}``. For example::
 
-- name: wait_for_up
-  uses: wait_for_transport
-  with:
-    state: "up"
-    timeout: 300
+    [cijoe.transport.ssh]
+    username = "foo"
+    hostname = "bar"
 
-The transport is considered "up" if a trivial command can be executed
-successfully over it. For portability across Linux, macOS, BSD, and Windows, the
-probe command used is: hostname.
+Note: ``ssh`` is a transport **name**, not a transport type.
+So, ``transport_name = "ssh"``.
 
-Retargetable: True
-------------------
+Example Use Case
+----------------
+
+A typical workflow might look like::
+
+    - name: reboot
+      run: shutdown -r now
+
+    - name: wait_for_down
+      uses: wait_for_transport
+      with:
+        state: "down"
+        timeout: 60
+
+    - name: wait_for_up
+      uses: wait_for_transport
+      with:
+        state: "up"
+        timeout: 300
+
+Transport State Detection
+-------------------------
+
+The transport is considered *up* if a simple command can be executed
+successfully over it. To ensure portability across Linux, macOS, BSD, and
+Windows, the ``hostname`` command is used as the probe.
+
+Retargetable
+------------
+
+**True**
 """
 
 import logging as log
