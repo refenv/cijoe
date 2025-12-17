@@ -1,5 +1,6 @@
 .coverage
 cijoe-output*
+cijoe-archive*
 tags
 selftest_results
 *.egg-info
