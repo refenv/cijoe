@@ -118,3 +118,84 @@ def test_workflow_report_command_ordering(tmp_path):
     ):
         val = int(Path(key).stem.split("_")[1])
         assert count == val
+
+
+def test_workflow_run(tmp_path):
+    config_path = (tmp_path / "test-config-empty.toml").resolve()
+    config_path.write_text("")
+
+    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data["steps"].append(
+        {
+            "name": "cmdrunner",
+            "run": """
+                echo hello
+                echo world
+            """,
+        }
+    )
+
+    output_path = (tmp_path / "output").resolve()
+    workflow_file = (tmp_path / "workflow.yaml").resolve()
+    workflow_file.write_text(yaml.dump(data))
+
+    result = subprocess.run(
+        [
+            "cijoe",
+            str(workflow_file),
+            "--output",
+            str(output_path),
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode == 0
+
+    runlog = runlog_from_path(output_path / "002_cmdrunner")
+
+    assert len(runlog) == 2
+
+    for i, v in enumerate(runlog.values()):
+        if i == 0:
+            assert "hello" in v["output"]
+        elif i == 1:
+            assert "world" in v["output"]
+
+
+def test_workflow_run_multiline(tmp_path):
+    config_path = (tmp_path / "test-config-empty.toml").resolve()
+    config_path.write_text("")
+
+    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data["steps"].append(
+        {
+            "name": "cmdrunner",
+            "run": """
+                echo hello \
+                  world
+            """,
+        }
+    )
+
+    output_path = (tmp_path / "output").resolve()
+    workflow_file = (tmp_path / "workflow.yaml").resolve()
+    workflow_file.write_text(yaml.dump(data))
+
+    result = subprocess.run(
+        [
+            "cijoe",
+            str(workflow_file),
+            "--output",
+            str(output_path),
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode == 0
+
+    runlog = runlog_from_path(output_path / "002_cmdrunner")
+
+    assert len(runlog) == 1
+    assert "hello world" in runlog["cmd_01"]["output"]

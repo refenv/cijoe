@@ -380,7 +380,18 @@ class Workflow(Resource):
                 )
                 return errors
 
-            step["with"]["commands"] = step["run"].splitlines()
+            # non-empty lines in "run"
+            lines: filter[str] = filter(
+                None, map(lambda s: s.strip(), step["run"].splitlines())
+            )
+            step["with"]["commands"] = []
+            buffer = []
+
+            for line in lines:
+                buffer.append(line)
+                if not line.strip().endswith("\\"):
+                    step["with"]["commands"].append("\n".join(buffer))
+                    buffer = []
 
             del step["run"]
 
