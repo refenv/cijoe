@@ -61,10 +61,10 @@ Which yields the following output:
 Search Paths
 ============
 
-The :ref:`sec-usage-cli` for the positional argument, and config-files 
-(``--c / --config``) and workflows (``-w / --workflow``) by default search for files
-named ``cijoe-workflow.yaml`` and ``cijoe-config.toml``, respectfully. These files
-are searched for, in order, in the following locations:
+The :ref:`sec-usage-cli` for the positional target argument, and for config-files 
+(``--c / --config``) by default search for files named ``cijoe-workflow.yaml``
+and ``cijoe-config.toml``, respectfully. These files are searched for, in order, 
+in the following locations:
 
 ``$PWD``
    In your current working directory
@@ -179,7 +179,7 @@ as an artifact.
          run: |
            $(which cijoe) --monitor -l \
              --config ./example/cijoe-config.toml \
-             --workflow ./example/cijoe-workflow.yaml
+            ./example/cijoe-workflow.yaml
 
        - name: Upload report
          if: always()

@@ -459,45 +459,29 @@ def create_adhoc_workflow(args):
 def parse_args():
     """Parse command-line interface."""
 
-    parent_dirs = set()
-    is_workflow = False
-
-    for i, argv in enumerate(sys.argv):
-        if i == 0 or sys.argv[i - 1].startswith("-"):
-            continue
-        if argv.endswith(".py"):
-            path = Path(argv).resolve()
-            parent_dirs.add(path.parent)
-            sys.argv[i] = path.stem
-            break
-        if argv.endswith(".yaml"):
-            is_workflow = True
-            sys.argv.insert(i, "--workflow")
-            sys.argv.insert(i, "workflow_path")
-            break
-
-    resource_scripts = get_resources(list(parent_dirs))["scripts"]
-
+    # A parent parser is added without help text to allow for parsing part of the
+    # arguments and evaluating them before proceeding with parsing the rest
     parent_parser = argparse.ArgumentParser(add_help=False)
 
     run_group = parent_parser.add_argument_group(
         "run", "Options for running a workflow script."
     )
-
+    run_group.add_argument(
+        "target",
+        nargs="?",
+        default=None,
+        help="A cijoe workflow or script to run.",
+    )
     run_group.add_argument(
         "step",
         nargs="*",
         default=[],
         help="Given a workflow, the steps of the workflow it should run. If none are given, all steps are run.",
     )
-
     run_group.add_argument(
         "--workflow",
         "-w",
-        type=Path,
-        default=Path(
-            os.environ.get("CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME)
-        ),
+        default=None,
         help=argparse.SUPPRESS,
     )
     run_group.add_argument(
@@ -597,61 +581,79 @@ def parse_args():
         help="Print the version number of 'cijoe' and exit.",
     )
 
+    args, _ = parent_parser.parse_known_args()
+
+    # A parser inheriting from the parent_parser is added to allow for printing
+    # the help text if --help argument is given.
     parser = argparse.ArgumentParser(
         prog=Path(sys.argv[0]).stem,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         parents=[parent_parser],
     )
 
-    subparsers = parser.add_subparsers()
+    # For backwards compatibility: allow the --workflow argument.
+    # If the --workflow argument is used, and a positional argument is given, the
+    # parser will interpret it as a `target`, but we assume it to be a step
+    # identifier.
+    if args.workflow:
+        log.warning(
+            "The -w / --workflow argument is deprecated"
+            "please specify the workflow as a positional argument instead."
+        )
+        args = parser.parse_intermixed_args()
+        if args.target:
+            args.step = [args.target] + args.step
+        args.workflow = Path(args.workflow)
 
-    # Create subparser for workflows
-    subparsers.add_parser(
-        "workflow_path", parents=[parent_parser], help="Path to a cijoe workflow file."
-    )
-    subparsers.add_parser("script_path", help="Path to a cijoe script.")
-    subparsers.add_parser(
-        "script_name",
-        help="Name of a cijoe script. You can see all reachable cijoe scripts with command 'cijoe -r'.",
-    )
+    # If the target ends with .yaml, we run the workflow at the given path, and
+    # assume that the remaining positional args are step identifiers of the
+    # given workflow.
+    # note: the `parse_intermixed_args` allow for multiple groups of positional
+    # arguments, i.e. both the workflow path and step identifiers.
+    elif not args.target or args.target.endswith(".yaml"):
+        args = parser.parse_intermixed_args()
+        workflow = args.target or os.environ.get(
+            "CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME
+        )
+        setattr(args, "workflow", Path(workflow))
 
-    # Create subparser for scripts
-    # Adding the subparser requires loading the whole script, so
-    # we only add the subparser to the script given in the arguments
-    if not is_workflow:
-        for i, argv in enumerate(sys.argv):
-            if i == 0 or argv.startswith("-") or sys.argv[i - 1].startswith("-"):
-                continue
+    # Else, we assume the target is either a cijoe script identifier or path
+    else:
+        ident = args.target
+        parent_dirs = []
 
-            # The first positional argument is the script identifier
-            ident = argv
+        # If direct path to script is given, the parent directories must be
+        # included in the resource-collection
+        if ident.endswith(".py"):
+            path = Path(ident)
+            parent_dirs.append(path.parent)
+            ident = path.stem
 
-            script = resource_scripts.get(ident, None)
-            if not script:
-                log.error(f"Invalid target({ident})")
-                return errno.EINVAL, None
-            script.load()
-            help_text = (
-                next(line for line in script.docs.splitlines() if line)
-                if script.docs
-                else ""
-            )
-            subparser = subparsers.add_parser(
-                ident,
-                parents=[parent_parser],
-                help=help_text,
-                epilog=script.docs,
-                formatter_class=argparse.RawTextHelpFormatter,
-            )
-            subparser.add_argument(
-                "--script-name", default=ident, help=argparse.SUPPRESS
-            )
-            if script.argparser_func:
-                script.argparser_func(subparser)
+        resource_scripts = get_resources(parent_dirs)["scripts"]
 
-            break
+        # Load the script to get the name and arguments for the script, so
+        # arguments can be parsed and/or added to the help text
+        script = resource_scripts.get(ident, None)
+        if not script:
+            log.error(f"Invalid target({ident})")
+            return errno.EINVAL, None
+        script.load()
 
-    args = parser.parse_args()
+        help_text = (
+            next(line for line in script.docs.splitlines() if line)
+            if script.docs
+            else ""
+        )
+        script_group = parser.add_argument_group(
+            help_text, "Options specific for the given script"
+        )
+        if script.argparser_func:
+            script.argparser_func(script_group)
+
+        args = parser.parse_args()
+
+        setattr(args, "script_name", ident)
+        args.step = []
 
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(

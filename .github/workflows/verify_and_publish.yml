@@ -159,7 +159,7 @@ jobs:
         coverage run \
           $(which cijoe) --monitor -l \
             --config cijoe-example-${{ matrix.usage_example }}/cijoe-config.toml \
-            --workflow cijoe-example-${{ matrix.usage_example }}/cijoe-workflow.yaml
+            cijoe-example-${{ matrix.usage_example }}/cijoe-workflow.yaml
 
     - name: Coverage report
       run: |
