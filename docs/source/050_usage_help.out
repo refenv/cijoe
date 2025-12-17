@@ -1,35 +1,36 @@
-usage: cijoe [-h] [--config CONFIG] [--workflow WORKFLOW] [--output OUTPUT]
-             [--log-level] [--monitor] [--no-report] [--skip-report]
-             [--tag TAG] [--archive] [--produce-report] [--integrity-check]
+usage: cijoe [-h] [--config CONFIG] [--output OUTPUT] [--log-level]
+             [--monitor] [--no-report] [--skip-report] [--tag TAG]
+             [--archive] [--produce-report] [--integrity-check]
              [--resources] [--example [EXAMPLE]] [--version]
-             [step ...]
+             [target] [step ...]
 
 options:
   -h, --help            show this help message and exit
 
-workflow:
-  Run workflow at '-w', using config at '-c', and output at '-o'
+run:
+  Options for running a workflow script.
 
-  step                  Given a workflow; one or more workflow steps to run.
-                        Else; one or more cijoe Python scripts to run.
-                        (default: None)
+  target                A cijoe workflow or script to run.
+  step                  Given a workflow, the steps of the workflow it
+                        should run. If none are given, all steps are
+                        run.
   --config CONFIG, -c CONFIG
-                        Path to the Configuration file. (default: cijoe-
-                        config.toml)
-  --workflow WORKFLOW, -w WORKFLOW
-                        Path to workflow file. (default: cijoe-workflow.yaml)
+                        Path a Configuration file. Multiple can be
+                        specified. (default: cijoe-config.toml)
+                        (default: [])
   --output OUTPUT, -o OUTPUT
-                        Path to output directory. (default: /cijoe/docs/cijoe-
-                        output)
-  --log-level, -l       Increase log-level. Provide '-l' for info and '-ll'
-                        for debug. (default: None)
+                        Path to output directory. (default:
+                        /cijoe/docs/cijoe-output)
+  --log-level, -l       Increase log-level. Provide '-l' for info and
+                        '-ll' for debug. (default: None)
   --monitor, -m         Dump command output to stdout (default: False)
-  --no-report, -n       Skip the producing, and opening, a report at the end
-                        of the workflow-run (default: False)
-  --skip-report, -s     Skip the report opening at the end of the workflow-run
-                        (default: True)
-  --tag TAG, -t TAG     Tags to identify a workflow-run. This will be prefixed
-                        while storing in archive (default: None)
+  --no-report, -n       Skip the producing, and opening, a report at the
+                        end of the workflow-run (default: False)
+  --skip-report, -s     Skip the report opening at the end of the
+                        workflow-run (default: True)
+  --tag TAG, -t TAG     Tags to identify a workflow-run. This will be
+                        prefixed while storing in archive (default:
+                        None)
 
 utilities:
   Workflow, and workflow-related utilities
@@ -39,13 +40,13 @@ utilities:
   --produce-report, -p  Produce report, and open it, for output at '-o /
                         --output' and exit. (default: None)
   --integrity-check, -i
-                        Check integrity of workflow at '-w / --workflow' and
-                        exit. (default: False)
-  --resources, -r       List collected resources and exit. (default: False)
+                        Check integrity of workflow given as positional
+                        argument and exit. (default: False)
+  --resources, -r       List collected resources and exit. (default:
+                        False)
   --example [EXAMPLE], -e [EXAMPLE]
-                        Emits the given example. When no example is given,
-                        then it prints a list of available examples. (default:
-                        None)
+                        Emits the given example. When no example is
+                        given, then it prints a list of available
+                        examples. (default: None)
   --version, -v         Print the version number of 'cijoe' and exit.
                         (default: False)
-
