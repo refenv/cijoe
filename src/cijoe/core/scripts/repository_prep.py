@@ -32,7 +32,28 @@ Retargetable: True
 
 import errno
 import logging as log
+from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
+
+
+def add_args(parser: ArgumentParser):
+    class StringToBoolAction(_StoreAction):
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
+    parser.add_argument(
+        "--depth",
+        type=int,
+        default=None,
+        help="Argument for git: Create a shallow clone with a history truncated to the specified number or revisions. The minimum possible value is 1, otherwise ignored.",
+    )
+    parser.add_argument(
+        "--single_branch",
+        choices=["true", "false"],
+        default=False,
+        action=StringToBoolAction,
+        help="Argument for git: Clone only the history leading to the tip of the specified revision.",
+    )
 
 
 def main(args, cijoe):
@@ -48,6 +69,11 @@ def main(args, cijoe):
     ]:
         run = cijoe.run_local if repos.get("run_local", False) else cijoe.run
 
+        depth = repos.get("depth", args.depth)
+        depth_arg = f"--depth {depth}" if depth else ""
+        single_branch = repos.get("single_branch", args.single_branch)
+        single_branch_arg = "--single-branch" if single_branch else ""
+
         repos_root = Path(repos["path"]).parent
 
         err, _ = run(f"mkdir -p {repos_root}")
@@ -56,13 +82,14 @@ def main(args, cijoe):
             return err
 
         err, _ = run(
-            f"[ ! -d {repos['path']} ] &&"
-            f" git clone {repos['remote']} {repos['path']} --recursive"
+            f"[ ! -d {repos['path']} ] && "
+            f"git clone {repos['remote']} {repos['path']} "
+            f"{depth_arg} {single_branch_arg} --recursive"
         )
         if err:
             log.info("either already cloned or failed cloning; continuing optimisticly")
 
-        err, _ = run("git fetch --all", cwd=repos["path"])
+        err, _ = run(f"git fetch --all {depth_arg}", cwd=repos["path"])
         if err:
             log.info("fetching failed; continuing optimisticly")
 
@@ -76,7 +103,7 @@ def main(args, cijoe):
             log.info("no 'branch' nor 'tag' key; skipping checkout")
 
         if "branch" in repos.keys():
-            err, _ = run("git pull --rebase", cwd=repos["path"])
+            err, _ = run(f"git pull --rebase {depth_arg}", cwd=repos["path"])
             if err:
                 log.error("failed pulling; giving up")
                 return err
