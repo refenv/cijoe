@@ -203,7 +203,7 @@ jobs:
       matrix:
         image:
         - debian-12
-        - fedora-41
+        - fedora-43
         - ubuntu-2404
         - freebsd-14
         architecture:

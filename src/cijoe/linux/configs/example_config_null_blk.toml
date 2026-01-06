@@ -1,4 +1,4 @@
-## The SSH options are passed verbatim to paramiko; see
+# The SSH options are passed verbatim to paramiko; see
 # https://www.paramiko.org/ This is common CIJOE infrastructure
 #
 # Used by: cijoe.run() / cijoe.get() / cijoe.put()
@@ -126,18 +126,18 @@ docker.url = "ghcr.io/refenv/debian-12-x86_64:main"
 docker.name = "debian-12-x86_64"
 docker.tag = "example"
 
-[system-imaging.images.fedora-41-x86_64]
+[system-imaging.images.fedora-43-x86_64]
 system_label = "x86_64"
 
-cloud.url ="https://download.fedoraproject.org/pub/fedora/linux/releases/41/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+cloud.url ="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/Fedora-Cloud-Base-Generic-41-1.4.x86_64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
 
-docker.url = "ghcr.io/refenv/fedora-41-x86_64:main"
-docker.name = "fedora-41-x86_64"
+docker.url = "ghcr.io/refenv/fedora-43-x86_64:main"
+docker.name = "fedora-43-x86_64"
 docker.tag = "example"
 
 [system-imaging.images.ubuntu-2404-x86_64]
