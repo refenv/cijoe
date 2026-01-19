@@ -54,6 +54,13 @@ def add_args(parser: ArgumentParser):
         action=StringToBoolAction,
         help="Argument for git: Clone only the history leading to the tip of the specified revision.",
     )
+    parser.add_argument(
+        "--recursive",
+        choices=["true", "false"],
+        default=True,
+        action=StringToBoolAction,
+        help="Argument for git: Recurse into the registered submodules, and update any nested submodules within.",
+    )
 
 
 def main(args, cijoe):
@@ -73,6 +80,8 @@ def main(args, cijoe):
         depth_arg = f"--depth {depth}" if depth else ""
         single_branch = repos.get("single_branch", args.single_branch)
         single_branch_arg = "--single-branch" if single_branch else ""
+        recursive = repos.get("recursive", args.recursive)
+        recursive_arg = "--recursive" if recursive else ""
 
         repos_root = Path(repos["path"]).parent
 
@@ -84,7 +93,7 @@ def main(args, cijoe):
         err, _ = run(
             f"[ ! -d {repos['path']} ] && "
             f"git clone {repos['remote']} {repos['path']} "
-            f"{depth_arg} {single_branch_arg} --recursive"
+            f"{depth_arg} {single_branch_arg} {recursive_arg}"
         )
         if err:
             log.info("either already cloned or failed cloning; continuing optimisticly")
@@ -108,9 +117,10 @@ def main(args, cijoe):
                 log.error("failed pulling; giving up")
                 return err
 
-        err, _ = run("git submodule update --init --recursive", cwd=repos["path"])
-        if err:
-            log.info("Updating submodules failed; continuin optimisticly")
+        if recursive:
+            err, _ = run("git submodule update --init --recursive", cwd=repos["path"])
+            if err:
+                log.info("Updating submodules failed; continuing optimisticly")
 
         err, _ = run("git status", cwd=repos["path"])
         if err:
