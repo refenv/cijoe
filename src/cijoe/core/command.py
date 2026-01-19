@@ -277,7 +277,7 @@ class Cijoe(object):
         found in the initiator's environment variables.
         """
 
-        envkey = key.replace(".", "_").upper()
+        envkey = key.replace(".", "_").replace("-", ".").upper()
         envvar = os.getenv(envkey)
         if envvar:
             log.debug(f"found {key} ({envkey}) in environment variables.")
