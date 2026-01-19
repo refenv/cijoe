@@ -208,7 +208,7 @@ In summary:
 
 - Convert the configuration path and name to uppercase.
 
-- Replace any dots (``.``) with underscores (``_``).
+- Replace any dots (``.``) or dashes (``-``) with underscores (``_``).
 
 
 .. _sec-resources-configs-multiple:
