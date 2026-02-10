@@ -80,15 +80,12 @@ div.image {
   border-top: 1px solid;
 }
 
-[id^="CONTENT_TESTREPORT"]:has(.btn-success.selected) .list-group-item:not(.list-group-item-success) {
+[id^="CONTENT_TESTREPORT"]:has(.btn-success.selected) .list-group-item:not(.list-group-item-success, .show, .collapsing),
+[id^="CONTENT_TESTREPORT"]:has(.btn-danger.selected) .list-group-item:not(.list-group-item-danger, .show, .collapsing),
+[id^="CONTENT_TESTREPORT"]:has(.btn-secondary.selected) .list-group-item:not(.list-group-item-secondary, .show, .collapsing) {
   display: none;
 }
-[id^="CONTENT_TESTREPORT"]:has(.btn-danger.selected) .list-group-item:not(.list-group-item-danger) {
-  display: none;
-}
-[id^="CONTENT_TESTREPORT"]:has(.btn-secondary.selected) .list-group-item:not(.list-group-item-secondary) {
-  display: none;
-}
+
 [id^="CONTENT_TESTREPORT"] .btn.selected:not(.btn-primary) {
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
