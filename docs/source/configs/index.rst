@@ -169,8 +169,8 @@ This is possible via the **cijoe** configuration option:
 
 .. literalinclude:: ../../../src/cijoe/core/configs/example_config_default.toml
 
-By default **cijoe** functionality, then this can also be controlled environment
-variable:
+As with any **cijoe** configuration option, this can also be controlled via an
+environment variable:
 
 .. code-block:: bash
 

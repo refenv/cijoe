@@ -20,7 +20,7 @@ similar to how targets are specified in a :make:`Makefile <>`:
 .. literalinclude:: ../450_usage_task_subset.cmd
    :language: bash
 
-With the above, only the step named **builtin_script** will be executed. This
+With the above, only the step named **inline_commands** will be executed. This
 becomes even more useful when utilizing **cijoe** bash completions.
 
 There are a couple of task-specific options. See the
@@ -53,7 +53,7 @@ but dramatically simpler since:
   - ``doc``: Describe what the task does using multi-line plain-text
   - ``steps``: Ordered list of scripts, to inline-commands, to run
 
-Descriptions of the content is provided in the following subsections.
+Descriptions of the content are provided in the following subsections.
 
 .. _sec-resources-tasks-steps:
 
@@ -89,7 +89,7 @@ A step with **inline commands** take the form:
    :lines: 24-27
 
 Each line in a multi-line string is executed. It is implemented as a call to
-``cijoe.run(command)``. Thus, the above notation for **inline commands** turn
+``cijoe.run(command)``. Thus, the above notation for **inline commands** turns
 into execution of functions in the **cijoe** Python module:
 
 .. code-block:: python
@@ -109,7 +109,8 @@ into execution of functions in the **cijoe** Python module:
 Steps with Scripts
 ------------------
 
-When a step runs a script, then you give it a **name** and you tell it
+When a step runs a script, you give it a **name** and tell it which script to
+run, like so:
 
 .. literalinclude:: ../../../src/cijoe/core/tasks/example_task_default.yaml
    :language: yaml
