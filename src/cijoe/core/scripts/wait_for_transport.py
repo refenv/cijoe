@@ -3,7 +3,7 @@
 Wait for Transport State (Up or Down)
 =====================================
 
-This script is useful in CIJOE workflows where execution should block until a
+This script is useful in CIJOE tasks where execution should block until a
 transport becomes available (e.g., after a reboot) or unavailable (e.g., during
 shutdown).
 
@@ -23,7 +23,7 @@ So, ``transport_name = "ssh"``.
 Example Use Case
 ----------------
 
-A typical workflow might look like::
+A typical task might look like::
 
     - name: reboot
       run: shutdown -r now

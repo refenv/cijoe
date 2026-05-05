@@ -30,7 +30,7 @@ def test_true(cijoe: Cijoe):
 
 def main(args: Namespace, cijoe: Cijoe):
     """
-    This main function is not run as part of the example workflow in the
+    This main function is not run as part of the example task in the
     core.testrunner example, but must be here in order for it to be
     elicited as script when running `cijoe --example core.testrunner`.
     """

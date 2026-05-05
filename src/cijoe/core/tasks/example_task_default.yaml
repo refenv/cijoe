@@ -1,6 +1,6 @@
 ---
 doc: |
-  This is a workflow file, it serves as an example on how to run commands and
+  This is a task file, it serves as an example on how to run commands and
   scripts, the structure intentionally mimics that of GitHUB actions, however,
   the keys you see here are all there is.
 

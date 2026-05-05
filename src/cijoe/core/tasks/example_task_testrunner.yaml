@@ -1,9 +1,9 @@
 ---
 doc: |
-  This workflow file is an example of how to use the CIJOE testrunner. 
+  This task file is an example of how to use the CIJOE testrunner.
 
   The testrunner script takes three optional arguments. The purpose of this
-  workflow is to run the testrunner with different combinations of these
+  task is to run the testrunner with different combinations of these
   arguments.
 
 steps:

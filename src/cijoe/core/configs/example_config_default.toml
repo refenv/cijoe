@@ -1,5 +1,5 @@
-[cijoe.workflow]
-# Change this to true to stop processing additional workflow steps when a step fails
+[cijoe.task]
+# Change this to true to stop processing additional task steps when a step fails
 fail_fast=false
 
 [example]

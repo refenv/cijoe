@@ -5,7 +5,7 @@ system_imaging
 ==============
 
 These are the scripts provided in the package, they are listed by the **full**
-name that you can use to refer to them in a workflow.
+name that you can use to refer to them in a task.
 
 Scripts
 -------

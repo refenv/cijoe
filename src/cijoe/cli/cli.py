@@ -16,7 +16,7 @@ import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
 from cijoe.core.resources import (
     Config,
-    Workflow,
+    Task,
     dict_from_tomlfile,
     dict_from_yamlfile,
     dict_substitute,
@@ -25,7 +25,8 @@ from cijoe.core.resources import (
 )
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
-DEFAULT_WORKFLOW_FILENAME = "cijoe-workflow.yaml"
+DEFAULT_TASK_FILENAME = "cijoe-task.yaml"
+LEGACY_TASK_FILENAME = "cijoe-workflow.yaml"
 DEFAULT_SCRIPT_FILENAME = "cijoe-script.py"
 SEARCH_PATHS = [
     Path.cwd(),
@@ -46,6 +47,21 @@ class AppendDefaultAction(argparse._AppendAction):
     def __call__(self, parser, namespace, values, option_string=None):
         self.default.append(values)
         super().__call__(parser, namespace, values, option_string)
+
+
+def _resolve_default_task_filename() -> str:
+    """Pick the default task filename, honoring deprecated env var."""
+
+    if "CIJOE_DEFAULT_TASK" in os.environ:
+        return os.environ["CIJOE_DEFAULT_TASK"]
+
+    if "CIJOE_DEFAULT_WORKFLOW" in os.environ:
+        log.warning(
+            "CIJOE_DEFAULT_WORKFLOW is deprecated; use CIJOE_DEFAULT_TASK instead"
+        )
+        return os.environ["CIJOE_DEFAULT_WORKFLOW"]
+
+    return DEFAULT_TASK_FILENAME
 
 
 def search_for_file(path: Path) -> Optional[Path]:
@@ -106,17 +122,17 @@ def log_errors(errors):
 
 
 def cli_integrity_check(args):
-    """Lint a workflow"""
+    """Lint a task"""
 
     log.info("cli: lint")
-    log.info(f"workflow: '{args.workflow}'")
+    log.info(f"task: '{args.task}'")
     log.info(f"config: '{args.config}'")
 
-    workflow_dict = dict_from_yamlfile(args.workflow.resolve())
+    task_dict = dict_from_yamlfile(args.task.resolve())
 
-    steps = workflow_dict.get("steps", None)
+    steps = task_dict.get("steps", None)
     if steps is None:
-        log.error("No steps in workflow, nothing to do.")
+        log.error("No steps in task, nothing to do.")
         return errno.EINVAL
 
     for nr, step in enumerate(steps, 1):
@@ -131,8 +147,8 @@ def cli_integrity_check(args):
             )
             return errno.EINVAL
 
-    errors = Workflow.dict_normalize(workflow_dict)  # Normalize it
-    errors += Workflow.dict_lint(args, workflow_dict)  # Check the yaml-file
+    errors = Task.dict_normalize(task_dict)  # Normalize it
+    errors += Task.dict_lint(args, task_dict)  # Check the yaml-file
 
     with tempfile.NamedTemporaryFile() as config_file:
         create_combined_toml(args.config, Path(config_file.name))
@@ -143,7 +159,7 @@ def cli_integrity_check(args):
             log.error(f"failed: Config.from_path({args.config})")
             return errno.EINVAL
 
-        errors += dict_substitute(workflow_dict, config.options)
+        errors += dict_substitute(task_dict, config.options)
 
     if errors:
         log_errors(errors)
@@ -170,13 +186,27 @@ def cli_resources(args):
     return 0
 
 
+def _existing_state_path(output: Path) -> Optional[Path]:
+    """Return the path to task.state, falling back to legacy workflow.state."""
+
+    candidate = output / Task.STATE_FILENAME
+    if candidate.exists():
+        return candidate
+
+    legacy = output / "workflow.state"
+    if legacy.exists():
+        return legacy
+
+    return None
+
+
 def cli_archive(args):
     """Move 'output' directory into archive"""
 
     if args.output.exists():
-        state_path = args.output / "workflow.state"
+        state_path = _existing_state_path(args.output)
         tag = ""
-        if state_path.exists():
+        if state_path is not None:
             state = dict_from_yamlfile(state_path)
             tag = "" if state.get("tag", None) is None else "-".join(state["tag"]) + "-"
         t = str(time.strftime("%Y-%m-%d_%H:%M:%S"))
@@ -187,13 +217,13 @@ def cli_archive(args):
 
 
 def cli_produce_report(args):
-    """Produce workflow-report"""
+    """Produce task-report"""
 
     config_path = args.output / "config.orig"
-    state_path = args.output / "workflow.state"
+    state_path = _existing_state_path(args.output)
 
-    if not state_path.exists():
-        log.error("no workflow.state, nothing to produce a report for")
+    if state_path is None:
+        log.error(f"no {Task.STATE_FILENAME}, nothing to produce a report for")
         return errno.EINVAL
 
     if not config_path.exists():
@@ -219,22 +249,29 @@ def cli_produce_report(args):
     return reporter.func(args, cijoe)
 
 
+def _example_id_from_task_name(task_name: str) -> Optional[str]:
+    """Strip the example prefix from a task resource name; None if no match."""
+
+    _, tail = task_name.split(".", 1)
+    for prefix in ("example_task_", "example_workflow_"):
+        if tail.startswith(prefix):
+            pkg_name = task_name.split(".", 1)[0]
+            return f"{pkg_name}.{tail[len(prefix):]}"
+    return None
+
+
 def cli_example(args):
-    """Create example config.toml and workflow.yaml"""
+    """Create example config.toml and task.yaml"""
     log.info("cli: examples")
 
     resources = get_resources()
 
     # Print examples when called like "cijoe --example"
     if args.example == "list_examples_and_exit":
-        for workflow_name, workflow in sorted(resources.get("workflows").items()):
-            if "example" not in workflow_name:
-                continue
-
-            pkg_name, tail = workflow_name.split(".", 1)
-            example_name = tail.replace("example_workflow_", "")
-
-            print(f"{pkg_name}.{example_name}")
+        for task_name in sorted(resources.get("tasks", {})):
+            example_id = _example_id_from_task_name(task_name)
+            if example_id is not None:
+                print(example_id)
         return 0
 
     pkg_name, *tail = args.example.split(".")
@@ -243,13 +280,14 @@ def cli_example(args):
         return errno.EINVAL
 
     # Emit examples
-    for workflow_name, workflow in sorted(resources.get("workflows").items()):
-        if not workflow_name.startswith(pkg_name):  # Not the requested package
-            continue
-        if "example" not in workflow_name:  # Not an example workflow
+    for task_name, task in sorted(resources.get("tasks", {}).items()):
+        if not task_name.startswith(pkg_name):  # Not the requested package
             continue
 
-        cur_example_id = workflow_name.replace("example_workflow_", "")
+        cur_example_id = _example_id_from_task_name(task_name)
+        if cur_example_id is None:  # Not an example task
+            continue
+
         cur_pkg_name, cur_example_name = cur_example_id.split(".", 1)
         cur_example_dir = Path.cwd() / f"cijoe-example-{cur_example_id}"
 
@@ -260,16 +298,24 @@ def cli_example(args):
 
         cur_example_dir.mkdir()
 
-        for section, default_filename in [
-            ("config", DEFAULT_CONFIG_FILENAME),
-            ("workflow", DEFAULT_WORKFLOW_FILENAME),
-            ("script", DEFAULT_SCRIPT_FILENAME),
+        for section, default_filename, resource_category, prefixes in [
+            ("config", DEFAULT_CONFIG_FILENAME, "configs", ["example_config_"]),
+            (
+                "task",
+                DEFAULT_TASK_FILENAME,
+                "tasks",
+                ["example_task_", "example_workflow_"],
+            ),
+            ("script", DEFAULT_SCRIPT_FILENAME, "scripts", ["example_script_"]),
         ]:
-            label = f"{pkg_name}.example_{section}_{cur_example_name}"
+            resource = None
+            for prefix in prefixes:
+                label = f"{pkg_name}.{prefix}{cur_example_name}"
+                log.info(f"{args.example}, label({label})")
+                resource = resources.get(resource_category, {}).get(label, None)
+                if resource is not None:
+                    break
 
-            log.info(f"{args.example}, label({label})")
-
-            resource = resources.get(f"{section}s", {}).get(label, None)
             if resource is None:
                 if section == "script":  # Providing an example script is optional
                     continue
@@ -295,23 +341,37 @@ def cli_version(args):
     return 0
 
 
-def cli_workflow(args):
-    """Process workflow"""
+def _get_fail_fast(cijoe) -> bool:
+    """Read cijoe.task.fail_fast, falling back to deprecated cijoe.workflow.fail_fast."""
+
+    if cijoe.getconf("cijoe.task.fail_fast") is not None:
+        return bool(cijoe.getconf("cijoe.task.fail_fast", False))
+
+    legacy = cijoe.getconf("cijoe.workflow.fail_fast")
+    if legacy is not None:
+        log.warning("[cijoe.workflow] is deprecated; use [cijoe.task] in your config")
+        return bool(legacy)
+
+    return False
+
+
+def cli_task(args):
+    """Process task"""
 
     log.info("cli: run")
-    log.info(f"workflow: {args.workflow}")
+    log.info(f"task: {args.task}")
     log.info(f"configs: {args.config}")
     log.info(f"output: {args.output}")
 
     cli_archive(args)
 
-    state_path = args.output / "workflow.state"
+    state_path = args.output / Task.STATE_FILENAME
     if state_path.exists():
         log.error(f"aborting; output({args.output}) directory already exists")
         return errno.EPERM
 
     os.makedirs(args.output)
-    shutil.copyfile(args.workflow, args.output / "workflow.orig")
+    shutil.copyfile(args.task, args.output / "task.orig")
     if len(args.config) > 1:
         for i, c in enumerate(args.config):
             shutil.copyfile(c, args.output / f"config{i}.orig")
@@ -326,21 +386,21 @@ def cli_workflow(args):
         log.error(f"failed: Config({args.config}).load()")
         return errno.EINVAL
 
-    workflow = Workflow(args.workflow)
+    task = Task(args.task)
 
-    errors = workflow.load(args, config)
+    errors = task.load(args, config)
     if errors:
         log_errors(errors)
-        log.error("workflow.load(): see errors above or run 'cijoe -i'")
+        log.error("task.load(): see errors above or run 'cijoe -i'")
         return errno.EINVAL
 
-    workflow.state["tag"] = args.tag
-    step_names = [step["name"] for step in workflow.state["steps"]]
+    task.state["tag"] = args.tag
+    step_names = [step["name"] for step in task.state["steps"]]
     for step_name in args.step:
         if step_name in step_names:
             continue
 
-        log.error(f"step({step_name}) not in workflow")
+        log.error(f"step({step_name}) not in task")
         return errno.EINVAL
 
     resources = get_resources()
@@ -348,7 +408,7 @@ def cli_workflow(args):
     # pre-load scripts and augment state with step-descriptions.
     # TODO: for some reason when mod.__doc__ is None, then the docstring from a previous
     # mod trickles in. This should be fixed...
-    for step in workflow.state["steps"]:
+    for step in task.state["steps"]:
         script_ident = step["uses"]
         resources["scripts"][script_ident].load()
 
@@ -356,17 +416,17 @@ def cli_workflow(args):
         if resources["scripts"][script_ident].mod.__doc__:
             step["description"] = str(resources["scripts"][script_ident].mod.__doc__)
 
-    workflow.state["status"]["started"] = time.time()
+    task.state["status"]["started"] = time.time()
 
     cijoe = Cijoe(config, args.output, args.monitor)
-    fail_fast = cijoe.getconf("cijoe.workflow.fail_fast", False)
+    fail_fast = _get_fail_fast(cijoe)
 
-    for step in workflow.state["steps"]:
+    for step in task.state["steps"]:
         log.info(f"step({step['name']}) - begin")
 
         begin = time.time()
         step["status"]["started"] = begin
-        workflow.state_dump(args.output / Workflow.STATE_FILENAME)
+        task.state_dump(args.output / Task.STATE_FILENAME)
 
         cijoe.set_output_ident(step["id"])
         os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
@@ -409,10 +469,10 @@ def cli_workflow(args):
                     delattr(args, k)
 
         for key in ["failed", "passed", "skipped"]:
-            workflow.state["status"][key] += step["status"][key]
+            task.state["status"][key] += step["status"][key]
 
         step["status"]["elapsed"] = time.time() - begin
-        workflow.state["status"]["elapsed"] += step["status"]["elapsed"]
+        task.state["status"]["elapsed"] += step["status"]["elapsed"]
 
         for text, status in step["status"].items():
             if text != "elapsed" and status:
@@ -422,16 +482,16 @@ def cli_workflow(args):
             log.error(f"exiting, fail_fast({fail_fast})")
             break
 
-    workflow.state_dump(args.output / Workflow.STATE_FILENAME)
+    task.state_dump(args.output / Task.STATE_FILENAME)
 
-    err = errno.EIO if workflow.state["status"]["failed"] else 0
+    err = errno.EIO if task.state["status"]["failed"] else 0
     if err:
         log.error("one or more steps failed")
 
     return err
 
 
-def create_adhoc_workflow(args):
+def create_adhoc_task(args):
     target = args.script_name
     if target.endswith(".py"):
         path = Path(target)
@@ -439,19 +499,19 @@ def create_adhoc_workflow(args):
 
     resources = get_resources()
 
-    template_path = resources["templates"]["core.example-tmp-workflow.yaml"].path
+    template_path = resources["templates"]["core.example-tmp-task.yaml"].path
     jinja_env = jinja2.Environment(
         autoescape=True, loader=jinja2.FileSystemLoader(template_path.parent)
     )
     template = jinja_env.get_template(template_path.name)
 
-    with tempfile.NamedTemporaryFile() as workflow:
-        setattr(args, "workflow", Path(workflow.name))
+    with tempfile.NamedTemporaryFile() as task_file:
+        setattr(args, "task", Path(task_file.name))
         setattr(args, "step", [])
 
         content = template.render(steps=[target])
-        workflow.write(bytes(content, "utf-8"))
-        workflow.seek(0)
+        task_file.write(bytes(content, "utf-8"))
+        task_file.seek(0)
 
         sys.exit(main(args))
 
@@ -464,23 +524,24 @@ def parse_args():
     parent_parser = argparse.ArgumentParser(add_help=False)
 
     run_group = parent_parser.add_argument_group(
-        "run", "Options for running a workflow script."
+        "run", "Options for running a task script."
     )
     run_group.add_argument(
         "target",
         nargs="?",
         default=None,
-        help="A cijoe workflow or script to run.",
+        help="A cijoe task or script to run.",
     )
     run_group.add_argument(
         "step",
         nargs="*",
         default=[],
-        help="Given a workflow, the steps of the workflow it should run. If none are given, all steps are run.",
+        help="Given a task, the steps of the task it should run. If none are given, all steps are run.",
     )
     run_group.add_argument(
         "--workflow",
         "-w",
+        dest="workflow_deprecated",
         default=None,
         help=argparse.SUPPRESS,
     )
@@ -517,25 +578,25 @@ def parse_args():
         "--no-report",
         "-n",
         action="store_true",
-        help="Skip the producing, and opening, a report at the end of the workflow-run",
+        help="Skip the producing, and opening, a report at the end of the task-run",
     )
     run_group.add_argument(
         "--skip-report",
         "-s",
         action="store_false",
-        help="Skip the report opening at the end of the workflow-run",
+        help="Skip the report opening at the end of the task-run",
     )
     run_group.add_argument(
         "--tag",
         "-t",
         type=str,
         action="append",
-        help="Tags to identify a workflow-run."
+        help="Tags to identify a task-run."
         " This will be prefixed while storing in archive",
     )
 
     utils_group = parent_parser.add_argument_group(
-        "utilities", "Workflow, and workflow-related utilities"
+        "utilities", "Task, and task-related utilities"
     )
     utils_group.add_argument(
         "--archive",
@@ -554,7 +615,7 @@ def parse_args():
         "--integrity-check",
         "-i",
         action="store_true",
-        help="Check integrity of workflow given as positional argument and exit.",
+        help="Check integrity of task given as positional argument and exit.",
     )
     utils_group.add_argument(
         "--resources",
@@ -595,27 +656,25 @@ def parse_args():
     # If the --workflow argument is used, and a positional argument is given, the
     # parser will interpret it as a `target`, but we assume it to be a step
     # identifier.
-    if args.workflow:
+    if args.workflow_deprecated:
         log.warning(
-            "The -w / --workflow argument is deprecated"
-            "please specify the workflow as a positional argument instead."
+            "The -w / --workflow argument is deprecated; "
+            "specify the task as a positional argument instead."
         )
         args = parser.parse_intermixed_args()
         if args.target:
             args.step = [args.target] + args.step
-        args.workflow = Path(args.workflow)
+        args.task = Path(args.workflow_deprecated)
 
-    # If the target ends with .yaml, we run the workflow at the given path, and
+    # If the target ends with .yaml, we run the task at the given path, and
     # assume that the remaining positional args are step identifiers of the
-    # given workflow.
+    # given task.
     # note: the `parse_intermixed_args` allow for multiple groups of positional
-    # arguments, i.e. both the workflow path and step identifiers.
+    # arguments, i.e. both the task path and step identifiers.
     elif not args.target or args.target.endswith(".yaml"):
         args = parser.parse_intermixed_args()
-        workflow = args.target or os.environ.get(
-            "CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME
-        )
-        setattr(args, "workflow", Path(workflow))
+        task = args.target or _resolve_default_task_filename()
+        setattr(args, "task", Path(task))
 
     # Else, we assume the target is either a cijoe script identifier or path
     else:
@@ -664,6 +723,9 @@ def parse_args():
         force=True,
     )
 
+    if hasattr(args, "workflow_deprecated"):
+        delattr(args, "workflow_deprecated")
+
     return 0, args
 
 
@@ -677,7 +739,7 @@ def main(args=None):
             return err
         if getattr(args, "script_name", None):
             # Running stand-alone script
-            create_adhoc_workflow(args)
+            create_adhoc_task(args)
 
     if args.resources:
         return cli_resources(args)
@@ -694,7 +756,7 @@ def main(args=None):
     if args.archive:
         return cli_archive(args)
 
-    if not getattr(args, "workflow", None):
+    if not getattr(args, "task", None):
         log.error("No target given; exiting")
         return errno.EINVAL
 
@@ -703,11 +765,19 @@ def main(args=None):
             Path(os.environ.get("CIJOE_DEFAULT_CONFIG", DEFAULT_CONFIG_FILENAME))
         ]
 
-    path = search_for_file(args.workflow)
+    path = search_for_file(args.task)
+    if path is None and args.task.name == DEFAULT_TASK_FILENAME:
+        legacy_path = search_for_file(Path(LEGACY_TASK_FILENAME))
+        if legacy_path is not None:
+            log.warning(
+                f"Using legacy '{LEGACY_TASK_FILENAME}'; "
+                f"rename it to '{DEFAULT_TASK_FILENAME}'"
+            )
+            path = legacy_path
     if path is None:
-        log.error(f"workflow({args.workflow}) does not exist; exiting")
+        log.error(f"task({args.task}) does not exist; exiting")
         return errno.EINVAL
-    args.workflow = path
+    args.task = path
 
     tmp = args.config
     args.config = []
@@ -726,7 +796,7 @@ def main(args=None):
     # that here.
     args.output = args.output.resolve()
 
-    err = cli_workflow(args)
+    err = cli_task(args)
 
     if not args.no_report:
         report_err = cli_produce_report(args)

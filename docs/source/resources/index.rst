@@ -5,7 +5,7 @@
 ===========
 
 In **cijoe** the most essential **resources** are :ref:`sec-resources-scripts`,
-:ref:`sec-resources-workflows`, and :ref:`sec-resources-configs`.
+:ref:`sec-resources-tasks`, and :ref:`sec-resources-configs`.
 In addition to these are :ref:`Auxiliary files <sec-resources-auxiliary>`, and
 :ref:`sec-resources-templates`.
 

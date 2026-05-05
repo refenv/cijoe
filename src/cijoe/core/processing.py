@@ -1,5 +1,5 @@
 """
-    Helper functions for processing the output produced by a workflow
+    Helper functions for processing the output produced by a task
 """
 
 import json
@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Union
 
 from cijoe.core.misc import ENCODING, sanitize_ident
-from cijoe.core.resources import dict_from_yamlfile
+from cijoe.core.resources import Task, dict_from_yamlfile
 
 
 def cmd_number_from_path(path):
@@ -175,16 +175,18 @@ def artifacts_in_path(path: Path):
     return sorted(artifacts)
 
 
-def process_workflow_output(args, cijoe):
-    workflow_state = dict_from_yamlfile(args.output / "workflow.state")
-    workflow_state["config"] = cijoe.config.options
-    workflow_state["artifacts"] = artifacts_in_path(args.output)
+def process_task_output(args, cijoe):
+    state_path = args.output / Task.STATE_FILENAME
+    if not state_path.exists():
+        legacy = args.output / "workflow.state"
+        if legacy.exists():
+            state_path = legacy
 
-    #    workflow_state["artifacts"] = artifacts_in_path(
-    #        args.output, args.output / "artifacts"
-    #    )
+    task_state = dict_from_yamlfile(state_path)
+    task_state["config"] = cijoe.config.options
+    task_state["artifacts"] = artifacts_in_path(args.output)
 
-    for step in workflow_state["steps"]:
+    for step in task_state["steps"]:
         if "extras" not in step:
             step["extras"] = {}
 
@@ -195,11 +197,6 @@ def process_workflow_output(args, cijoe):
         if not step_path.exists():
             continue
 
-        # artifacts = artifacts_in_path(args.output, step_path / "artifacts")
-        # artifacts = artifacts_in_path(step_path / "artifacts")
-        # if artifacts:
-        #    step["extras"]["artifacts"] = artifacts
-
         runlog = runlog_from_path(step_path)
         if runlog:
             step["extras"]["runlog"] = runlog
@@ -208,4 +205,8 @@ def process_workflow_output(args, cijoe):
         if testreport:
             step["extras"]["testreport"] = testreport
 
-    return workflow_state
+    return task_state
+
+
+# Deprecated alias for backwards compatibility; prefer process_task_output.
+process_workflow_output = process_task_output

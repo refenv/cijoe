@@ -1,6 +1,6 @@
 ---
 doc: |
-  This workflow demonstrates how to build qemu from source
+  This task demonstrates how to build qemu from source
 
   * Build qemu from source (x86_64 and aarch64)
   * Install qemu

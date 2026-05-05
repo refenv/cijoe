@@ -8,7 +8,7 @@ password = "root"
 hostname = "localhost"
 port = 4200
 
-[cijoe.workflow]
+[cijoe.task]
 fail_fast=true
 
 # Used by core.example_script_testrunner
@@ -33,7 +33,7 @@ path = "{{ local.env.HOME }}/guests/generic-bios-kvm-x86_64"
 system_label = "x86_64"
 
 # Name of the system_image to use; see "system_imaging.images"
-# Uncomment here, or set as workflow-argument when using "qemu.guest_initialize"
+# Uncomment here, or set as task-argument when using "qemu.guest_initialize"
 #system_image_name = "debian-12-x86_64"
 
 # Keyword arguments: joined onto the form: "-cpu host -smp 4 -m 4" etc.

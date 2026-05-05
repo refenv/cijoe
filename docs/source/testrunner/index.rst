@@ -21,12 +21,12 @@ The test runner can be used in two main ways:
 
 1. Directly via the :pytest:`pytest <>` command-line: ``pytest --config cijoe-config.toml``
 
-2. Via a **cijoe** workflow, with a step using the :ref:`core.testrunner 
+2. Via a **cijoe** task, with a step using the :ref:`core.testrunner
    <sec-packages-core-testrunner>`, executed through the ``cijoe`` command-line tool.
 
 While the first method may be more familiar and require no further explanation,
 the test runner was specifically designed to be used within a **cijoe**
-workflow and command-line interface.
+task and command-line interface.
 
 The intent of using :pytest:`pytest <>` in this context is based on the
 assumption that, since **cijoe** is a Python project and the :ref:`scripts
@@ -43,7 +43,7 @@ essential differences.
 Usage
 =====
 
-In a :ref:`workflow <sec-resources-workflows>` the :ref:`core.testrunner
+In a :ref:`task <sec-resources-tasks>` the :ref:`core.testrunner
 <sec-packages-core-testrunner>` is inserted as a step with arguments like below:
 
 .. code-block:: yaml
@@ -66,5 +66,5 @@ This will result in the following invocation on the initiator:
 
 The key difference between invoking the ``pytest`` command-line tool directly
 and using the **cijoe** script :ref:`core.testrunner <sec-packages-core-testrunner>`
-in the **cijoe** workflow is that the latter integrates the **pytest** report into 
+in the **cijoe** task is that the latter integrates the **pytest** report into
 **cijoe**, producing a cohesive and standalone report.

@@ -8,10 +8,10 @@ options:
   -h, --help            show this help message and exit
 
 run:
-  Options for running a workflow script.
+  Options for running a task script.
 
-  target                A cijoe workflow or script to run.
-  step                  Given a workflow, the steps of the workflow it
+  target                A cijoe task or script to run.
+  step                  Given a task, the steps of the task it
                         should run. If none are given, all steps are
                         run.
   --config CONFIG, -c CONFIG
@@ -25,22 +25,22 @@ run:
                         '-ll' for debug. (default: None)
   --monitor, -m         Dump command output to stdout (default: False)
   --no-report, -n       Skip the producing, and opening, a report at the
-                        end of the workflow-run (default: False)
+                        end of the task-run (default: False)
   --skip-report, -s     Skip the report opening at the end of the
-                        workflow-run (default: True)
-  --tag TAG, -t TAG     Tags to identify a workflow-run. This will be
+                        task-run (default: True)
+  --tag TAG, -t TAG     Tags to identify a task-run. This will be
                         prefixed while storing in archive (default:
                         None)
 
 utilities:
-  Workflow, and workflow-related utilities
+  Task, and task-related utilities
 
   --archive, -a         Move the output at '-o / --output' to 'cijoe-
                         archive/YYYY-MM-DD_HH:MM:SS (default: False)
   --produce-report, -p  Produce report, and open it, for output at '-o /
                         --output' and exit. (default: None)
   --integrity-check, -i
-                        Check integrity of workflow given as positional
+                        Check integrity of task given as positional
                         argument and exit. (default: False)
   --resources, -r       List collected resources and exit. (default:
                         False)

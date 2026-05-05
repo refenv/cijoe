@@ -1,6 +1,6 @@
 ---
 doc: |
-  This workflow file is an example of how to use core.put and core.get. 
+  This task file is an example of how to use core.put and core.get.
 
 steps:
 - name: guest_initialize

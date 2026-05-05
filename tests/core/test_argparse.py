@@ -4,7 +4,7 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-from cijoe.cli.cli import DEFAULT_CONFIG_FILENAME, DEFAULT_WORKFLOW_FILENAME, parse_args
+from cijoe.cli.cli import DEFAULT_CONFIG_FILENAME, DEFAULT_TASK_FILENAME, parse_args
 
 TEMPLATE_SCRIPT = """def main(args, cijoe):
     return 0
@@ -60,25 +60,25 @@ def test_run_group():
     assert args.version
 
 
-def test_target_workflow():
-    workflow = "workflow.yaml"
+def test_target_task():
+    task = "task.yaml"
 
-    test_args = ["cijoe", workflow]
+    test_args = ["cijoe", task]
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == workflow
+    assert args.task.name == task
 
 
-def test_target_workflow_steps():
-    workflow = "workflow.yaml"
+def test_target_task_steps():
+    task = "task.yaml"
     steps = ["step1", "step2", "step3"]
 
-    test_args = ["cijoe", workflow, *steps]
+    test_args = ["cijoe", task, *steps]
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == workflow
+    assert args.task.name == task
     assert len(args.step) == len(steps)
     assert all(a == b for a, b in zip(args.step, steps))
 
@@ -170,7 +170,7 @@ def test_workflow_argument():
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == workflow
+    assert args.task.name == workflow
 
 
 def test_workflow_argument_steps():
@@ -185,21 +185,21 @@ def test_workflow_argument_steps():
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == workflow
+    assert args.task.name == workflow
     assert len(args.step) == len(steps)
     assert all(a == b for a, b in zip(args.step, steps))
 
 
 def test_mixed_order():
     config = "config.toml"
-    workflow = "workflow.yaml"
+    task = "task.yaml"
     steps = ["step1", "step2", "step3"]
 
-    test_args = ["cijoe", "-c", config, "--monitor", workflow, *steps, "-l"]
+    test_args = ["cijoe", "-c", config, "--monitor", task, *steps, "-l"]
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == workflow
+    assert args.task.name == task
     assert args.config[0].name == config
     assert len(args.step) == len(steps)
     assert all(a == b for a, b in zip(args.step, steps))
@@ -210,6 +210,4 @@ def test_defaults():
     sys.argv = test_args
     err, args = parse_args()
     assert not err
-    assert args.workflow.name == os.environ.get(
-        "CIJOE_DEFAULT_WORKFLOW", DEFAULT_WORKFLOW_FILENAME
-    )
+    assert args.task.name == os.environ.get("CIJOE_DEFAULT_TASK", DEFAULT_TASK_FILENAME)
