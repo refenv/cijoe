@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "A loosely coupled approach to systems development and testing"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["systems", "development", "testing"]
 authors = [
     { name = "Simon A. F. Lund", email = "os@safl.dk" }
