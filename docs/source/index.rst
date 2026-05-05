@@ -4,14 +4,14 @@
 
 **cijoe** is a tool designed to collect and formalize the common elements used
 during systems development, enabling **automated** and **reproducible**
-execution of tasks.
+execution.
 
 When using **cijoe**, the first step involves creating :ref:`scripts
-<sec-resources-scripts>` for automating repetitive tasks. As these :ref:`scripts
+<sec-resources-scripts>` to automate repetitive work. As these :ref:`scripts
 <sec-resources-scripts>` are developed, all input values are stored in
 and passed through :ref:`configuration files <sec-resources-configs>` and
 environment variables.
-By keeping input values separate from the script itself, tasks can be easily
+By keeping input values separate from the script itself, scripts can be easily
 replicated across different environments, ensuring flexibility and consistency
 in execution.
 
@@ -46,7 +46,7 @@ errors occur. Options for customizing the behavior include:
 - ``-m`` / ``--monitor``: Enable real-time monitoring of the task.
 
 For a detailed description of usage see ``cijoe --help`` and refer to the rest
-of the documentation, and good place to continue is with :ref:`sec-usage`.
+of the documentation; a good place to continue is with :ref:`sec-usage`.
 
 .. _sec-introduction:
 
@@ -79,7 +79,7 @@ within continuous integration (CI) environments such as
 and  :jenkins:`Jenkins <>`.
 It also allows for seamless execution of the same scripts on local systems,
 enabling developers to switch between CI providers while maintaining the ability
-to run automated tasks locally.
+to run the same automation locally.
 
 .. figure:: _static/cijoe-networked.drawio.png
    :alt: Development Environment
@@ -128,10 +128,10 @@ Key Features
 
 - **Realtime Output**:
 
-  - Whether **cijoe** is executing scripts of tasks, then it **can**
+  - Whether **cijoe** is executing scripts or tasks, then it **can**
     provide you with realtime command output, directly in your console.
   - When running in cloud environments e.g. GitHub Actions, GitLab, Azure,
-    Travis, etc. then it is very convient to immediately observe execution
+    Travis, etc. then it is very convenient to immediately observe execution
     progress
 
 - **Postprocessing**:
