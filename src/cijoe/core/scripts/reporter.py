@@ -2,7 +2,7 @@
 Report generator
 ================
 
-Generates a HTML report in the workflow output directory.
+Generates a HTML report in the task output directory.
 
 Retargtable: false
 ------------------
@@ -19,7 +19,7 @@ from datetime import datetime
 import jinja2
 import yaml
 
-from cijoe.core.processing import process_workflow_output
+from cijoe.core.processing import process_task_output
 from cijoe.core.resources import get_resources
 
 
@@ -60,19 +60,19 @@ def timestamp_to_txt(value):
 
 
 def main(args, cijoe):
-    """Produce a HTML report of the 'workflow.state' file in 'args.output'"""
+    """Produce a HTML report of the 'task.state' file in 'args.output'"""
 
     report_open = args.report_open
 
     resources = get_resources()
 
-    template_path = resources["templates"]["core.report-workflow.html"].path
+    template_path = resources["templates"]["core.report-task.html"].path
     report_path = args.output / "report.html"
 
     log.info(f"template: {template_path}")
     log.info(f"report: {report_path}")
 
-    workflow_state = process_workflow_output(args, cijoe)
+    task_state = process_task_output(args, cijoe)
 
     jinja_env = jinja2.Environment(
         autoescape=True, loader=jinja2.FileSystemLoader(template_path.parent)
@@ -83,7 +83,7 @@ def main(args, cijoe):
     template = jinja_env.get_template(template_path.name)
 
     with (report_path).open("w") as report:
-        report.write(template.render(workflow_state))
+        report.write(template.render(task_state))
 
     if report_open:
         webbrowser.open("file://%s" % report_path.resolve())

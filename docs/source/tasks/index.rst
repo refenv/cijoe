@@ -1,41 +1,41 @@
-.. _sec-resources-workflows:
+.. _sec-resources-tasks:
 
-===========
- Workflows
-===========
+=======
+ Tasks
+=======
 
-Workflows enable the organized execution of commands and scripts. After
+Tasks enable the organized execution of commands and scripts. After
 execution, a report is generated, containing the status and embedded
-documentation of the workflow and scripts in a self-contained format. To run the
-workflow produced by ``cijoe --example``, use the following command:
+documentation of the task and scripts in a self-contained format. To run the
+task produced by ``cijoe --example``, use the following command:
 
-.. literalinclude:: ../420_usage_workflow_all.cmd
+.. literalinclude:: ../420_usage_task_all.cmd
    :language: bash
 
 The command will execute **all** the
-:ref:`steps <sec-resources-workflows-steps>` in the workflow. To run a subset of
+:ref:`steps <sec-resources-tasks-steps>` in the task. To run a subset of
 steps, you can specify the step name(s) as arguments to the ``cijoe`` tool,
 similar to how targets are specified in a :make:`Makefile <>`:
 
-.. literalinclude:: ../450_usage_workflow_subset.cmd
+.. literalinclude:: ../450_usage_task_subset.cmd
    :language: bash
 
 With the above, only the step named **builtin_script** will be executed. This
 becomes even more useful when utilizing **cijoe** bash completions.
 
-There are a couple of workflow-specific options. See
-the :ref:`sec-resources-configs` section for reference.
+There are a couple of task-specific options. See the
+:ref:`sec-resources-configs-task` section for reference.
 
 
-.. _sec-resources-workflows-content:
+.. _sec-resources-tasks-content:
 
 Content Overview
 ================
 
-Let's take a look at what the workflow file produced by ``cijoe --example core.default``
+Let's take a look at what the task file produced by ``cijoe --example core.default``
 looks like:
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
+.. literalinclude:: ../../../src/cijoe/core/tasks/example_task_default.yaml
    :language: yaml
 
 At a first glance, then it might feel a bit similar to GitHub Actions workflow,
@@ -50,20 +50,20 @@ but dramatically simpler since:
 
 * Minimal amount of "magic" keys
 
-  - ``doc``: Describe what the workflow does using multi-line plain-text
+  - ``doc``: Describe what the task does using multi-line plain-text
   - ``steps``: Ordered list of scripts, to inline-commands, to run
 
 Descriptions of the content is provided in the following subsections.
 
-.. _sec-resources-workflows-steps:
+.. _sec-resources-tasks-steps:
 
 Steps
 =====
 
 Although **cijoe** aims to be simple, with minimal "magic" and a low learning
-curve, there is some **yaml-magic** involved in the workflow steps. A step can
-take one of two forms: either as :ref:`sec-resources-workflows-inline-commands`
-or as :ref:`sec-resources-workflows-step-scripts`.
+curve, there is some **yaml-magic** involved in the task steps. A step can
+take one of two forms: either as :ref:`sec-resources-tasks-inline-commands`
+or as :ref:`sec-resources-tasks-step-scripts`.
 
 Both forms require that a step **must** have a **name**. This allows subsets
 of steps to be executed via the ``cijoe`` command-line tool. When naming steps,
@@ -77,14 +77,14 @@ follow these conventions:
 
 In short, use the typical lowercase identifier convention.
 
-.. _sec-resources-workflows-inline-commands:
+.. _sec-resources-tasks-inline-commands:
 
 Inline Commands
 ---------------
 
 A step with **inline commands** take the form:
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
+.. literalinclude:: ../../../src/cijoe/core/tasks/example_task_default.yaml
    :language: yaml
    :lines: 24-27
 
@@ -99,19 +99,19 @@ into execution of functions in the **cijoe** Python module:
 
 .. note::
    This is implemented in **cijoe** as "syntactic-sugar" for
-   running the built-in script :ref:`core.cmdrunner <sec-packages-core-cmdrunner>`. 
-   Thus, have a look at :ref:`sec-resources-workflows-step-scripts` to see what
+   running the built-in script :ref:`core.cmdrunner <sec-packages-core-cmdrunner>`.
+   Thus, have a look at :ref:`sec-resources-tasks-step-scripts` to see what
    this **unfolds** as.
 
 
-.. _sec-resources-workflows-step-scripts:
+.. _sec-resources-tasks-step-scripts:
 
 Steps with Scripts
 ------------------
 
 When a step runs a script, then you give it a **name** and you tell it
 
-.. literalinclude:: ../../../src/cijoe/core/workflows/example_workflow_default.yaml
+.. literalinclude:: ../../../src/cijoe/core/tasks/example_task_default.yaml
    :language: yaml
    :lines: 29-34
 
@@ -128,12 +128,12 @@ with
   ``main(args, cijoe)`` in the ``args`` argument.
 
 
-.. _sec-resources-workflows-linting:
+.. _sec-resources-tasks-linting:
 
 Linting
 -------
 
-When you write a workflow yourself it can be nice to check whether it is valid
+When you write a task yourself it can be nice to check whether it is valid
 without running it. You can do so by running:
 
 .. literalinclude:: ../300_lint.cmd

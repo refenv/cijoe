@@ -9,7 +9,7 @@ from cijoe.cli.cli import cli_integrity_check
 from cijoe.core.processing import runlog_from_path
 from cijoe.core.resources import get_resources
 
-WORKFLOW_SKELETON = {
+TASK_SKELETON = {
     "doc": "Some description",
     "steps": [
         {"name": "foo", "uses": "core.example_script_default"},
@@ -17,7 +17,7 @@ WORKFLOW_SKELETON = {
 }
 
 
-def test_workflow_load():
+def test_task_load():
     resources = get_resources()
 
     config = resources["configs"]["core.example_config_default"]
@@ -26,27 +26,27 @@ def test_workflow_load():
     errors = config.load()
     assert not errors
 
-    workflow = resources["workflows"]["core.example_workflow_default"]
-    assert workflow
+    task = resources["tasks"]["core.example_task_default"]
+    assert task
 
-    errors = workflow.load(Namespace(), config, [])
+    errors = task.load(Namespace(), config, [])
     assert not errors
 
 
-def test_workflow_lint_valid_workflow(tmp_path):
+def test_task_lint_valid_task(tmp_path):
 
     config_path = (tmp_path / "test-config-empty.toml").resolve()
     config_path.write_text("")
 
-    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data = copy.deepcopy(TASK_SKELETON)
 
-    workflow_file = (tmp_path / "workflow.yaml").resolve()
-    workflow_file.write_text(yaml.dump(data))
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
 
     result = subprocess.run(
         [
             "cijoe",
-            str(workflow_file),
+            str(task_file),
             "--integrity-check",
             "--config",
             str(config_path),
@@ -56,23 +56,23 @@ def test_workflow_lint_valid_workflow(tmp_path):
     assert result.returncode == 0
 
 
-def test_workflow_lint_invalid_step_name(tmp_path):
+def test_task_lint_invalid_step_name(tmp_path):
 
     config_path = (tmp_path / "test-config-empty.toml").resolve()
     config_path.write_text("")
 
-    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data = copy.deepcopy(TASK_SKELETON)
     data.get("steps", []).append(
         {"name": "cannot have spaces", "with": "core.example_script_default"}
     )
 
-    workflow_file = (tmp_path / "workflow.yaml").resolve()
-    workflow_file.write_text(yaml.dump(data))
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
 
     result = subprocess.run(
         [
             "cijoe",
-            str(workflow_file),
+            str(task_file),
             "--integrity-check",
             "--config",
             str(config_path),
@@ -82,12 +82,12 @@ def test_workflow_lint_invalid_step_name(tmp_path):
     assert result.returncode != 0
 
 
-def test_workflow_report_command_ordering(tmp_path):
+def test_task_report_command_ordering(tmp_path):
 
     config_path = (tmp_path / "test-config-empty.toml").resolve()
     config_path.write_text("")
 
-    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data = copy.deepcopy(TASK_SKELETON)
     data["steps"].append(
         {
             "name": "many_commands",
@@ -97,13 +97,13 @@ def test_workflow_report_command_ordering(tmp_path):
     )
 
     output_path = (tmp_path / "output").resolve()
-    workflow_file = (tmp_path / "workflow.yaml").resolve()
-    workflow_file.write_text(yaml.dump(data))
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
 
     result = subprocess.run(
         [
             "cijoe",
-            str(workflow_file),
+            str(task_file),
             "--output",
             str(output_path),
             "--config",
@@ -120,11 +120,11 @@ def test_workflow_report_command_ordering(tmp_path):
         assert count == val
 
 
-def test_workflow_run(tmp_path):
+def test_task_run(tmp_path):
     config_path = (tmp_path / "test-config-empty.toml").resolve()
     config_path.write_text("")
 
-    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data = copy.deepcopy(TASK_SKELETON)
     data["steps"].append(
         {
             "name": "cmdrunner",
@@ -136,13 +136,13 @@ def test_workflow_run(tmp_path):
     )
 
     output_path = (tmp_path / "output").resolve()
-    workflow_file = (tmp_path / "workflow.yaml").resolve()
-    workflow_file.write_text(yaml.dump(data))
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
 
     result = subprocess.run(
         [
             "cijoe",
-            str(workflow_file),
+            str(task_file),
             "--output",
             str(output_path),
             "--config",
@@ -163,11 +163,11 @@ def test_workflow_run(tmp_path):
             assert "world" in v["output"]
 
 
-def test_workflow_run_multiline(tmp_path):
+def test_task_run_multiline(tmp_path):
     config_path = (tmp_path / "test-config-empty.toml").resolve()
     config_path.write_text("")
 
-    data = copy.deepcopy(WORKFLOW_SKELETON)
+    data = copy.deepcopy(TASK_SKELETON)
     data["steps"].append(
         {
             "name": "cmdrunner",
@@ -179,13 +179,13 @@ def test_workflow_run_multiline(tmp_path):
     )
 
     output_path = (tmp_path / "output").resolve()
-    workflow_file = (tmp_path / "workflow.yaml").resolve()
-    workflow_file.write_text(yaml.dump(data))
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
 
     result = subprocess.run(
         [
             "cijoe",
-            str(workflow_file),
+            str(task_file),
             "--output",
             str(output_path),
             "--config",

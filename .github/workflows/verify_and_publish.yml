@@ -159,7 +159,7 @@ jobs:
         coverage run \
           $(which cijoe) --monitor -l \
             --config cijoe-example-${{ matrix.usage_example }}/cijoe-config.toml \
-            cijoe-example-${{ matrix.usage_example }}/cijoe-workflow.yaml
+            cijoe-example-${{ matrix.usage_example }}/cijoe-task.yaml
 
     - name: Coverage report
       run: |
@@ -292,11 +292,11 @@ jobs:
       matrix:
         cli:
         - name: "integrity-check"
-          cmd: "$(which cijoe) example/cijoe-workflow.yaml -c example/cijoe-config.toml --integrity-check"
+          cmd: "$(which cijoe) example/cijoe-task.yaml -c example/cijoe-config.toml --integrity-check"
         - name: "script-target"
           cmd: "$(which cijoe) core.example_script_default -c example/cijoe-config.toml"
-        - name: "workflow-steps"
-          cmd: "$(which cijoe) example/cijoe-workflow.yaml -c example/cijoe-config.toml script_with_args"
+        - name: "task-steps"
+          cmd: "$(which cijoe) example/cijoe-task.yaml -c example/cijoe-config.toml script_with_args"
         - name: "emit-example"
           cmd: "$(which cijoe) --example core.default"
         - name: "archive"

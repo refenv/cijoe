@@ -8,14 +8,14 @@
     * cijoe.core.command (Cijoe)
     * cijoe.core.transport (Transport, Local, SSH)
     * cijoe.core.misc (As the name suggests; various helper-functions)
-    * cijoe.cli (Command-Line Tool and utilization of the above for workflow execution)
+    * cijoe.cli (Command-Line Tool and utilization of the above for task execution)
 
     Everything else, literally everything, is implemented as dynamically
     collectable and loadable resources. That is, cijoe
-    configuration-files/scripts/workflows/templates, and auxiliary files.
+    configuration-files/scripts/tasks/templates, and auxiliary files.
 
     The base-representation of these resources are the cijoe.core.resources.Resource
-    class, with content-specific subclasses (Config, Script, and Workflow).
+    class, with content-specific subclasses (Config, Script, and Task).
 
     These resources are collected from installed and locally available Packages, as well
     as for path by the cijoe.core.resources.Collector.
@@ -320,9 +320,9 @@ class Script(Resource):
         return ["Missing script_entry() function in loaded module"]
 
 
-class Workflow(Resource):
+class Task(Resource):
     SUFFIX = ".yaml"
-    STATE_FILENAME = "workflow.state"
+    STATE_FILENAME = "task.state"
     STATE: Dict[str, Any] = {
         "doc": "",
         "tag": "",
@@ -344,14 +344,14 @@ class Workflow(Resource):
         self.config = None
 
     def state_dump(self, path):
-        """Dump the current workflow-state to yaml-file"""
+        """Dump the current task-state to yaml-file"""
 
         with path.open("w+") as state_file:
             yaml.dump(self.state, state_file)
 
     @staticmethod
     def dict_normalize(topic: dict):
-        """Normalize the workflow-dict, transformation of the 'run' shorthand"""
+        """Normalize the task-dict, transformation of the 'run' shorthand"""
 
         errors = []
 
@@ -399,7 +399,7 @@ class Workflow(Resource):
 
     @staticmethod
     def dict_lint(args: Namespace, topic: dict):
-        """Returns a list of integrity-errors for the given workflow-dict(topic)"""
+        """Returns a list of integrity-errors for the given task-dict(topic)"""
 
         resources = get_resources()
 
@@ -473,7 +473,7 @@ class Workflow(Resource):
 
     def load(self, args: Namespace, config: Config, extra_steps: list = []):
         """
-        Load the workflow-yamlfile, normalize it, lint it, substitute, then construct
+        Load the task-yamlfile, normalize it, lint it, substitute, then construct
         the object properties
         """
 
@@ -482,26 +482,26 @@ class Workflow(Resource):
         if self.state:
             return errors
 
-        workflow_dict = dict_from_yamlfile(self.path)
-        workflow_dict["steps"] += extra_steps
+        task_dict = dict_from_yamlfile(self.path)
+        task_dict["steps"] += extra_steps
 
-        errors += Workflow.dict_normalize(workflow_dict)
+        errors += Task.dict_normalize(task_dict)
         if errors:
             return errors
 
-        errors += Workflow.dict_lint(args, workflow_dict)
+        errors += Task.dict_lint(args, task_dict)
         if errors:
             return errors
 
-        errors += dict_substitute(workflow_dict, default_context(config))
+        errors += dict_substitute(task_dict, default_context(config))
         if errors:
             return errors
 
-        state = Workflow.STATE.copy()
-        state["doc"] = workflow_dict.get("doc")
-        state["config"] = workflow_dict.get("config", {})
+        state = Task.STATE.copy()
+        state["doc"] = task_dict.get("doc")
+        state["config"] = task_dict.get("config", {})
         state["steps"] = list(state["steps"])
-        for nr, step in enumerate(workflow_dict["steps"], 1):
+        for nr, step in enumerate(task_dict["steps"], 1):
             step["nr"] = nr
             step["status"] = {
                 "skipped": 0,
@@ -525,10 +525,11 @@ class Collector(object):
     RESOURCES = [
         ("configs", Config.SUFFIX),
         ("templates", ".jinja2"),
-        ("workflows", Workflow.SUFFIX),
+        ("tasks", Task.SUFFIX),
         ("scripts", Script.SUFFIX),
         ("auxiliary", ".*"),
     ]
+    LEGACY_CATEGORIES = {"workflows": "tasks"}
     IGNORE = ["__init__.py", "__pycache__", "setup.py"]
 
     def __new__(cls):
@@ -540,7 +541,7 @@ class Collector(object):
     def __process_candidate(self, candidate: Path, category: str, pkg):
         """Inserts the given candidate"""
 
-        resource: Union[Script, Config, Workflow, Resource]
+        resource: Union[Script, Config, Task, Resource]
 
         if category == "scripts":
             resource = Script(candidate, pkg)
@@ -550,8 +551,8 @@ class Collector(object):
                 category = "auxiliary"
         elif category == "configs":
             resource = Config(candidate, pkg)
-        elif category == "workflows":
-            resource = Workflow(candidate, pkg)
+        elif category == "tasks":
+            resource = Task(candidate, pkg)
         else:
             resource = Resource(candidate, pkg)
 
@@ -591,16 +592,24 @@ class Collector(object):
         if prefix is None:
             prefix = ""
 
+        canonical_categories = {cat for cat, _ in Collector.RESOURCES}
+
         for pkg in pkgutil.walk_packages(path, prefix):
             comp = pkg.name.split(".")[1:]  # drop the 'cijoe.' prefix
-            if not (
-                pkg.ispkg
-                and any(cat in comp for cat, _ in Collector.RESOURCES)
-                and len(comp) == 2
-            ):  # skip non-resource packages
+            if not (pkg.ispkg and len(comp) == 2):
                 continue
 
             _, category = comp
+            if category in Collector.LEGACY_CATEGORIES:
+                log.warning(
+                    f"package({pkg.name}): "
+                    f"'{category}/' subdir is deprecated; "
+                    f"rename to '{Collector.LEGACY_CATEGORIES[category]}/'"
+                )
+                category = Collector.LEGACY_CATEGORIES[category]
+            elif category not in canonical_categories:
+                continue
+
             for candidate in importlib_files(f"{pkg.name}").iterdir():
                 if candidate.name in Collector.IGNORE:
                     continue
@@ -637,3 +646,7 @@ def get_resources(paths=[]):
     collector.collect(paths)
 
     return collector.resources
+
+
+# Deprecated alias for backwards compatibility; prefer Task.
+Workflow = Task

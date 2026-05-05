@@ -4,7 +4,7 @@
 # configuration here.
 #
 
-[cijoe.workflow]
+[cijoe.task]
 fail_fast=true
 
 # Used by: qemu.build.py

@@ -8,7 +8,7 @@ password = "root"
 hostname = "localhost"
 port = 4200
 
-[cijoe.workflow]
+[cijoe.task]
 fail_fast=true
 
 # Used by: the qemu.*.py scripts
@@ -38,7 +38,7 @@ system_args.raw = """\
 
 # INITIALIZE.DISKIMAGE: Options for the "qemu.guest_initialize" script
 #
-# You can uncomment it in your config here, or provide as argument as a workflow step-argument
+# You can uncomment it in your config here, or provide as argument as a task step-argument
 #
 #initialize.diskimage = "debian-12-aarch64"
 

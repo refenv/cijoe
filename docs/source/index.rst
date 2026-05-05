@@ -3,8 +3,8 @@
 ==================================================
 
 **cijoe** is a tool designed to collect and formalize the common elements used
-during systems development, enabling an **automated** and **reproducible**
-workflow.
+during systems development, enabling **automated** and **reproducible**
+execution of tasks.
 
 When using **cijoe**, the first step involves creating :ref:`scripts
 <sec-resources-scripts>` for automating repetitive tasks. As these :ref:`scripts
@@ -16,15 +16,15 @@ replicated across different environments, ensuring flexibility and consistency
 in execution.
 
 As your script collection grows, **cijoe** allows you to organize them
-into :ref:`workflows <sec-resources-workflows>`.
-A :ref:`workflow <sec-resources-workflows>` consolidates the
+into :ref:`tasks <sec-resources-tasks>`.
+A :ref:`task <sec-resources-tasks>` consolidates the
 :ref:`script <sec-resources-scripts>` execution sequence, documents their
 combined purpose, and provides usage instructions. This clarity makes it easier
-for others to understand and consistently execute the workflow in their own
+for others to understand and consistently execute the task in their own
 environments.
 
 After execution, **cijoe** generates a report that includes command output,
-script documentation, auxiliary collected artifacts, and a workflow summary.
+script documentation, auxiliary collected artifacts, and a task summary.
 This report facilitates collaboration by providing results transparently, making
 them easy to **review** and **reproduce**.
 
@@ -43,7 +43,7 @@ errors occur. Options for customizing the behavior include:
 
 - ``-n`` / ``--no-report``: Disable the generation and display of the HTML report.
 - ``-l`` / ``--log-level``: Increase verbosity by setting a higher log level.
-- ``-m`` / ``--monitor``: Enable real-time monitoring of the workflow.
+- ``-m`` / ``--monitor``: Enable real-time monitoring of the task.
 
 For a detailed description of usage see ``cijoe --help`` and refer to the rest
 of the documentation, and good place to continue is with :ref:`sec-usage`.
@@ -73,7 +73,7 @@ Unlike configuration management tools, **cijoe** is a minimal, open-ended
 scripting tool that emphasizes maintainability, reusability, and built-in
 reporting for sharing results, including command output and artifacts.
 
-**cijoe** is designed to execute commands, scripts, or workflows
+**cijoe** is designed to execute commands, scripts, or tasks
 within continuous integration (CI) environments such as
 :github:`GitHub <>`, :gitlab:`GitLab <>`, :travis:`Travis CI <>`,
 and  :jenkins:`Jenkins <>`.
@@ -128,7 +128,7 @@ Key Features
 
 - **Realtime Output**:
 
-  - Whether **cijoe** is executing scripts of workflows, then it **can**
+  - Whether **cijoe** is executing scripts of tasks, then it **can**
     provide you with realtime command output, directly in your console.
   - When running in cloud environments e.g. GitHub Actions, GitLab, Azure,
     Travis, etc. then it is very convient to immediately observe execution
@@ -142,7 +142,7 @@ Key Features
 
 - **Reporting**:
 
-  - All data from **runs**, script and workflow executions, is collected in a
+  - All data from **runs**, script and task executions, is collected in a
     **HTML** report. Conveniently viewable even when running on remote systems
 
 In summary, **cijoe** aims to be a simple yet powerful tool that integrates
@@ -151,7 +151,7 @@ without adding complexity.
 
 Once you have ensured that the system prerequisites (:ref:`sec-prerequisites`)
 are met, proceed to the :ref:`sec-usage` section to run an example
-script and workflow. For documentation on how to create your own scripts,
+script and task. For documentation on how to create your own scripts,
 see :ref:`sec-resources`. Finally, refer to :ref:`sec-packages` for descriptions
 of existing script collections and related packages.
 
@@ -162,7 +162,7 @@ of existing script collections and related packages.
 
    usage/index.rst
    scripts/index.rst
-   workflows/index.rst
+   tasks/index.rst
    configs/index.rst
    testrunner/index.rst
    resources/index.rst

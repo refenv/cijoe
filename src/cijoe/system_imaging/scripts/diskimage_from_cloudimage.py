@@ -8,7 +8,7 @@ This will produce disk images for all the system images described in config sect
 * ``system_imaging.images``
 
 You can reduce this by providing a case-insensitive fnmatch pattern as input to the
-script via workflow, such as these::
+script via task, such as these::
 
     # This will build all images
     with:

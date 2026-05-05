@@ -3,7 +3,7 @@ doc: |
   Build disk and docker images
   ============================
 
-  Here is what the workflow consumes and produces:
+  Here is what the task consumes and produces:
 
   * cloud image ==> disk image (.qcow2) ==> docker image
 

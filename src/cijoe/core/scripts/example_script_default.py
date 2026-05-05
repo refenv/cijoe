@@ -6,8 +6,8 @@ The script is a modified "Hello, World!" example. It repeatedly prints a message
 number of times and allows parameterization of the message content.
 
 The purpose of this script is to demonstrate how to run commands and supply input to the
-script using a configuration file, environment variables, command-line arguments and 
-workflow step arguments.
+script using a configuration file, environment variables, command-line arguments and
+task step arguments.
 
 An example of using the core infrastructure of cijoe:
 
@@ -17,7 +17,7 @@ An example of using the core infrastructure of cijoe:
   - Output processing state.output()
 
 Input is given to scripts via configuration-files, environment variables and from
-workflow-step-arguments, this is demonstrated as the first thing in the script.
+task-step-arguments, this is demonstrated as the first thing in the script.
 
 cijoe also has primitives for transferring data:
 
@@ -55,7 +55,7 @@ def main(args: Namespace, cijoe: Cijoe):
     # Grab message from the configuration-file
     message = cijoe.getconf("example.message", "Hello World!")
 
-    # When executed via workflow, grab the step-argument
+    # When executed via task, grab the step-argument
     repeat = args.repeat
     if repeat < 1:
         log.error(f"Invalid step-argument: repeat({repeat}) < 1")

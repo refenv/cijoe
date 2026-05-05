@@ -16,12 +16,12 @@ provided, the reason being that with **cijoe**, the core interface of
 configured to do so, ``run()`` executes commands on a **target** machine that 
 is not the **initiator**.
 
-Often, tasks performed by **cijoe** can be, if not destructive, modifying 
-the **target** system in one way of the other. The default is for the 
-**initator** and the **target** to be the same system, and therefore, to avoid 
-accidents like invoking a destructive workflow and forgetting to supply a 
+Often, tasks performed by **cijoe** can be, if not destructive, modifying
+the **target** system in one way of the other. The default is for the
+**initator** and the **target** to be the same system, and therefore, to avoid
+accidents like invoking a destructive task and forgetting to supply a
 configuration file, providing a configuration file in the command line tool
-is required. 
+is required.
 
 **cijoe** specific keys
 =======================
@@ -32,7 +32,7 @@ you should avoid using for other things than the intended purpose:
 
 * SSH Transport Configuration
 * Shell Configuration
-* Workflow Configuration
+* Task Configuration
 
 **cijoe** abides by the convention that configuration values are grouped under
 a relevant key. Thus, the those for **cijoe** itself are all stored under the
@@ -46,7 +46,7 @@ a relevant key. Thus, the those for **cijoe** itself are all stored under the
    [cijoe.run]
    ...
 
-   [cijoe.workflow]
+   [cijoe.task]
    ...
 
 
@@ -154,17 +154,17 @@ In the table below, you can see the keys associated with different shells in
      - ``csh``
 
 
-.. _sec-resources-configs-workflow:
+.. _sec-resources-configs-task:
 
-Workflow Configuration
-----------------------
+Task Configuration
+------------------
 
-When a workflow is processed, each step is executed in sequence. It can be
-advantageous to *fail fast*, meaning the workflow stops processing further steps
+When a task is processed, each step is executed in sequence. It can be
+advantageous to *fail fast*, meaning the task stops processing further steps
 once a failure occurs in any step.
 
 This is possible via the **cijoe** configuration option:
-``cijoe.workflow.fail_fast`` which you can set in your
+``cijoe.task.fail_fast`` which you can set in your
 :ref:`configuration-file <sec-resources-configs>`:
 
 .. literalinclude:: ../../../src/cijoe/core/configs/example_config_default.toml
@@ -174,7 +174,12 @@ variable:
 
 .. code-block:: bash
 
-   CIJOE_WORKFLOW_FAIL_FAST=true
+   CIJOE_TASK_FAIL_FAST=true
+
+.. note::
+   The legacy ``[cijoe.workflow]`` section, including
+   ``cijoe.workflow.fail_fast`` (and ``CIJOE_WORKFLOW_FAIL_FAST``), is still
+   honored when ``[cijoe.task]`` is not set, but emits a deprecation warning.
 
 
 .. _sec-resources-configs-evar-override:
