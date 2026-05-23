@@ -3,7 +3,30 @@ cmdrunner
 =========
 
 Executes a list of commands in the given order. Note that multi-line commands are not
-support, each line or list of strings are treated as individual commands.
+supported; each line or list of strings is treated as an individual command.
+
+Usage from a task
+-----------------
+
+The two steps below are equivalent. The first invokes the script directly; the
+second uses the ``run:`` shorthand, which is desugared into the same call.
+Either form can carry the script's arguments (such as ``transport``) via the
+``with:`` block::
+
+    - name: explicit
+      uses: core.cmdrunner
+      with:
+        commands:
+        - hostname
+        - uname -a
+        transport: ssh
+
+    - name: shorthand
+      run: |
+        hostname
+        uname -a
+      with:
+        transport: ssh
 
 Retargetable: True
 ------------------

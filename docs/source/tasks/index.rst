@@ -103,6 +103,24 @@ into execution of functions in the **cijoe** Python module:
    Thus, have a look at :ref:`sec-resources-tasks-step-scripts` to see what
    this **unfolds** as.
 
+Because ``run:`` is sugar for ``core.cmdrunner``, you can pass any of its
+arguments alongside ``run:`` using a ``with:`` block. The most common use is
+selecting which transport executes the commands:
+
+.. code-block:: yaml
+
+   - name: on_remote
+     run: |
+       hostname
+       uname -a
+     with:
+       transport: ssh
+
+Without ``transport``, commands run on the first transport defined in the
+configuration file (``initiator`` if none are defined). See
+:ref:`core.cmdrunner <sec-packages-core-cmdrunner>` for the full set of
+arguments.
+
 
 .. _sec-resources-tasks-step-scripts:
 

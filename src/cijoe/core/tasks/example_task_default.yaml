@@ -44,3 +44,16 @@ steps:
 #
 #- name: custom_script
 #  uses: cijoe-script
+
+#
+# A step using 'run:' can also pass arguments to 'core.cmdrunner' via 'with:'.
+# The most common one is 'transport', selecting which transport executes the
+# commands. Without it, commands run on the first transport defined in the
+# configuration file ('initiator' if none are defined).
+#
+#- name: inline_commands_on_remote
+#  run: |
+#    hostname
+#    uname -a
+#  with:
+#    transport: ssh
