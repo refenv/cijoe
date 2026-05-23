@@ -9,8 +9,11 @@ core.repository_prep
 
 CLI arguments
 -------------
-options:
 
-* ``-h, --help``
+* ``--depth DEPTH``
 
-  show this help message and exit
+  Argument for git: Create a shallow clone with a history truncated to the specified number or revisions. The minimum possible value is 1, otherwise ignored. (default: None)
+
+* ``--single_branch {true,false}``
+
+  Argument for git: Clone only the history leading to the tip of the specified revision. (default: False)

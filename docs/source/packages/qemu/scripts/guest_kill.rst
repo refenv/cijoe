@@ -9,12 +9,7 @@ qemu.guest_kill
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--guest_name GUEST_NAME``
 
-  Name of the qemu guest.
+  Name of the qemu guest. (default: None)

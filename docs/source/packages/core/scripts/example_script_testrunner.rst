@@ -9,8 +9,4 @@ core.example_script_testrunner
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
+*This script takes no arguments.*

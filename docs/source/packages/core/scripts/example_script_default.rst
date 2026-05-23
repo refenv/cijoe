@@ -9,12 +9,7 @@ core.example_script_default
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--repeat REPEAT``
 
-  Amount of times the message will be repeated
+  Amount of times the message will be repeated (default: 1)

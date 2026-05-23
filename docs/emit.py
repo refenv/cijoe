@@ -2,6 +2,7 @@
 """
 Produce documentation for all cijoe packages
 """
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -129,16 +130,31 @@ def main():
                 ["cijoe", f"{pkg_name}.{script_name}", "--help"],
                 capture_output=True,
                 text=True,
+                env={**os.environ, "COLUMNS": "10000"},
             )
-            options = next(
-                args for args in res.stdout.split("\n\n") if args.startswith("options")
-            )
-            options = re.sub(
-                r"\n {2,}([^-])", r"  \1", options
-            )  # put arg help on same line as argument.
-            options = re.sub(
-                r"  (-.*?)\s{2,}(.*)", r"\n* ``\1``\n\n  \2", options
-            )  # setup as bullet points
+            # Each script adds its arguments under an argparse group described
+            # as "Options specific for the given script". The group's title is
+            # the parser's prog name, not necessarily the script name, so we
+            # locate the block by its description and take the block that
+            # follows it (the actual options list). If no options follow, the
+            # script has no script-specific arguments.
+            sections = res.stdout.split("\n\n")
+            options = ""
+            for idx, section in enumerate(sections):
+                if "Options specific for the given script" in section:
+                    if idx + 1 < len(sections):
+                        options = sections[idx + 1]
+                    break
+
+            if options:
+                options = re.sub(
+                    r"\n {2,}([^-])", r"  \1", options
+                )  # put arg help on same line as argument.
+                options = re.sub(
+                    r"  (-.*?)\s{2,}(.*)", r"\n* ``\1``\n\n  \2", options
+                )  # setup as bullet points
+            else:
+                options = "*This script takes no arguments.*"
 
             # Create package index
             script_path.parent.mkdir(parents=True, exist_ok=True)

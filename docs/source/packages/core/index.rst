@@ -23,3 +23,4 @@ Scripts
    scripts/reporter.rst
    scripts/repository_prep.rst
    scripts/testrunner.rst
+   scripts/wait_for_transport.rst

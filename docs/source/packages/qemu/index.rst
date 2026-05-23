@@ -19,5 +19,6 @@ Scripts
    scripts/guest_initialize.rst
    scripts/guest_kill.rst
    scripts/guest_start.rst
+   scripts/guest_wait_for_termination.rst
    scripts/install.rst
    scripts/qemu_version.rst

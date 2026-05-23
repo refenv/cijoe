@@ -9,12 +9,7 @@ linux.null_blk
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--do {insert,remove}``
 
-  The commands to be run on the nullblk module.
+  The commands to be run on the nullblk module. (default: insert)

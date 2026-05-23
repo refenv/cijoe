@@ -9,12 +9,7 @@ system_imaging.dockerimage_from_diskimage
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--pattern PATTERN``
 
-  Pattern for image names to build
+  Pattern for image names to build (default: None)

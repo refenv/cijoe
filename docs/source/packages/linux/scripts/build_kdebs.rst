@@ -9,16 +9,11 @@ linux.build_kdebs
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--local_version LOCAL_VERSION``
 
-  Path to local version of kdebs
+  Path to local version of kdebs (default: custom)
 
 * ``--run_local {true,false}``
 
-  Whether or not to execute in the same environment as 'cijoe'.
+  Whether or not to execute in the same environment as 'cijoe'. (default: True)

@@ -9,12 +9,7 @@ system_imaging.diskimage_from_cloudimage
 
 CLI arguments
 -------------
-options:
-
-* ``-h, --help``
-
-  show this help message and exit
 
 * ``--pattern PATTERN``
 
-  Pattern for image names to build
+  Pattern for image names to build (default: None)
