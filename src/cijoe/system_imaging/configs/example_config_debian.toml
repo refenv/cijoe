@@ -110,6 +110,15 @@ system_args.host_share = "{{ local.env.HOME }}"
 #docker.name = "alpine-3.21-x86_64"
 #docker.tag = "example"
 
+# An image published as an oras:// artifact (e.g. a nosi guest-image). Build it
+# with the "system_imaging.diskimage_from_oras" script, which resolves the
+# reference via withcache, pulls and decompresses the blob, and writes the qcow2
+# to disk.path.
+#[system-imaging.images."ubuntu-2604-x86_64"]
+#system_label = "x86_64"
+#oras.url = "oras://ghcr.io/safl/nosi/ubuntu-2604-headless@sha256:<digest>"
+#disk.path = "{{ local.env.HOME }}/system_imaging/disk/ubuntu-2604-x86_64.qcow2"
+
 [system-imaging.images.debian-12-x86_64]
 system_label = "x86_64"
 
