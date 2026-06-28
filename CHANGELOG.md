@@ -10,6 +10,13 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.59 (Upcoming)
+
+Added oras:// support to system-imaging via the diskimage_from_oras script: it
+resolves the artifact reference with withcache, pulls and decompresses the blob,
+and writes a qcow2 to disk.path, skipping the pull when the pinned image is
+already staged.
+
 ## 0.9.2
 
 Added a naive path-sanitizer, switched to using git to "clean", fixed a style-issue.
