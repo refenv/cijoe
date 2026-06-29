@@ -9,7 +9,6 @@ from pathlib import Path
 import paramiko
 from scp import SCPClient
 
-from cijoe.core.misc import ENCODING
 from cijoe.core.resources import Config
 
 
