@@ -1,15 +1,15 @@
 ---
 doc: |
   This is a task file, it serves as an example on how to run commands and
-  scripts, the structure intentionally mimics that of GitHUB actions, however,
+  scripts, the structure intentionally mimics that of GitHub actions, however,
   the keys you see here are all there is.
 
   Running commands, as you can see below, looks just like running commands in a
-  GitHUB Workflow
+  GitHub Workflow
 
   * Add the 'run' key with a value of multi-line string
 
-  Using scripts, it is similar to that of a GitHUB action
+  Using scripts, it is similar to that of a GitHub action
 
   * Add the 'uses' key with the name of the script
     - packaged scripts have a namespaced name e.g. "my_pkg.my_script"

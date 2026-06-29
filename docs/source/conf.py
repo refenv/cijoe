@@ -45,7 +45,7 @@ html_sidebars = {
     "scripts**": [],
     "testrunner**": [],
     "usage**": [],
-    "workflows**": [],
+    "tasks**": [],
 }
 html_theme_options = {
     "header_links_before_dropdown": 8,
