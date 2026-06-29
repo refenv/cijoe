@@ -62,7 +62,7 @@ def main(args, cijoe):
         return errno.EINVAL
 
     for cmd in args.commands:
-        err, state = cijoe.run(cmd, transport_name=args.transport)
+        err, _ = cijoe.run(cmd, transport_name=args.transport)
         if err:
             break
 

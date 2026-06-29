@@ -5,7 +5,7 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import Task, dict_from_yamlfile

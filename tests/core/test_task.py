@@ -5,7 +5,6 @@ from pathlib import Path
 
 import yaml
 
-from cijoe.cli.cli import cli_integrity_check
 from cijoe.core.processing import runlog_from_path
 from cijoe.core.resources import get_resources
 

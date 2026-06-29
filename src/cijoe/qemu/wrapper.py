@@ -12,15 +12,12 @@
 import errno
 import logging as log
 import os
-import shutil
 import time
 from pathlib import Path
 from pprint import pformat
 from typing import Optional
 
 import psutil
-
-from cijoe.core.misc import download_and_verify
 
 
 def qemu_img(cijoe, args=""):

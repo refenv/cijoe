@@ -39,8 +39,4 @@ def insert(cijoe, config=None):
 def remove(cijoe):
     """Remove the null_blk kernel module"""
 
-    # This can be used when instanttation via SYSPATH, however, commented out as it is
-    # not useful yet.
-    # cijoe.run(f"rmdir {NULLBLK_SYSPATH}/nullb*")
-
     return cijoe.run(f"modprobe -r {NULLBLK_MODULE_NAME}")

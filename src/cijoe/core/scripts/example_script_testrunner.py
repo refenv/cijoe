@@ -1,7 +1,6 @@
 from argparse import Namespace
 
 from cijoe.core.command import Cijoe
-from cijoe.core.scripts.testrunner import pytest_remote
 
 
 def test_hello_world(cijoe: Cijoe):
