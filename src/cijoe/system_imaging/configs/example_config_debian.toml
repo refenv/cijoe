@@ -30,7 +30,7 @@ system_label = "x86_64"
 
 # Name of the system_image to use; see "system_imaging.images"
 # Uncomment here, or set as task-argument when using "qemu.guest_initialize"
-#system_image_name = "debian-12-x86_64"
+#system_image_name = "debian-13-x86_64"
 
 # Keyword arguments: joined onto the form: "-cpu host -smp 4 -m 4" etc.
 system_args.kwa = {cpu = "host", smp = 4, m = "6G", accel = "kvm"}
@@ -74,7 +74,7 @@ system_args.raw = """\
 #
 # You can uncomment it in your config here, or provide as argument as a task step-argument
 #
-#initialize.diskimage = "debian-12-aarch64"
+#initialize.diskimage = "debian-13-aarch64"
 
 # TCP_FORWARD: Setup ssh forward from host to guest
 #
@@ -119,34 +119,34 @@ system_args.host_share = "{{ local.env.HOME }}"
 #oras.url = "oras://ghcr.io/safl/nosi/ubuntu-2604-headless@sha256:<digest>"
 #disk.path = "{{ local.env.HOME }}/system_imaging/disk/ubuntu-2604-x86_64.qcow2"
 
-[system-imaging.images.debian-12-x86_64]
+[system-imaging.images.debian-13-x86_64]
 system_label = "x86_64"
 
-cloud.url = "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-12-generic-amd64-daily.qcow2"
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-amd64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-amd64-daily.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-12-x86_64.qcow2"
-disk.url = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-12-x86_64.qcow2"
-disk.url_checksum = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-12-x86_64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-x86_64.qcow2"
+disk.url = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-13-x86_64.qcow2"
+disk.url_checksum = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-13-x86_64.qcow2"
 
-docker.url = "ghcr.io/refenv/debian-12-x86_64:main"
-docker.name = "debian-12-x86_64"
+docker.url = "ghcr.io/refenv/debian-13-x86_64:main"
+docker.name = "debian-13-x86_64"
 docker.tag = "example"
 
-[system-imaging.images.fedora-43-x86_64]
+[system-imaging.images.fedora-44-x86_64]
 system_label = "x86_64"
 
-cloud.url ="https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+cloud.url ="https://download.fedoraproject.org/pub/fedora/linux/releases/44/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/Fedora-Cloud-Base-Generic-44-1.7.x86_64.qcow2"
 
-docker.url = "ghcr.io/refenv/fedora-43-x86_64:main"
-docker.name = "fedora-43-x86_64"
+docker.url = "ghcr.io/refenv/fedora-44-x86_64:main"
+docker.name = "fedora-44-x86_64"
 docker.tag = "example"
 
 [system-imaging.images.ubuntu-2404-x86_64]
@@ -173,16 +173,16 @@ cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-freebsd-
 
 disk.path = "{{ local.env.HOME }}/system_imaging/disk/freebsd_14.2_x86_64.qcow2"
 
-[system-imaging.images.debian-12-aarch64]
+[system-imaging.images.debian-13-aarch64]
 system_label = "aarch64"
 
-cloud.url = "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-arm64-daily.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-12-generic-aarch64-daily.qcow2"
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-arm64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-aarch64-daily.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-12-aarch64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-aarch64.qcow2"
 
-docker.url = "ghcr.io/refenv/debian-12-aarch64:main"
-docker.name = "debian-12-aarch64"
+docker.url = "ghcr.io/refenv/debian-13-aarch64:main"
+docker.name = "debian-13-aarch64"
 docker.tag = "example"

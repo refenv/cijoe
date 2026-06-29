@@ -40,7 +40,7 @@ system_args.raw = """\
 #
 # You can uncomment it in your config here, or provide as argument as a task step-argument
 #
-#initialize.diskimage = "debian-12-aarch64"
+#initialize.diskimage = "debian-13-aarch64"
 
 # TCP_FORWARD: Setup ssh forward from host to guest
 #
@@ -59,18 +59,16 @@ system_args.host_share = "{{ local.env.HOME }}"
 
 # SYSTEM_IMAGING: A collection of system images in the form of cloudimages,
 # diskimages, and docker images.
-[system-imaging.images.debian-12-aarch64]
+[system-imaging.images.debian-13-aarch64]
 system_label = "aarch64"
 
-cloud.url = "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-arm64-daily.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-12-generic-aarch64-daily.qcow2"
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-arm64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-aarch64-daily.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-12-aarch64.qcow2"
-disk.url = "https://refenv.fra1.digitaloceanspaces.com/boot_images/debian-bookworm-arm64.qcow2"
-disk.url_checksum = "https://refenv.fra1.digitaloceanspaces.com/boot_images/debian-bookworm-arm64.qcow2.sha256"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-aarch64.qcow2"
 
-docker.url = "ghcr.io/refenv/debian-12-aarch64:main"
-docker.name = "debian-12-aarch64"
+docker.url = "ghcr.io/refenv/debian-13-aarch64:main"
+docker.name = "debian-13-aarch64"
 docker.tag = "example"
