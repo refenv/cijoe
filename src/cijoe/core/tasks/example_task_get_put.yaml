@@ -3,6 +3,11 @@ doc: |
   This task file is an example of how to use core.put and core.get.
 
 steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
+  with:
+    pattern: "debian-13-aarch64"
+
 - name: guest_initialize
   uses: qemu.guest_initialize
   with:
