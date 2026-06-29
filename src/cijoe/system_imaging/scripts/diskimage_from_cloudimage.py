@@ -41,7 +41,7 @@ from pathlib import Path
 from pprint import pformat
 
 from cijoe.core.misc import decompress_file, download
-from cijoe.qemu.wrapper import Guest, qemu_img
+from cijoe.qemu.wrapper import Guest
 
 
 def add_args(parser: ArgumentParser):

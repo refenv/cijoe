@@ -29,7 +29,6 @@ from argparse import ArgumentParser
 from fnmatch import fnmatch
 from pathlib import Path
 
-from cijoe.core.misc import download
 from cijoe.core.resources import get_resources
 
 

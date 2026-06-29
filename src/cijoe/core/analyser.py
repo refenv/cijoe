@@ -2,13 +2,7 @@
 """
     Library functions for performance requirements and normalization of metrics
 """
-import copy
-import dataclasses
-import os
 import re
-from typing import List, Tuple
-
-import yaml
 
 from cijoe.core.errors import InvalidRangeError, UnknownUnitError
 

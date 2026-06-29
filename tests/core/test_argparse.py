@@ -1,10 +1,7 @@
-import copy
 import os
 import sys
-from argparse import Namespace
-from pathlib import Path
 
-from cijoe.cli.cli import DEFAULT_CONFIG_FILENAME, DEFAULT_TASK_FILENAME, parse_args
+from cijoe.cli.cli import DEFAULT_TASK_FILENAME, parse_args
 
 TEMPLATE_SCRIPT = """def main(args, cijoe):
     return 0

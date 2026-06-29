@@ -30,7 +30,6 @@ Retargetable: True
 ------------------
 """
 
-import errno
 import logging as log
 from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
