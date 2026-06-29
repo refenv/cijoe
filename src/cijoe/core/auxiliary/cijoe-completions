@@ -60,9 +60,14 @@ _cijoe_completion() {
         fi
     done
 
-    # If no YAML file is provided, use 'cijoe-workflow.yaml' as the default
+    # If no YAML file is provided, use 'cijoe-task.yaml' as the default,
+    # falling back to the legacy 'cijoe-workflow.yaml'.
     if [[ -z "$yaml_file" ]]; then
-        yaml_file="cijoe-workflow.yaml"
+        if [[ -f "cijoe-task.yaml" ]]; then
+            yaml_file="cijoe-task.yaml"
+        else
+            yaml_file="cijoe-workflow.yaml"
+        fi
     fi
 
     # If the YAML file doesn't exist, return without suggestions
