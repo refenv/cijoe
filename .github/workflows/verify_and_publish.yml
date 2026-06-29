@@ -25,15 +25,16 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v5.0.1
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.2.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Python dependencies and their versions
       run: |
+        brew untap aws/tap || true
         brew update || true
         brew upgrade pipx || true
         make deps
@@ -59,14 +60,15 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v5.0.1
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.2.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Python dependencies and their versions
       run: |
+        brew untap aws/tap || true
         brew update || true
         brew upgrade pipx || true
         make deps
@@ -80,10 +82,11 @@ jobs:
 
     - name: Upload coverage file
       if: always()
-      uses: actions/upload-artifact@v4.3.0
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: report-coverage-${{ matrix.python-version }}-${{ matrix.os }}
         path: .coverage
+        include-hidden-files: true
         if-no-files-found: error
 
 
@@ -120,9 +123,9 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -167,7 +170,7 @@ jobs:
 
     - name: Upload report
       if: always()
-      uses: actions/upload-artifact@v4.3.0
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: report-cijoe_packages-${{ matrix.usage_example }}
         path: cijoe-output/*
@@ -175,10 +178,11 @@ jobs:
 
     - name: Upload coverage files
       if: always()
-      uses: actions/upload-artifact@v4.3.0
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: report-coverage-${{ matrix.usage_example }}
         path: .coverage
+        include-hidden-files: true
         if-no-files-found: error
 
 
@@ -214,9 +218,9 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
     - name: Set up Python
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: 3.12
 
@@ -263,7 +267,7 @@ jobs:
           report-${{ matrix.image }}-${{ matrix.architecture }}-*
 
     - name: Upload reports
-      uses: actions/upload-artifact@v4.3.0
+      uses: actions/upload-artifact@v6.0.0
       if: always()
       with:
         name: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}
@@ -305,9 +309,9 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.3.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -337,10 +341,11 @@ jobs:
 
     - name: Upload coverage files
       if: always()
-      uses: actions/upload-artifact@v4.3.0
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: report-coverage-cli-${{ matrix.cli.name }}
         path: .coverage
+        include-hidden-files: true
         if-no-files-found: error
 
 
@@ -354,9 +359,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.1.7
+      uses: actions/checkout@v5.0.1
     - name: Set up Python
-      uses: actions/setup-python@v5.2.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: '3.10'
 
@@ -385,10 +390,10 @@ jobs:
 
     steps:
     - name: Grab source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v5.0.1
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5.2.0
+      uses: actions/setup-python@v6.0.0
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -399,7 +404,7 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v4.1.8
+      uses: actions/download-artifact@v7.0.0
       with:
           # If you omit 'name', all artifacts from previous jobs are downloaded.
         path: ./all_artifacts
