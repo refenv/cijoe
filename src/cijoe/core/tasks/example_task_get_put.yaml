@@ -7,7 +7,7 @@ steps:
   uses: qemu.guest_initialize
   with:
     guest_name: generic-uefi-tcg-aarch64
-    system_image_name: debian-12-aarch64
+    system_image_name: debian-13-aarch64
 
 - name: guest_start
   uses: qemu.guest_start

@@ -206,14 +206,14 @@ jobs:
       fail-fast: false
       matrix:
         image:
-        - debian-12
-        - fedora-43
+        - debian-13
+        - fedora-44
         - ubuntu-2404
         - freebsd-14
         architecture:
         - x86_64
         include:
-        - image: debian-12
+        - image: debian-13
           architecture: aarch64
 
     steps:

@@ -34,7 +34,7 @@ system_label = "x86_64"
 
 # Name of the system_image to use; see "system_imaging.images"
 # Uncomment here, or set as task-argument when using "qemu.guest_initialize"
-#system_image_name = "debian-12-x86_64"
+#system_image_name = "debian-13-x86_64"
 
 # Keyword arguments: joined onto the form: "-cpu host -smp 4 -m 4" etc.
 system_args.kwa = {cpu = "host", smp = 4, m = "6G", accel = "kvm"}
@@ -62,12 +62,12 @@ system_args.host_share = "{{ local.env.HOME }}"
 # SYSTEM_IMAGING: A collection of system images in the form of cloudimages,
 # diskimages, and docker images.
 
-[system-imaging.images.debian-12-x86_64]
+[system-imaging.images.debian-13-x86_64]
 system_label = "x86_64"
 
-cloud.url = "https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-generic-amd64-daily.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-12-generic-amd64-daily.qcow2"
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-amd64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-amd64-daily.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-12-x86_64.qcow2"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-x86_64.qcow2"
