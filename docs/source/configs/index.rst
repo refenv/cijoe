@@ -114,15 +114,16 @@ Shell Configuration
 ``cijoe.run.env``
 ~~~~~~~~~~~~~~~~~
 
-It is possible to set up environment variables for the **target** system. All
-calls to ``cijoe.run(...)`` will be given the environment variables defined by
-this configuration option.
+Optionally, it is possible to set up environment variables for the **target** 
+system. All calls to ``cijoe.run(...)`` will be given the environment variables
+defined by this configuration option.
 
 Example:
 
-.. code-block:: ini
+.. code-block:: toml
 
-   cijoe.run.env = PATH=/usr/local/bin:/usr/bin, LANG=en_US.UTF-8
+   [cijoe.run]
+   env = { PATH = "/usr/local/bin:/usr/bin", LANG = "en_US.UTF-8" }
 
 In this example, any command run through ``cijoe.run(...)`` will use the
 specified ``PATH`` and ``LANG`` variables.
