@@ -3,6 +3,7 @@ import logging as log
 import os
 import shutil
 import subprocess
+import weakref
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -24,6 +25,9 @@ class Transport(ABC):
     @abstractmethod
     def put(self, src, dst=None):
         pass
+
+    def close(self):
+        """Release what the transport holds open; it may be used again afterwards"""
 
 
 class Local(Transport):
@@ -83,6 +87,10 @@ class Local(Transport):
         return self.put(src, dst)
 
 
+# Keeps the NAT and firewall state of an idle kept connection alive
+KEEPALIVE_SECONDS = 30
+
+
 class SSH(Transport):
     """Provide cmd/push/pull over SSH"""
 
@@ -109,14 +117,11 @@ class SSH(Transport):
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.scp = None
 
-        # Not connecting at this point, since the remote side might be ready at the time
-        # the transport is initialized. For example, when a qemu-guest is booted, then
-        # cijoe.run_local() is used, and not until the guest is up will the cij.run() be
-        # used. Also, when a system reboots etc. then dropped connections must be
-        # handled, lastly connection close must happen as Python terminates, dangling
-        # connections will make it hang.
-        # Thus, __connect()/__disconnect() is called for each call to run()/get()/put().
-        # Current short-coming is of course that then these cannot happen in parallel.
+        # Not connecting here, the remote might not be up yet, e.g. a qemu guest that
+        # run_local() boots. The connection is made on first use and kept, rather than
+        # paying a key exchange per command. One that dropped, e.g. on a reboot of the
+        # remote, is made again on next use. Calls on one transport cannot overlap.
+        weakref.finalize(self, self.ssh.close)
 
         log.getLogger("paramiko.transport").setLevel(log.CRITICAL)
         paramiko.util.log_to_file(
@@ -124,11 +129,24 @@ class SSH(Transport):
         )
 
     def __connect(self):
-        self.ssh.connect(**self.ssh_params)
-        self.scp = SCPClient(self.ssh.get_transport())
+        """Connect, unless the connection made before is still up"""
 
-    def __disconnect(self):
-        self.scp.close()
+        transport = self.ssh.get_transport()
+        if transport is not None and transport.is_active():
+            return
+
+        self.close()
+        self.ssh.connect(**self.ssh_params)
+        transport = self.ssh.get_transport()
+        transport.set_keepalive(KEEPALIVE_SECONDS)
+        self.scp = SCPClient(transport)
+
+    def close(self):
+        """Close the connection; the next run()/get()/put() connects again"""
+
+        if self.scp is not None:
+            self.scp.close()
+            self.scp = None
         self.ssh.close()
 
     def run(self, cmd, cwd, env, cmd_output):
@@ -173,9 +191,9 @@ class SSH(Transport):
             cmd_output.flush()
 
             err = stdout.channel.recv_exit_status()
-
-            self.__disconnect()
+            stdout.channel.close()
         except paramiko.ssh_exception.SSHException as exc:
+            self.close()
             err = (
                 exc.errno
                 if hasattr(exc, "errno")
@@ -201,9 +219,11 @@ class SSH(Transport):
         if not os.path.isabs(src):
             src = os.path.join(self.output_path, self.output_ident, src)
 
-        self.scp.put(src, dst, recursive=True)
-
-        self.__disconnect()
+        try:
+            self.scp.put(src, dst, recursive=True)
+        except Exception:
+            self.close()
+            raise
 
         return True
 
@@ -217,8 +237,10 @@ class SSH(Transport):
         if not os.path.isabs(src):
             dst = os.path.join(self.output_path, self.output_ident, dst)
 
-        self.scp.get(src, dst, recursive=True)
-
-        self.__disconnect()
+        try:
+            self.scp.get(src, dst, recursive=True)
+        except Exception:
+            self.close()
+            raise
 
         return True
