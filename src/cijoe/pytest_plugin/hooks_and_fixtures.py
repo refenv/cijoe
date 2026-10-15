@@ -81,6 +81,13 @@ def pytest_configure(config):
         raise Exception("Failed instantiating cijoe")
 
 
+def pytest_unconfigure(config):
+    """Closes the connections of the cijoe instance made by ``pytest_configure``"""
+
+    if pytest.cijoe_instance is not None:
+        pytest.cijoe_instance.close()
+
+
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """
     Prints out a notice that cijoe is beeing used along with the values of the
