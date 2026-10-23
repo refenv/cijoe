@@ -10,7 +10,7 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
-## 0.9.61 (Upcoming)
+## 0.9.61
 
 The SSH transport keeps one connection for its run()/get()/put() instead of
 connecting and disconnecting around each, which cost a key exchange, about 0.4 s,
