@@ -13,7 +13,7 @@ def run_loglevel_script(tmp_path, loglevel) -> subprocess.CompletedProcess[str]:
         str(script_file),
         "--config",
         str(config_path),
-        "--no-report",
+        "--report-skip",
     ]
 
     if loglevel:

@@ -1,1 +1,1 @@
-cijoe --produce-report || true
+cijoe --report-only || true
