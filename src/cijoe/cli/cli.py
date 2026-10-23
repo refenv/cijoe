@@ -244,7 +244,7 @@ def cli_produce_report(args):
     if reporter.func is None:
         reporter.load()
 
-    setattr(args, "report_open", args.skip_report)
+    setattr(args, "report_open", getattr(args, "open_report", False))
 
     return reporter.func(args, cijoe)
 
@@ -516,6 +516,32 @@ def create_adhoc_task(args):
         sys.exit(main(args))
 
 
+def _resolve_report_args(args) -> int:
+    """Map the deprecated report options onto --report-skip and --report-only"""
+
+    for old, new, attr in [
+        ("-n / --no-report", "--report-skip", "report_skip"),
+        ("-p / --produce-report", "--report-only", "report_only"),
+    ]:
+        if getattr(args, f"{attr}_deprecated", False):
+            log.warning(f"{old} is deprecated; use {new} instead")
+            setattr(args, attr, True)
+    if getattr(args, "report_noopen_deprecated", False):
+        log.warning(
+            "-s / --skip-report is deprecated; the report is only opened with"
+            " --report-open"
+        )
+    for attr in ["report_skip", "report_only", "report_noopen"]:
+        if hasattr(args, f"{attr}_deprecated"):
+            delattr(args, f"{attr}_deprecated")
+
+    if getattr(args, "report_skip", False) and getattr(args, "report_only", False):
+        log.error("--report-skip and --report-only cannot be combined")
+        return errno.EINVAL
+
+    return 0
+
+
 def parse_args():
     """Parse command-line interface."""
 
@@ -575,24 +601,57 @@ def parse_args():
         help="Dump command output to stdout",
     )
     run_group.add_argument(
-        "--no-report",
-        "-n",
-        action="store_true",
-        help="Skip the producing, and opening, a report at the end of the task-run",
-    )
-    run_group.add_argument(
-        "--skip-report",
-        "-s",
-        action="store_false",
-        help="Skip the report opening at the end of the task-run",
-    )
-    run_group.add_argument(
         "--tag",
         "-t",
         type=str,
         action="append",
         help="Tags to identify a task-run."
         " This will be prefixed while storing in archive",
+    )
+
+    report_group = parent_parser.add_argument_group(
+        "report", "The report written at the end of a task-run"
+    )
+    # Not 'report_open': that is core.reporter's own argument, which a task step
+    # may set and which is deleted from the namespace again after the step
+    report_group.add_argument(
+        "--report-open",
+        dest="open_report",
+        action="store_true",
+        help="Open the report in a browser once it is written",
+    )
+    report_group.add_argument(
+        "--report-skip",
+        action="store_true",
+        help="Do not write a report at the end of the task-run",
+    )
+    report_group.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Write the report for the output at '-o / --output' and exit, without"
+        " running a task; with --report-open, also open it",
+    )
+    # Deprecated spellings of the above, mapped by _resolve_report_args()
+    report_group.add_argument(
+        "--no-report",
+        "-n",
+        dest="report_skip_deprecated",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    report_group.add_argument(
+        "--skip-report",
+        "-s",
+        dest="report_noopen_deprecated",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    report_group.add_argument(
+        "--produce-report",
+        "-p",
+        dest="report_only_deprecated",
+        action="store_true",
+        help=argparse.SUPPRESS,
     )
 
     utils_group = parent_parser.add_argument_group(
@@ -603,13 +662,6 @@ def parse_args():
         "-a",
         action="store_true",
         help="Move the output at '-o / --output' to 'cijoe-archive/YYYY-MM-DD_HH:MM:SS",
-    )
-    utils_group.add_argument(
-        "--produce-report",
-        "-p",
-        action="append_const",
-        const=1,
-        help="Produce report, and open it, for output at '-o / --output' and exit.",
     )
     utils_group.add_argument(
         "--integrity-check",
@@ -714,6 +766,12 @@ def parse_args():
         setattr(args, "script_name", ident)
         args.step = []
 
+    # Before log.basicConfig(), which sets the default level to ERROR: the
+    # deprecation warnings must be seen without raising the log level
+    err = _resolve_report_args(args)
+    if err:
+        return err, args
+
     levels = [log.ERROR, log.INFO, log.DEBUG]
     log.basicConfig(
         format="%(levelname)s:%(module)s:%(funcName)s(): %(message)s",
@@ -750,7 +808,7 @@ def main(args=None):
     if args.version:
         return cli_version(args)
 
-    if args.produce_report:
+    if args.report_only:
         return cli_produce_report(args)
 
     if args.archive:
@@ -798,7 +856,7 @@ def main(args=None):
 
     err = cli_task(args)
 
-    if not args.no_report:
+    if not args.report_skip:
         report_err = cli_produce_report(args)
         err = err if err else report_err
 

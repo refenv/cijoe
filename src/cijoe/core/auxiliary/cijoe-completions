@@ -9,7 +9,7 @@ _cijoe_completion() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Define the possible options for cijoe
-    options="--help --config -c --workflow -w --output -o --log-level -l --no-report -n --skip-report -s --tag -t --archive -a --produce-report -p --monitor -m --integrity-check -i --resources -r --example -e --version -v"
+    options="--help --config -c --workflow -w --output -o --log-level -l --report-open --report-skip --report-only --no-report -n --skip-report -s --tag -t --archive -a --produce-report -p --monitor -m --integrity-check -i --resources -r --example -e --version -v"
 
     # Provide options completion if the current word starts with --
     if [[ "$cur" == --* ]]; then
