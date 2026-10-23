@@ -14,6 +14,10 @@ related to the guest, such as:
 
 Additionally, the script prepares guest storage, including the boot drive, 
 using an existing `.qcow2` image (e.g., created via Cloud-init, Packer, etc.).
+The boot drive is a qcow2 overlay backed by that image: the system-imaging
+store holds the images, and each guest references one, holding only what it
+writes. The image must then stay unchanged while a guest uses it; with
+``overlay`` set to false, the boot drive is a copy of the image instead.
 
 Configuration
 -------------
@@ -33,7 +37,7 @@ Retargetable: False
 """
 import errno
 import logging as log
-from argparse import ArgumentParser
+from argparse import Action, ArgumentParser
 from pathlib import Path
 
 from cijoe.core.misc import download, download_and_verify
@@ -46,6 +50,18 @@ def add_args(parser: ArgumentParser):
         "--system_image_name",
         type=str,
         help="Name of the system image. This will overwrite any system image name defined in the configuration file.",
+    )
+
+    class StringToBoolAction(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            setattr(namespace, self.dest, values == "true")
+
+    parser.add_argument(
+        "--overlay",
+        choices=["true", "false"],
+        default=True,
+        action=StringToBoolAction,
+        help="Back the boot image with the disk image, as a qcow2 overlay; with false, copy it. With the overlay, the disk image must stay unchanged while the guest is in use.",
     )
 
 
@@ -93,7 +109,7 @@ def main(args, cijoe):
             log.error(f"err({err}, path({path})")
             return err
 
-    err = guest.initialize(diskimage_path)
+    err = guest.initialize(diskimage_path, overlay=args.overlay)
     if err:
         log.error(f"guest.initialize({diskimage_path}); err({err})")
         return err
