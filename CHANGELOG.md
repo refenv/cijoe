@@ -18,6 +18,12 @@ per command. The connection has a 30 second keepalive, is made again
 on next use when it has dropped, e.g. as the remote rebooted, and is closed by
 the new `Cijoe.close()`, at the end of a pytest session, or as Python exits.
 
+The qemu guest's boot image is by default a qcow2 overlay backed by the staged
+system image, instead of a copy of it, so a boot no longer starts with a
+multi-GB copy and guests from one image share it. `qemu.guest_initialize`
+takes `--overlay false` to copy as before; `diskimage_from_cloudimage` does so,
+since it must write the image it produces.
+
 ## 0.9.59
 
 Renamed the "workflow" concept to "task" across the codebase, docs, and example

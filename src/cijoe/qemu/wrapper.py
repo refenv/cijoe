@@ -111,12 +111,26 @@ class Guest(object):
 
         return pid
 
-    def initialize(self, diskimage_path: Optional[Path] = None):
-        """Create a 'home' for the guest'"""
+    def initialize(self, diskimage_path: Optional[Path] = None, overlay=True):
+        """Create a 'home' for the guest'
+
+        The boot image is a qcow2 overlay backed by the disk image, so the disk
+        image must stay unchanged for as long as the guest is used. Without
+        'overlay', the boot image is a copy of the disk image instead.
+        """
 
         os.makedirs(self.guest_path, exist_ok=True)
 
-        if diskimage_path:
+        if diskimage_path and overlay:
+            backing = Path(diskimage_path).resolve()
+            err, _ = qemu_img(
+                self.cijoe,
+                f"create -f qcow2 -F qcow2 -b {backing} {self.boot_img}",
+            )
+            if err:
+                log.error(f"Failed creating overlay on({backing}); err({err})")
+                return err
+        elif diskimage_path:
             err, _ = self.cijoe.run_local(f"cp {diskimage_path} {self.boot_img}")
             if err:
                 log.error(f"Failed copying diskimage({diskimage_path}); err({err})")

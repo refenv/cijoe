@@ -110,7 +110,8 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     guest = Guest(cijoe, cijoe.config, guest_name)
     guest.kill()  # Ensure the guest is *not* running
-    guest.initialize(cloud_image_path)  # Initialize using the cloudimage
+    # A copy, not an overlay: boot.img becomes the disk image further down
+    guest.initialize(cloud_image_path, overlay=False)
 
     # Create seed.img, with data and meta embedded
     guest_metadata_path = guest.guest_path / "meta-data"

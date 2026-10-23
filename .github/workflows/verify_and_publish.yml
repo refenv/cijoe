@@ -75,6 +75,13 @@ jobs:
         make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+    # For the guest boot-image test that opens a real qcow2 overlay
+    - name: qemu-img
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get -qq install -y qemu-utils
+
     - name: All
       run: |
         make all
