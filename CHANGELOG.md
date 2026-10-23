@@ -31,6 +31,14 @@ and `--report-only` to write it for an existing output and exit.
 `--report-skip` and `--report-only`, and `-s/--skip-report` is accepted and
 ignored, each with a warning.
 
+The example configs and tasks moved from Debian 12 and Fedora 43 to Debian 13
+and Fedora 44. The `core.get_put` example task now creates its disk image with
+`system_imaging.diskimage_from_cloudimage` before `qemu.guest_initialize`, as
+its config no longer carries a `disk.url`.
+
+Fixed the environment example in the configuration documentation, which was not
+valid TOML.
+
 ## 0.9.59
 
 Renamed the "workflow" concept to "task" across the codebase, docs, and example
