@@ -32,8 +32,8 @@ Quickstart
 ==========
 
 **Try it yourself!** The commands below install **cijoe**, prints a list of
-examples, emits and runs one of them, produces an HTML report, and opens
-it using your preferred browser if one is available.
+examples, emits and runs one of them, and produces an HTML report; add
+``--report-open`` to also open it in your preferred browser.
 
 .. literalinclude:: 200_quickstart.cmd
    :language: bash
@@ -41,7 +41,8 @@ it using your preferred browser if one is available.
 **cijoe** operates silently by default, as in, it does not print output unless
 errors occur. Options for customizing the behavior include:
 
-- ``-n`` / ``--no-report``: Disable the generation and display of the HTML report.
+- ``--report-open``: Open the HTML report in a browser once it is written.
+- ``--report-skip``: Do not write the HTML report.
 - ``-l`` / ``--log-level``: Increase verbosity by setting a higher log level.
 - ``-m`` / ``--monitor``: Enable real-time monitoring of the task.
 

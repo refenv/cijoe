@@ -27,12 +27,11 @@ def test_run_group():
         output,
         f"-{loglevel}",
         "--monitor",
-        "--no-report",
-        "--skip-report",
+        "--report-open",
+        "--report-skip",
         "--tag",
         tag,
         "--archive",
-        "--produce-report",
         "--integrity-check",
         "--resources",
         "--example",
@@ -46,11 +45,10 @@ def test_run_group():
     assert args.output.name == output
     assert len(args.log_level) == len(loglevel)
     assert args.monitor
-    assert args.no_report
-    assert not args.skip_report
+    assert args.open_report
+    assert args.report_skip
     assert args.tag == [tag]
     assert args.archive
-    assert args.produce_report
     assert args.integrity_check
     assert args.resources
     assert args.example == example
