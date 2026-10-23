@@ -24,6 +24,13 @@ multi-GB copy and guests from one image share it. `qemu.guest_initialize`
 takes `--overlay false` to copy as before; `diskimage_from_cloudimage` does so,
 since it must write the image it produces.
 
+The report options are now `--report-open` to also open the report in a
+browser, which is no longer done by default, `--report-skip` to not write it,
+and `--report-only` to write it for an existing output and exit.
+`-n/--no-report` and `-p/--produce-report` remain as deprecated spellings of
+`--report-skip` and `--report-only`, and `-s/--skip-report` is accepted and
+ignored, each with a warning.
+
 ## 0.9.59
 
 Renamed the "workflow" concept to "task" across the codebase, docs, and example
