@@ -263,6 +263,19 @@ class Cijoe(object):
 
         return False
 
+    def close(self, transport_name=None):
+        """
+        Close the connections the transports keep, or only the one of the named
+        transport; a later call connects again
+        """
+
+        if transport_name is not None:
+            self._get_transport(transport_name).close()
+            return
+
+        for tport in self.transports.values():
+            tport.close()
+
     def getconf(self, key: str, default: Any = None):
         """
         Return value for given key, and return default if no value is found.

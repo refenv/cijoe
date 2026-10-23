@@ -76,6 +76,11 @@ password login or key-based login. You can configure it as follows:
    key_filename = "path/to/private_key"
    passphrase   = "baz"
 
+The connection is made on first use and kept for the commands and transfers
+that follow, with a keepalive every 30 seconds. When it has dropped, for example
+because the remote rebooted, it is made again on next use. ``cijoe.close()``
+closes it; otherwise it is closed as Python exits.
+
 
 Configuring multiple transports
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

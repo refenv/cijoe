@@ -130,7 +130,10 @@ def main(args, cijoe):
             continue
 
         # TCP is open - verify with the trivial command to distinguish usable vs. unusable SSH.
+        # The transport keeps its connection between commands; closing it first makes the probe
+        # a fresh connect, which is what tells a host that went down or came up.
         try:
+            cijoe.close(transport_name)
             err, _ = cijoe.run("hostname", transport_name=transport_name)
             ssh_up = err == 0
         except Exception as exc:

@@ -10,6 +10,14 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.61 (Upcoming)
+
+The SSH transport keeps one connection for its run()/get()/put() instead of
+connecting and disconnecting around each, which cost a key exchange, about 0.4 s,
+per command. The connection has a 30 second keepalive, is made again
+on next use when it has dropped, e.g. as the remote rebooted, and is closed by
+the new `Cijoe.close()`, at the end of a pytest session, or as Python exits.
+
 ## 0.9.59
 
 Renamed the "workflow" concept to "task" across the codebase, docs, and example
