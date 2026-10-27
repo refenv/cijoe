@@ -1,3 +1,4 @@
+import platform
 import subprocess
 
 import pytest
@@ -78,12 +79,15 @@ def test_a_float_least_version_fails_the_step_not_the_run(tmp_path):
 
 
 def test_a_step_needs_the_tools_of_its_targets_os_family(tmp_path):
-    tools = '{"*": {"sh": None}, "freebsd": {"no-such-tool-x": None}}'
-    result = run(tmp_path, TASK, "-o", "out", tools=tools)
-    assert result.returncode == 0, "the initiator here is not freebsd"
+    here = platform.system().lower()
+    other = "freebsd" if here != "freebsd" else "linux"
 
-    tools = '{"*": {"sh": None}, "linux": {"no-such-tool-x": None}}'
-    result = run(tmp_path, TASK, "-o", "lin", tools=tools)
+    tools = f'{{"*": {{"sh": None}}, "{other}": {{"no-such-tool-x": None}}}}'
+    result = run(tmp_path, TASK, "-o", "out", tools=tools)
+    assert result.returncode == 0, f"the initiator here is not {other}"
+
+    tools = f'{{"*": {{"sh": None}}, "{here}": {{"no-such-tool-x": None}}}}'
+    result = run(tmp_path, TASK, "-o", "here", tools=tools)
     assert result.returncode != 0 and "no-such-tool-x, not found" in result.stderr
 
 
