@@ -250,7 +250,7 @@ def test_a_target_of_unknown_family_is_checked_for_every_tool_and_asked_once(tmp
 
 
 def test_os_must_be_a_list_of_families(tmp_path):
-    for os_ in ("freebsd", ["plan9"]):
+    for os_ in ("freebsd", ["plan9"], []):
         config = {"tools": {"pciconf": {"os": os_}}}
         target = Target({}, tmp_path, config)
         problems = check(target, "guest", {"pciconf": None})
