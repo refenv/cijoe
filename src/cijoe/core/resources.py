@@ -335,7 +335,7 @@ class Script(Resource):
         """
         The tools the script declares it needs on its target, as a module-level
         literal, 'TOOLS = {"fio": "3.38", "nvme": None}', tool to its least
-        version or None for any; read from the source, as the entry function is,
+        version or None for any, or per OS family, '{"*": {...}, "linux": {...}}'; read from the source, as the entry function is,
         so it is known before the script is run. Raises ValueError for a 'TOOLS'
         of another form.
         """
@@ -343,7 +343,7 @@ class Script(Resource):
         if not self.content:
             self.content_from_file()
 
-        from cijoe.core.tools import is_version
+        from cijoe.core.tools import invalid
 
         for node in ast.parse(self.content or "").body:
             if isinstance(node, ast.Assign):
@@ -360,14 +360,9 @@ class Script(Resource):
                 tools = ast.literal_eval(value)
             except ValueError as exc:
                 raise ValueError(f"{self.path}: TOOLS is not a literal") from exc
-            if not isinstance(tools, dict) or not all(
-                isinstance(k, str) and (v is None or is_version(v))
-                for k, v in tools.items()
-            ):
-                raise ValueError(
-                    f"{self.path}: TOOLS maps tool to a version string, such as"
-                    ' "5.10", or None'
-                )
+            problem = invalid(tools)
+            if problem:
+                raise ValueError(f"{self.path}: {problem}")
             return tools
 
         return {}

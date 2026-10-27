@@ -27,6 +27,7 @@ from cijoe.core.resources import (
     substitute_templates,
 )
 from cijoe.core.tools import check as check_tools
+from cijoe.core.tools import family, for_family, per_family
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
 DEFAULT_TASK_FILENAME = "cijoe-task.yaml"
@@ -179,9 +180,18 @@ def cli_integrity_check(args):
         except ValueError as exc:
             log.error(f"step({step['name']}): {exc}")
             return errno.EINVAL
-        if tools:
-            needs = [f"{t} >= {v}" if v else t for t, v in tools.items()]
-            print(f"step({step['name']}) needs: {', '.join(needs)}")
+
+        def listed(table):
+            return ", ".join(f"{t} >= {v}" if v else t for t, v in table.items())
+
+        if tools and per_family(tools):
+            needs = [
+                listed(table) if on == "*" else f"on {on}: {listed(table)}"
+                for on, table in tools.items()
+            ]
+            print(f"step({step['name']}) needs: {'; '.join(needs)}")
+        elif tools:
+            print(f"step({step['name']}) needs: {listed(tools)}")
 
     return 0
 
@@ -574,8 +584,11 @@ def tools_lacking(step: dict, cijoe: Cijoe, resources) -> list:
     tools = step.get("tools")
     if not tools:
         return []
+    target = cijoe.default_target
+    if per_family(tools):
+        tools = for_family(tools, family(cijoe, target))
 
-    return check_tools(cijoe, cijoe.default_target, tools)
+    return check_tools(cijoe, target, tools)
 
 
 def substitute_facts(step: dict, config: Config, facts: Facts) -> list:
