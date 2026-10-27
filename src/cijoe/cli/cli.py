@@ -461,6 +461,8 @@ def cli_task(args):
         return errno.EINVAL
     cijoe = Cijoe(config, args.output, args.monitor, facts)
     fail_fast = _get_fail_fast(cijoe)
+    gather_initiator(cijoe)
+    task.state["facts_at_start"] = sorted(cijoe.facts.changed)
 
     for step in task.state["steps"]:
         log.info(f"step({step['name']}) - begin")
@@ -575,6 +577,39 @@ def load_facts(args):
         )
 
     return facts
+
+
+INITIATOR_SECTIONS = ["os", "kernel", "system"]
+
+
+def gather_initiator(cijoe: Cijoe):
+    """
+    Gather the facts about the initiator that every run records, before its
+    first step: by default its OS, kernel, CPUs and memory, which take a few
+    local commands. 'cijoe.facts.initiator' in the config names other sections,
+    or none, '[]'. A section the initiator cannot give is left out; nothing here
+    fails the run.
+    """
+
+    sections = cijoe.getconf("cijoe.facts.initiator", INITIATOR_SECTIONS)
+    if isinstance(sections, str):
+        sections = [s.strip() for s in sections.split(",") if s.strip()]
+    if not sections:
+        return
+
+    from cijoe.core.scripts.facts_gather import SECTIONS, gather
+
+    unknown = [s for s in sections if s not in SECTIONS]
+    if unknown:
+        log.error(f"cijoe.facts.initiator: unknown sections({', '.join(unknown)})")
+        return
+    # Its commands' output in a directory of its own, not among the artifacts
+    cijoe.set_output_ident("initiator", "initiator")
+    try:
+        if not gather(cijoe, "initiator", sections):
+            log.info("initiator: neither 'uname -s' nor PowerShell answers; no facts")
+    finally:
+        cijoe.set_output_ident("artifacts", "initiator")
 
 
 def tools_lacking(step: dict, cijoe: Cijoe, resources) -> list:

@@ -210,7 +210,9 @@ def process_task_output(args, cijoe):
     task_state = dict_from_yamlfile(state_path)
     task_state["config"] = cijoe.config.options
     facts = Facts.load(args.output / Facts.FILENAME)
-    task_state["facts"] = facts_written(facts, task_state["steps"])
+    # What the run wrote before its first step, the initiator's facts
+    start = {"name": "(start of run)", "facts": task_state.get("facts_at_start", [])}
+    task_state["facts"] = facts_written(facts, [start] + task_state["steps"])
     task_state["artifacts"] = artifacts_in_path(args.output)
 
     for step in task_state["steps"]:
