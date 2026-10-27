@@ -104,8 +104,9 @@ def default_context(config=None, resources=None):
     }
 
 
-# A {{ ... }} or {% ... %} that names the facts, which exist once steps write them
-FACTS_REFERENCE = re.compile(r"\{[{%][^}]*\bfacts\b")
+# A {{ ... }} or {% ... %} that names the facts, or 'target', the facts of the
+# default target, which exist once steps write them; 'config.x.facts' is not one
+FACTS_REFERENCE = re.compile(r"\{[{%][^}]*(?<![\w.])(?:facts|target)\b")
 
 
 def dict_substitute(topic: dict, context: dict, defer_facts: bool = False) -> list:
