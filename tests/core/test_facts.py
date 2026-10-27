@@ -176,6 +176,25 @@ def test_a_missing_fact_fails_its_step(tmp_path, seed):
     assert result.returncode != 0
 
 
+def test_the_facts_example_runs(tmp_path):
+    emitted = subprocess.run(["cijoe", "--example", "core.facts"], cwd=tmp_path)
+    assert emitted.returncode == 0
+
+    example = tmp_path / "cijoe-example-core.facts"
+    result = subprocess.run(
+        ["cijoe", "--report-skip", "--output", "out"],
+        cwd=example,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    facts = dict_from_tomlfile(example / "out" / "facts.toml")
+    assert facts["target"]["cpus"] >= 1 and facts["target"]["kernel"]
+    state = dict_from_yamlfile(example / "out" / "task.state")
+    assert state["steps"][0]["facts"] == ["target.cpus", "target.kernel"]
+
+
 def test_a_write_toml_cannot_hold_changes_nothing(tmp_path):
     facts = Facts(tmp_path / "facts.toml")
     facts.set("guest.kernel", "7.3.0")

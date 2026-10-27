@@ -118,6 +118,7 @@ jobs:
       matrix:
         usage_example:
         - core.default
+        - core.facts
         - core.testrunner
         - core.get_put
         - linux.build_kdebs

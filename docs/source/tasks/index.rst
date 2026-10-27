@@ -47,6 +47,9 @@ but dramatically simpler since:
 
   - Values from configuration file
   - Values from environment variables on **initiator**
+  - Facts that earlier steps wrote, as ``{{ facts.guest.kernel }}``, substituted
+    when the step starts rather than when the task is loaded; see
+    :ref:`sec-resources-facts`
 
 * Minimal amount of "magic" keys
 
