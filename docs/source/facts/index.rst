@@ -189,9 +189,9 @@ Tools
 Which tools a target has, and at which versions, is a fact too, kept as
 ``targets.<name>.tools.<tool>``: ``name``, ``found``, and when found its
 ``path`` and ``version``. A tool's name with a dot is kept with an underscore,
-as a key cannot hold a dot: ``python3.12`` as ``python3_12``. What a run needs of them is configuration. A configuration
-describes a tool once, with the command that prints its version and the least
-version the run needs:
+as a key cannot hold a dot: ``python3.12`` as ``python3_12``. What a run needs
+of them is configuration. A configuration describes a tool once, with the
+command that prints its version and the least version the run needs:
 
 .. code-block:: toml
 
@@ -200,9 +200,9 @@ version the run needs:
    min = "3.38"                # the least version; default: any
 
 A tool needed on some OS families only says so, as a non-empty list of
-``linux``, ``freebsd``, ``darwin`` and ``windows``, and is not checked on others, so one
-configuration serves targets of several; on a target whose family cannot be
-found, it is checked:
+``linux``, ``freebsd``, ``darwin`` and ``windows``, and is not checked on
+others, so one configuration serves targets of several; on a target whose
+family cannot be found, it is checked:
 
 .. code-block:: toml
 
