@@ -10,6 +10,27 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.64
+
+`core.facts_gather` also records a target's GPUs and NICs, as `gpu` and `nic`:
+the PCI functions of class display or accelerator, and network, each with what
+the target made of it, its DRM render nodes, network interfaces and RDMA
+devices on Linux, and its network interface on FreeBSD. A FreeBSD PCI function
+now has the `name` its driver gave it, such as `vtnet0`. Before each section it
+checks the tools that section runs on the target's OS family and records them
+as facts, leaving out a section whose tools are lacking, and `skip` leaves out
+sections by name.
+
+Every run gathers the initiator's `os`, `kernel` and `system` facts before its
+first step, its commands' output under `initiator/` and the facts shown in the
+report as written by `(start of run)`; `[cijoe.facts] initiator` names other
+sections, or none, `[]`.
+
+A script's `TOOLS` may be declared per OS family, `{"*": {...}, "linux":
+{...}}`, and a `[tools.<tool>]` may say on which families it is needed, `os =
+["freebsd"]`; the target's family is taken from its facts, or asked of it once,
+and a target whose family cannot be found is checked for every tool.
+
 ## 0.9.63
 
 Facts about a machine are kept under `targets.<name>`, the name the
