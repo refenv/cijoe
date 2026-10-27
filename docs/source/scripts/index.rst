@@ -160,13 +160,46 @@ What a script finds out, such as the kernel a target booted, it keeps as a
 
 .. code-block:: python
 
-   cijoe.facts.set("target.kernel", kernel)
+   cijoe.facts.target().set("kernel.release", release)
 
-   kernel = cijoe.facts.get("target.kernel")
+   release = cijoe.facts.target().get("kernel.release")
 
-The steps after it read facts as ``{{ facts.target.kernel }}``. See
+The steps after it read the facts of the default target as
+``{{ target.kernel.release }}``. See
 :ref:`sec-resources-facts` for why, an example, and how a later run starts from
 them.
+
+
+.. _sec-resources-scripts-tools:
+
+Declaring Tools
+===============
+
+A script that runs tools on its target declares them, as a module-level
+``TOOLS``, each with the least version it needs, or ``None`` for any:
+
+.. code-block:: python
+
+   TOOLS = {"fio": "3.38", "nvme": None}
+
+**cijoe** reads ``TOOLS`` from the script without running it, and checks it
+against the default target just before the step that uses the script, filling
+in a least version the declaration leaves open from the configuration's
+``[tools.<tool>]``. When the target lacks any of them, the step fails without
+running the script, with one message for all it lacks:
+
+.. code-block:: text
+
+   step(bench): fio_bench needs, on target(qemu_guest):
+     fio >= 3.38, found 3.33 (/usr/bin/fio)
+     nvme, not found
+
+The check is made before each step rather than when the task starts, as an
+earlier step may install what a later one needs, and on the default target. A
+script that acts on another target, as one given ``target_name``, checks its
+tools there with a ``core.tools_check`` step that names the same target. ``cijoe -i`` lists what each
+step's script declares. See :ref:`sec-resources-facts-tools` for how tools are
+found and recorded as facts.
 
 
 .. _sec-resources-scripts-arguments:
