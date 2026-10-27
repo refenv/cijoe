@@ -165,6 +165,7 @@ of existing script collections and related packages.
    scripts/index.rst
    tasks/index.rst
    configs/index.rst
+   facts/index.rst
    testrunner/index.rst
    resources/index.rst
    packages/index.rst

@@ -1,0 +1,21 @@
+---
+doc: |
+  An example of facts: one step observes the target, and the steps after it use
+  what it found.
+
+  The configuration says what is wanted, here at least 'example.min_cpus' CPUs.
+  The first step writes what it observed as the facts 'target.kernel' and
+  'target.cpus'. The second reads them, substituted when the step starts, and
+  the third checks the observation against the wish.
+
+steps:
+- name: observe
+  uses: core.example_script_facts
+
+- name: show
+  run: |
+    echo "kernel {{ facts.target.kernel }}, {{ facts.target.cpus }} CPUs"
+
+- name: check
+  run: |
+    test {{ facts.target.cpus }} -ge {{ config.example.min_cpus }}

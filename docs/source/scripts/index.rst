@@ -150,6 +150,25 @@ example, if the environment variable ``EXAMPLE_MAX_VALUE`` is set, its value
 will be used instead of the value specified in the configuration file.
 
 
+.. _sec-resources-scripts-facts:
+
+Writing Facts
+=============
+
+What a script finds out, such as the kernel a target booted, it keeps as a
+**fact** rather than in the configuration, which a run never changes:
+
+.. code-block:: python
+
+   cijoe.facts.set("target.kernel", kernel)
+
+   kernel = cijoe.facts.get("target.kernel")
+
+The steps after it read facts as ``{{ facts.target.kernel }}``. See
+:ref:`sec-resources-facts` for why, an example, and how a later run starts from
+them.
+
+
 .. _sec-resources-scripts-arguments:
 
 Script Arguments

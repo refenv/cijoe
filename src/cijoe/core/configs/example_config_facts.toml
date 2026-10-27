@@ -1,0 +1,5 @@
+# What the 'core.facts' example task wants of its target. The configuration
+# says what is wanted; what the task finds out is kept as facts, which a
+# configuration file cannot set.
+[example]
+min_cpus = 1
