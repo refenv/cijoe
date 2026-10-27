@@ -10,6 +10,28 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.62
+
+Facts are what the steps of a run observe, kept apart from the configuration,
+which says what is wanted and is never changed by a run. A script writes them
+with `cijoe.facts.set()`, `update()` and `delete()` on dotted keys and reads
+them with `cijoe.facts.get()`; the steps after it read them as
+`{{ facts.<key> }}` in their `with`, substituted when the step starts rather
+than when the task is loaded. Every write saves the whole set to `facts.toml` in
+the output directory, and the report has a Facts tab, with the step that last
+wrote each fact, and a facts button on each step that wrote any. Tests run by
+`core.testrunner` start with the run's facts, and what they change is merged
+back. `--facts <file>` starts a run from the facts an earlier run saved, with a
+warning when that run's configuration differs. A configuration file with a
+`facts` table is refused. The documentation has a page on facts, and
+`cijoe --example core.facts` emits an example task.
+
+Strings in a list are substituted whatever else the list holds. A list mixing
+strings with numbers or booleans, such as `args = ["--size", 4,
+"{{ config.x }}"]` in a configuration or a step's `with`, or with tables, in a
+configuration, was left as it was; its references now take effect, and a
+literal `{{` or `{%` in such a string is an error.
+
 ## 0.9.61
 
 The SSH transport keeps one connection for its run()/get()/put() instead of
