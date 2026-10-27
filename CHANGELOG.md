@@ -10,6 +10,25 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.63
+
+Facts about a machine are kept under `targets.<name>`, the name the
+configuration gives it as `[cijoe.transport.<name>]`, or `initiator`, whether it
+is a QEMU guest or hardware. `cijoe.default_target` names the target `run()`
+reaches when given no transport, `cijoe.facts.target()` reads and writes a
+target's facts, by default the default target's, and a task reads them as
+`{{ target.* }}`, short for `{{ facts.targets.<default target>.* }}`.
+
+The new `core.facts_gather` records a target's OS, kernel, CPUs and memory, PCI
+functions and NVMe controllers under its name, in one layout on Linux, FreeBSD,
+macOS and Windows, finding the OS by asking the target and leaving out what it
+cannot gather there. The `core.facts` example uses it in place of its own
+script.
+
+A reference to `facts` or `target` that is part of a longer name, such as
+`{{ config.deploy.target }}`, is no longer taken for a reference to facts, and
+is substituted when the task is loaded.
+
 ## 0.9.62
 
 Facts are what the steps of a run observe, kept apart from the configuration,
