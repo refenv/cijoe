@@ -7,6 +7,12 @@ and as '{{ facts.* }}' in their 'with'. Keys are dotted, as for getconf(), and
 values are what TOML can hold. get() returns a copy, so the facts change only
 through the calls that write them.
 
+Facts about a machine are kept under 'targets.<name>', where the name is the
+one the config gives the machine as 'cijoe.transport.<name>', or 'initiator',
+whether it is a QEMU guest or hardware; target() reads and writes them, by
+default for the target cijoe.run() reaches, and a task reads them as
+'{{ target.* }}'.
+
 Every write saves the whole set to 'facts.toml' in the output directory, so the
 report shows what was observed, and a later run can start from it with
 '--facts'. A fact never overrides config, and config never sets a fact.
@@ -35,6 +41,13 @@ class Facts(object):
         self.path = Path(path)
         self.data: dict = data if data is not None else {}
         self.changed: set = set()
+        self.default_target = "initiator"
+
+    def target(self, name: Optional[str] = None):
+        """The facts about the target 'name', by default the one cijoe.run()
+        reaches, as 'targets.<name>'"""
+
+        return TargetFacts(self, name or self.default_target)
 
     @staticmethod
     def load(path: Path):
@@ -126,6 +139,31 @@ class Facts(object):
         self.save(data)
         self.data = data
         self.changed.update(keys)
+
+
+class TargetFacts(object):
+    """The facts about one target, 'targets.<name>', with the calls of Facts on
+    keys within it; the empty key is the target's whole table"""
+
+    def __init__(self, facts: Facts, name: str):
+        self.facts = facts
+        self.name = name
+        self.prefix = f"targets.{name}"
+
+    def key(self, key: str) -> str:
+        return f"{self.prefix}.{key}" if key else self.prefix
+
+    def get(self, key: str = "", default: Any = None):
+        return self.facts.get(self.key(key), default)
+
+    def set(self, key: str, value: Any):
+        self.facts.set(self.key(key), value)
+
+    def update(self, key: str, value: dict):
+        self.facts.update(self.key(key), value)
+
+    def delete(self, key: str):
+        self.facts.delete(self.key(key))
 
 
 def parent_of(data: dict, key: str):

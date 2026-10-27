@@ -548,7 +548,11 @@ def substitute_facts(step: dict, config: Config, facts: Facts) -> list:
     if not templates:
         return []
 
-    context = {**default_context(config), "facts": facts.data}
+    context = {
+        **default_context(config),
+        "facts": facts.data,
+        "target": facts.target().get(default={}),
+    }
 
     return substitute_templates(step["with"], templates, context)
 

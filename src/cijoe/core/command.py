@@ -167,6 +167,17 @@ class Cijoe(object):
             )
 
         self.transports["initiator"] = transport.Local(self.config, self.output_path)
+        self.facts.default_target = self.default_target
+
+    @property
+    def default_target(self) -> str:
+        """
+        The name of the target that run(), put() and get() reach when given no
+        'transport_name': the first in the config's 'cijoe.transport', or the
+        initiator when there is none
+        """
+
+        return next(iter(self.transports))
 
     def set_output_ident(self, output_ident: str, transport_name=None):
         """
@@ -209,7 +220,7 @@ class Cijoe(object):
 
     def _get_transport(self, transport_name=None):
         if not transport_name:
-            transport_name = next(iter(self.transports))
+            transport_name = self.default_target
         if transport_name not in self.transports:
             log.error(
                 f"The given transport name ({transport_name}) not valid. Must be defined in the configuration file."
