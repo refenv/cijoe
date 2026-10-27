@@ -1,8 +1,10 @@
+import base64
 import errno
 import gzip
 import hashlib
 import logging as log
 import lzma
+import shlex
 import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -152,3 +154,18 @@ def decompress_file(src: Path, dst: Optional[Path] = None):
             log.info(f"Decompressed file({src}) to destination({dst})")
 
     return 0, dst
+
+
+def sh(command: str) -> str:
+    """'command' run by sh, as a target's login shell may be csh"""
+
+    return f"sh -c {shlex.quote(command)}"
+
+
+def powershell(command: str) -> str:
+    """'command' run by PowerShell, encoded, so that no quoting of the login
+    shell it passes through, cmd.exe, PowerShell or sh, can change it"""
+
+    encoded = base64.b64encode(command.encode("utf-16-le")).decode("ascii")
+
+    return f"powershell -NoProfile -NonInteractive -EncodedCommand {encoded}"

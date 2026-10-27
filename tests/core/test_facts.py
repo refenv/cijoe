@@ -189,10 +189,11 @@ def test_the_facts_example_runs(tmp_path):
     )
     assert result.returncode == 0, result.stderr
 
-    facts = dict_from_tomlfile(example / "out" / "facts.toml")
-    assert facts["target"]["cpus"] >= 1 and facts["target"]["kernel"]
+    target = dict_from_tomlfile(example / "out" / "facts.toml")["targets"]["initiator"]
+    assert target["system"]["cpus"] >= 1 and target["kernel"]["release"]
+    assert target["os"]["family"], "the OS family is recorded"
     state = dict_from_yamlfile(example / "out" / "task.state")
-    assert state["steps"][0]["facts"] == ["target.cpus", "target.kernel"]
+    assert "targets.initiator.kernel" in state["steps"][0]["facts"]
 
 
 def test_a_write_toml_cannot_hold_changes_nothing(tmp_path):
@@ -399,3 +400,16 @@ def test_a_corrupt_facts_file_ends_a_report_or_tests_with_its_name(tmp_path):
     )
     assert tests.returncode != 0
     assert "facts.toml" in tests.stderr and "INTERNALERROR" not in tests.stderr
+
+
+def test_the_report_shows_listed_facts_as_yaml(tmp_path):
+    subprocess.run(["cijoe", "--example", "core.facts"], cwd=tmp_path, check=True)
+    example = tmp_path / "cijoe-example-core.facts"
+    result = subprocess.run(
+        ["cijoe", "--output", "out"], cwd=example, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr
+
+    report = (example / "out" / "report.html").read_text()
+    pane = report[report.index('id="facts-tab-pane"') :]
+    assert "<td><code>[{" not in pane, "a list is not shown as its repr"
