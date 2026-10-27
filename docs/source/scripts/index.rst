@@ -160,11 +160,12 @@ What a script finds out, such as the kernel a target booted, it keeps as a
 
 .. code-block:: python
 
-   cijoe.facts.set("target.kernel", kernel)
+   cijoe.facts.target().set("kernel.release", release)
 
-   kernel = cijoe.facts.get("target.kernel")
+   release = cijoe.facts.target().get("kernel.release")
 
-The steps after it read facts as ``{{ facts.target.kernel }}``. See
+The steps after it read the facts of the default target as
+``{{ target.kernel.release }}``. See
 :ref:`sec-resources-facts` for why, an example, and how a later run starts from
 them.
 
