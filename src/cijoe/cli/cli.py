@@ -17,6 +17,7 @@ from cijoe.core.command import Cijoe, default_output_path
 from cijoe.core.resources import (
     Config,
     Task,
+    default_context,
     dict_from_tomlfile,
     dict_from_yamlfile,
     dict_substitute,
@@ -159,7 +160,7 @@ def cli_integrity_check(args):
             log.error(f"failed: Config.from_path({args.config})")
             return errno.EINVAL
 
-        errors += dict_substitute(task_dict, config.options)
+        errors += dict_substitute(task_dict, default_context(config))
 
     if errors:
         log_errors(errors)
