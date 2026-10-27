@@ -1,0 +1,80 @@
+# A guest whose PCIe topology and devices are described in its config: an
+# emulated PCIe switch with an NVMe controller behind it at boot, and a free
+# port the task plugs a second controller into, and unplugs it from.
+#
+# Used by: cijoe.run() / cijoe.get() / cijoe.put()
+[cijoe.transport.qemu_guest]
+username = "root"
+password = "root"
+hostname = "localhost"
+port = 4200
+
+[cijoe.task]
+fail_fast=true
+
+# Used by: the qemu.*.py scripts
+[qemu]
+img_bin = "qemu-img"
+
+[qemu.systems.x86_64]
+bin = "qemu-system-x86_64"
+
+[qemu.guests.rig-x86_64]
+path = "{{ local.env.HOME }}/guests/rig-x86_64"
+system_label = "x86_64"
+system_args.kwa = {cpu = "host", smp = 2, m = "2G", accel = "kvm"}
+system_args.raw = """\
+-M q35 \
+"""
+system_args.tcp_forward = {host = 4200, guest = 22}
+
+# PCIE: switches, each on a root port of its own, with downstream ports named
+# '<switch>_dn<i>'
+[qemu.guests.rig-x86_64.pcie.switches.sw0]
+downstream_ports = 2
+
+# DEVICES: present at boot unless 'boot = false'; a device without 'port' gets
+# a root port of its own
+[[qemu.guests.rig-x86_64.devices]]
+name = "nvme0"
+provider = "qemu"
+port = "sw0_dn0"
+device = "nvme,serial=deadbeef"
+drives = ["file={{ local.env.HOME }}/guests/rig-x86_64/nvme0.img,if=none,id=nvme0_drv,format=raw"]
+children = ["nvme-ns,drive=nvme0_drv,nsid=1"]
+
+# Its drive is there from boot; the controller is plugged by 'qemu.device_plug'.
+# A controller's namespaces cannot be hot-plugged, so it takes its drive itself.
+[[qemu.guests.rig-x86_64.devices]]
+name = "nvme1"
+provider = "qemu"
+port = "sw0_dn1"
+boot = false
+device = "nvme,serial=cafebabe,drive=nvme1_drv"
+drives = ["file={{ local.env.HOME }}/guests/rig-x86_64/nvme1.img,if=none,id=nvme1_drv,format=raw"]
+
+# A vfio-user device would be described as below: its server is started before
+# the guest, or before 'qemu.device_plug' plugs it, and stopped with the guest.
+#
+#[[qemu.guests.rig-x86_64.devices]]
+#name = "gpu0"
+#provider = "vfio-user"
+#socket = "/tmp/gpu0.sock"
+#server = "/usr/bin/some-vfio-user-server --socket {socket}"
+#props = {x-msg-timeout = 1000}
+
+[system-imaging.images.debian-13-x86_64]
+system_label = "x86_64"
+
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-amd64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-amd64-daily.qcow2"
+cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
+cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
+
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-x86_64.qcow2"
+disk.url = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-13-x86_64.qcow2"
+disk.url_checksum = "https://cijoe-system-imaging.s3.eu-central-003.backblazeb2.com/disk/debian-13-x86_64.qcow2"
+
+docker.url = "ghcr.io/refenv/debian-13-x86_64:main"
+docker.name = "debian-13-x86_64"
+docker.tag = "example"

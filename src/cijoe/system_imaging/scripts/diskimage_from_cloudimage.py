@@ -147,7 +147,8 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 
     # When not daemonized then this will block until the machine shuts down, which is
     # what we want, as we want to wait for the cloudinit process to finalize
-    err = guest.start(daemonize=False, extra_args=system_args)
+    # The image is the guest's disk; its devices are no part of preparing it
+    err = guest.start(daemonize=False, extra_args=system_args, devices=False)
     if err:
         log.error("Failure starting guest or during cloudinit process")
         return err

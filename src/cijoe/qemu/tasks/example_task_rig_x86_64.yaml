@@ -1,0 +1,88 @@
+---
+doc: |
+  A guest with a PCIe topology and devices described in its config
+
+  * Create a diskimage using a cloudimage, and initialize the guest with it
+  * Create the backing images of the guest's NVMe drives
+  * Start the guest: an emulated PCIe switch with an NVMe controller behind it
+  * Plug a second NVMe controller into the switch's other port, and check that
+    the guest sees it
+  * Unplug it again, and check that the guest let it go
+  * Stop the guest
+
+steps:
+- name: diskimage_from_cloudimage
+  uses: system_imaging.diskimage_from_cloudimage
+  with:
+    pattern: "debian-13-x86_64"
+
+- name: guest_initialize
+  uses: qemu.guest_initialize
+  with:
+    guest_name: rig-x86_64
+    system_image_name: debian-13-x86_64
+
+- name: drive_images
+  uses: core.cmdrunner
+  with:
+    transport: initiator
+    commands:
+    - qemu-img create -f raw {{ config.qemu.guests['rig-x86_64'].path }}/nvme0.img 64M
+    - qemu-img create -f raw {{ config.qemu.guests['rig-x86_64'].path }}/nvme1.img 64M
+
+- name: guest_start
+  uses: qemu.guest_start
+  with:
+    guest_name: rig-x86_64
+
+- name: guest_wait_start
+  uses: core.wait_for_transport
+  with:
+    transport_name: qemu_guest
+    timeout: 120
+
+# The kernel pads an NVMe serial with spaces, hence matching words. Behind the
+# switch, the controller is three bridges down: root port, upstream port and
+# downstream port.
+- name: check_boot_devices
+  run: |
+    grep -qw deadbeef /sys/class/nvme/*/serial
+    ! grep -qw cafebabe /sys/class/nvme/*/serial
+    [ "$(readlink -f /sys/class/nvme/nvme0/device | grep -o /0000: | wc -l)" -eq 4 ]
+
+- name: device_plug
+  uses: qemu.device_plug
+  with:
+    guest_name: rig-x86_64
+    device_name: nvme1
+
+- name: check_plugged
+  run: |
+    for _ in $(seq 30); do grep -qw cafebabe /sys/class/nvme/*/serial && break; sleep 1; done
+    grep -qw cafebabe /sys/class/nvme/*/serial
+
+- name: device_unplug
+  uses: qemu.device_unplug
+  with:
+    guest_name: rig-x86_64
+    device_name: nvme1
+
+- name: check_unplugged
+  run: |
+    ! grep -qw cafebabe /sys/class/nvme/*/serial
+    grep -qw deadbeef /sys/class/nvme/*/serial
+
+- name: guest_shutdown
+  run: |
+    sudo shutdown -h now
+
+- name: guest_wait
+  uses: qemu.guest_wait_for_termination
+  with:
+    guest_name: rig-x86_64
+    timeout: 60
+
+- name: guest_kill
+  uses: qemu.guest_kill
+  with:
+    guest_name: rig-x86_64

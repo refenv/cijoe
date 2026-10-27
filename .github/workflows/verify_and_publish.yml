@@ -125,6 +125,7 @@ jobs:
         - qemu.build
         - qemu.guest_aarch64
         - qemu.guest_x86_64
+        - qemu.rig_x86_64
         - system_imaging.debian
         python-version: ['3.12']
 

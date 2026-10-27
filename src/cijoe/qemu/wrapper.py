@@ -19,6 +19,8 @@ from typing import Optional
 
 import psutil
 
+from cijoe.qemu.devices import Server, Topology, memory_args
+
 
 def qemu_img(cijoe, args=""):
     """Helper function wrapping around 'qemu-img'"""
@@ -75,6 +77,8 @@ class Guest(object):
         self.boot_img = self.guest_path / "boot.img"
         self.pid = self.guest_path / "guest.pid"
         self.monitor = self.guest_path / "monitor.sock"
+        self.qmp = self.guest_path / "qmp.sock"
+        self.topology = Topology(guest_config)
         self.serial = self.guest_path / "serial.output"
 
     def image_create(self, filename, fmt="raw", size="8GB"):
@@ -192,8 +196,9 @@ class Guest(object):
                 log.error(f"System did not come up within timeout({timeout}) seconds")
                 return False
 
-    def start(self, daemonize=True, extra_args=[]):
-        """."""
+    def start(self, daemonize=True, extra_args=[], devices=True):
+        """Start the guest; without 'devices', its PCIe topology and devices are
+        left out, as when it only boots to prepare its disk image"""
 
         system_label = self.guest_config.get("system_label", None)
         if system_label is None:
@@ -276,6 +281,23 @@ class Guest(object):
             args += ["-device", "virtio-net-pci,netdev=n1"]
 
         #
+        # Managed: config.qemu.guest.pcie and config.qemu.guest.devices
+        #
+        if devices and self.topology:
+            if self.topology.has_vfio_user():
+                args += memory_args(self.guest_config)
+            args += self.topology.port_args()
+            args += self.topology.drive_args()
+            args += self.topology.boot_device_args()
+            args += ["-qmp", f"unix:{self.qmp},server,nowait"]
+
+            for dev in self.topology.devices:
+                if dev["provider"] == "vfio-user" and dev.get("boot", True):
+                    err = Server(self.cijoe, self.guest_path, dev).start()
+                    if err:
+                        return err
+
+        #
         # Arguments provided via wrapper-class
         #
         args += extra_args
@@ -330,5 +352,10 @@ class Guest(object):
                     qemu_proc.kill()
         except psutil.NoSuchProcess:
             log.info("Got 'NoSuchProcess', that is OK, continue.")
+
+        # After qemu, which would otherwise see its vfio-user devices vanish
+        for dev in self.topology.devices:
+            if dev["provider"] == "vfio-user":
+                Server(self.cijoe, self.guest_path, dev).stop()
 
         return err
