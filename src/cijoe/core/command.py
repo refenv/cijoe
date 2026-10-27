@@ -7,11 +7,12 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import yaml
 
 from cijoe.core import transport
+from cijoe.core.facts import Facts
 from cijoe.core.misc import ENCODING, sanitize_ident
 from cijoe.core.resources import Config
 
@@ -135,13 +136,22 @@ class CommandState(object):
 class Cijoe(object):
     """CIJOE providing retargetable command-line expressions and data-transfers"""
 
-    def __init__(self, config: Config, output_path: Path, monitor: bool):
+    def __init__(
+        self,
+        config: Config,
+        output_path: Path,
+        monitor: bool,
+        facts: Optional[Facts] = None,
+    ):
         """Create a cijoe encapsulation defined by the given config_fpath"""
 
         self.config = config
 
         self.run_count = 0
         self.output_path = output_path if output_path else default_output_path()
+        # Without facts of its own, those already saved in its output, as a cijoe
+        # made by the pytest plugin has the run's when core.testrunner runs it
+        self.facts = facts or Facts.load(Path(self.output_path) / Facts.FILENAME)
         self.output_ident = "artifacts"
 
         self.monitor = monitor

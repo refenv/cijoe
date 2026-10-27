@@ -14,14 +14,17 @@ import jinja2
 
 import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
+from cijoe.core.facts import Facts
 from cijoe.core.resources import (
     Config,
     Task,
+    default_context,
     dict_from_tomlfile,
     dict_from_yamlfile,
     dict_substitute,
     dict_to_tomlfile,
     get_resources,
+    substitute_templates,
 )
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
@@ -159,7 +162,7 @@ def cli_integrity_check(args):
             log.error(f"failed: Config.from_path({args.config})")
             return errno.EINVAL
 
-        errors += dict_substitute(task_dict, config.options)
+        errors += dict_substitute(task_dict, config.options, defer_facts=True)
 
     if errors:
         log_errors(errors)
@@ -236,7 +239,11 @@ def cli_produce_report(args):
         log.error(f"failed: Config.from_path({config_path})")
         return errno.EINVAL
 
-    cijoe = Cijoe(config, args.output, args.monitor)
+    try:
+        cijoe = Cijoe(config, args.output, args.monitor)
+    except ValueError as exc:
+        log.error(f"failed: {exc}")
+        return errno.EINVAL
 
     resources = get_resources()
 
@@ -418,7 +425,10 @@ def cli_task(args):
 
     task.state["status"]["started"] = time.time()
 
-    cijoe = Cijoe(config, args.output, args.monitor)
+    facts = load_facts(args)
+    if facts is None:
+        return errno.EINVAL
+    cijoe = Cijoe(config, args.output, args.monitor, facts)
     fail_fast = _get_fail_fast(cijoe)
 
     for step in task.state["steps"]:
@@ -431,8 +441,13 @@ def cli_task(args):
         cijoe.set_output_ident(step["id"])
         os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
 
+        cijoe.facts.changed.clear()
         if args.step and step["name"] not in args.step:
             step["status"]["skipped"] = 1
+        elif errors := substitute_facts(step, config, cijoe.facts):
+            log_errors(errors)
+            log.error(f"step({step['name']}) : its references to facts failed")
+            step["status"]["failed"] = 1
         else:
             script_ident = step["uses"]
             script = resources["scripts"][script_ident]
@@ -468,6 +483,8 @@ def cli_task(args):
                 for k in vars(script_args):
                     delattr(args, k)
 
+        step["facts"] = sorted(cijoe.facts.changed)
+
         for key in ["failed", "passed", "skipped"]:
             task.state["status"][key] += step["status"][key]
 
@@ -489,6 +506,51 @@ def cli_task(args):
         log.error("one or more steps failed")
 
     return err
+
+
+def load_facts(args):
+    """
+    The run's facts, empty, or as the earlier run that wrote '--facts' left them;
+    a warning when that run's config differs from this one's, as its facts may
+    then describe something else. None when the file cannot be read.
+    """
+
+    facts = Facts(args.output / Facts.FILENAME)
+    if not getattr(args, "facts_from", None):
+        return facts
+
+    path = Path(args.facts_from).resolve()
+    try:
+        facts.data = dict_from_tomlfile(path)
+    except (OSError, ValueError) as exc:
+        log.error(f"failed: reading facts({path}): {exc}")
+        return None
+    facts.save()
+
+    earlier = path.parent / "config.orig"
+    if earlier.exists() and earlier.read_bytes() != Path(args.config).read_bytes():
+        # Past log.basicConfig(), which shows only errors by default, and a warning
+        # must be seen without raising the log level
+        print(
+            f"WARNING:cli:load_facts(): facts({path}) are from a run with another"
+            f" config({earlier})",
+            file=sys.stderr,
+        )
+
+    return facts
+
+
+def substitute_facts(step: dict, config: Config, facts: Facts) -> list:
+    """Substitute what the task left in the step's 'with', its references to facts,
+    from what the task said, as Task.load() kept it"""
+
+    templates = step.get("with_facts")
+    if not templates:
+        return []
+
+    context = {**default_context(config), "facts": facts.data}
+
+    return substitute_templates(step["with"], templates, context)
 
 
 def create_adhoc_task(args):
@@ -593,6 +655,15 @@ def parse_args():
         action="append_const",
         const=1,
         help="Increase log-level. Provide '-l' for info and '-ll' for debug.",
+    )
+    # Not 'facts': a step's 'with' may not use a key cijoe's arguments have, and a
+    # script may well take a '--facts' of its own
+    run_group.add_argument(
+        "--facts",
+        dest="facts_from",
+        type=Path,
+        default=None,
+        help="Start the run with the facts an earlier run saved, as its 'facts.toml'.",
     )
     run_group.add_argument(
         "--monitor",

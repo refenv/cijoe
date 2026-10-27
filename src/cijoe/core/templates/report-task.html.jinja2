@@ -142,6 +142,11 @@ function selectFilter(event) {
               data-bs-target="#config-tab-pane" type="button" role="tab" aria-controls="config-tab-pane"
               aria-selected="false">Configuration</button>
           </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="facts-tab" data-bs-toggle="tab"
+              data-bs-target="#facts-tab-pane" type="button" role="tab" aria-controls="facts-tab-pane"
+              aria-selected="false">Facts</button>
+          </li>
           <!--
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="doc-tab" data-bs-toggle="tab"
@@ -197,6 +202,29 @@ function selectFilter(event) {
               </p>
               <hr />
               <pre class="workflow-configuration">{{ config | to_yaml }}</pre>
+            </div>
+          </div>
+
+          <div class="tab-pane" id="facts-tab-pane" role="tabpanel" aria-labelledby="facts-tab" tabindex="0">
+            <div class="card-body">
+              <p>
+                These are the facts the steps observed, as the run left them in
+                <code>facts.toml</code>, each with the step that last wrote it; a
+                step's <b>facts</b> button shows the facts it wrote.
+              </p>
+              <hr />
+              <table class="table table-sm">
+                <thead><tr><th>Fact</th><th>Value</th><th>Written by</th></tr></thead>
+                <tbody>
+                  {% for row in facts %}
+                  <tr>
+                    <td><code>{{ row.key }}</code></td>
+                    <td><code>{{ row.value }}</code></td>
+                    <td>{{ row.step }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -275,6 +303,14 @@ function selectFilter(event) {
                       {% if "testreport" not in step["extras"].keys() %}disabled="disabled"{% endif %}
                       >&nbsp;testreport</button>
 
+              <button class="btn btn-primary bi bi-journal-text" type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#CONTENT_FACTS_{{ step['id'] }}"
+                      aria-controls="CONTENT_FACTS_{{ step['id'] }}"
+                      aria-expanded="false"
+                      {% if not step["extras"].get("facts") %}disabled="disabled"{% endif %}
+                      >&nbsp;facts</button>
+
               <button class="btn btn-primary bi bi-file-earmark-code" type="button"
                       data-bs-toggle="collapse"
                       data-bs-target="#CONTENT_RUNLOG_{{ step['id'] }}"
@@ -311,6 +347,16 @@ function selectFilter(event) {
             </div>
           </div>
           <!-- workflow-step-content-description END -->
+
+          <!-- workflow-step-content-facts BEGIN -->
+          <div class="collapse" id="CONTENT_FACTS_{{ step['id'] }}" data-bs-parent="#CONTENT_{{ step['id'] }}">
+            <div class="card-body">
+              <p>The facts this step wrote, with their values as the run left them.</p>
+              <hr />
+              <pre class="workflow-configuration">{{ step["extras"].get("facts", {}) | to_yaml }}</pre>
+            </div>
+          </div>
+          <!-- workflow-step-content-facts END -->
 
           <!-- workflow-step-content-yaml BEGIN -->
           <div class="collapse" id="CONTENT_YAML_{{ step['id'] }}" data-bs-parent="#CONTENT_{{ step['id'] }}">
