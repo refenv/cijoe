@@ -7,8 +7,9 @@ import time
 from pathlib import Path
 from typing import Any, Dict
 
+from cijoe.core.facts import Facts, leaves
 from cijoe.core.misc import ENCODING, sanitize_ident
-from cijoe.core.resources import Task, dict_from_yamlfile
+from cijoe.core.resources import Task, dict_from_tomlfile, dict_from_yamlfile
 
 
 def cmd_number_from_path(path):
@@ -175,6 +176,30 @@ def artifacts_in_path(path: Path):
     return sorted(artifacts)
 
 
+def facts_written(facts: Facts, steps: list) -> list:
+    """
+    The facts as the run left them, a row of key, value and the step that last
+    wrote the key or a table holding it, for the report; and each step's
+    'extras.facts', the facts it wrote with their values as the run left them
+    """
+
+    def wrote(step, key):
+        return any(key == k or key.startswith(f"{k}.") for k in step.get("facts", []))
+
+    for step in steps:
+        written = {key: facts.get(key, "(deleted)") for key in step.get("facts", [])}
+        step.setdefault("extras", {})["facts"] = written
+
+    rows = []
+    for key, value in leaves(facts.data):
+        writers = [step["name"] for step in steps if wrote(step, key)]
+        rows.append(
+            {"key": key, "value": value, "step": writers[-1] if writers else ""}
+        )
+
+    return rows
+
+
 def process_task_output(args, cijoe):
     state_path = args.output / Task.STATE_FILENAME
     if not state_path.exists():
@@ -184,6 +209,8 @@ def process_task_output(args, cijoe):
 
     task_state = dict_from_yamlfile(state_path)
     task_state["config"] = cijoe.config.options
+    facts = Facts.load(args.output / Facts.FILENAME)
+    task_state["facts"] = facts_written(facts, task_state["steps"])
     task_state["artifacts"] = artifacts_in_path(args.output)
 
     for step in task_state["steps"]:

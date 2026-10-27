@@ -104,25 +104,92 @@ def default_context(config=None, resources=None):
     }
 
 
-def dict_substitute(topic: dict, context: dict) -> list:
-    """Traverse the given 'topic' replacing {{ foo.bar }} entities with ctx. values"""
+# A {{ ... }} or {% ... %} that names the facts, which exist once steps write them
+FACTS_REFERENCE = re.compile(r"\{[{%][^}]*\bfacts\b")
+
+
+def dict_substitute(topic: dict, context: dict, defer_facts: bool = False) -> list:
+    """
+    Traverse the given 'topic' replacing {{ foo.bar }} entities with ctx. values.
+
+    With 'defer_facts', as when a task is loaded, a string referring to facts is
+    only checked for syntax and left as it is, for its step to substitute when
+    it starts; see facts_templates() and substitute_templates().
+    """
 
     errors = []
+
+    def render(text):
+        if defer_facts and FACTS_REFERENCE.search(text):
+            jinja_env.parse(text)
+            return text
+        return jinja_env.from_string(text).render(context)
 
     jinja_env = jinja2.Environment(undefined=jinja2.StrictUndefined)
     for key, value in topic.items():
         try:
             if isinstance(value, str):
-                topic[key] = jinja_env.from_string(value).render(context)
+                topic[key] = render(value)
             elif isinstance(value, list):
                 for i, entity in enumerate(value):
                     if isinstance(entity, str):
-                        value[i] = jinja_env.from_string(entity).render(context)
+                        value[i] = render(entity)
                     elif isinstance(entity, dict):
-                        errors += dict_substitute(entity, context)
+                        errors += dict_substitute(entity, context, defer_facts)
             elif isinstance(value, dict):
-                errors += dict_substitute(value, context)
-        except jinja2.exceptions.UndefinedError as exc:
+                errors += dict_substitute(value, context, defer_facts)
+        except jinja2.exceptions.TemplateError as exc:
+            errors.append(f"Substitution-error: {exc}")
+
+    return errors
+
+
+def facts_templates(topic: dict) -> dict:
+    """
+    The strings of 'topic' that refer to facts, as written, where 'topic' has
+    them: a list's by index. A step keeps them from before the task is
+    substituted, so that what is substituted when it starts is what the task
+    said, never a value that substitution produced.
+    """
+
+    templates: dict = {}
+    for key, value in topic.items():
+        if isinstance(value, str) and FACTS_REFERENCE.search(value):
+            templates[key] = value
+        elif isinstance(value, list):
+            found: dict = {}
+            for i, entity in enumerate(value):
+                if isinstance(entity, str) and FACTS_REFERENCE.search(entity):
+                    found[i] = entity
+                elif isinstance(entity, dict) and (inner := facts_templates(entity)):
+                    found[i] = inner
+            if found:
+                templates[key] = found
+        elif isinstance(value, dict) and (inner := facts_templates(value)):
+            templates[key] = inner
+
+    return templates
+
+
+def substitute_templates(topic: dict, templates: dict, context: dict) -> list:
+    """Substitute 'templates', from facts_templates(), into 'topic' with 'context'"""
+
+    errors = []
+
+    jinja_env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+    for key, template in templates.items():
+        try:
+            if isinstance(template, str):
+                topic[key] = jinja_env.from_string(template).render(context)
+            elif isinstance(topic[key], list):
+                for i, entity in template.items():
+                    if isinstance(entity, str):
+                        topic[key][i] = jinja_env.from_string(entity).render(context)
+                    else:
+                        errors += substitute_templates(topic[key][i], entity, context)
+            else:
+                errors += substitute_templates(topic[key], template, context)
+        except jinja2.exceptions.TemplateError as exc:
             errors.append(f"Substitution-error: {exc}")
 
     return errors
@@ -178,6 +245,10 @@ class Config(Resource):
 
         if config_dict.get("cijoe", {}).get("transport", {}).get("initiator"):
             errors.append("The key cijoe.transport.initiator is reserved.")
+            return errors
+
+        if "facts" in config_dict:
+            errors.append("The key facts is reserved; steps write facts, see --facts.")
             return errors
 
         self.options = config_dict
@@ -488,9 +559,17 @@ class Task(Resource):
         if errors:
             return errors
 
-        errors += dict_substitute(task_dict, default_context(config))
+        templates = [
+            facts_templates(step.get("with", {})) for step in task_dict["steps"]
+        ]
+
+        errors += dict_substitute(task_dict, default_context(config), defer_facts=True)
         if errors:
             return errors
+
+        for step, step_templates in zip(task_dict["steps"], templates):
+            if step_templates:
+                step["with_facts"] = step_templates
 
         state = Task.STATE.copy()
         state["doc"] = task_dict.get("doc")

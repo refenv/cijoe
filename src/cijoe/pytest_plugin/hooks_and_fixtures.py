@@ -72,11 +72,14 @@ def pytest_configure(config):
     if cijoe_config is None:
         raise Exception(f"Failed loading config({cijoe_config_path})")
 
-    pytest.cijoe_instance = Cijoe(
-        cijoe_config,
-        config.getoption("--output"),
-        False,
-    )
+    try:
+        pytest.cijoe_instance = Cijoe(
+            cijoe_config,
+            config.getoption("--output"),
+            False,
+        )
+    except ValueError as exc:  # The facts saved in the output cannot be read
+        raise pytest.UsageError(str(exc)) from exc
     if pytest.cijoe_instance is None:
         raise Exception("Failed instantiating cijoe")
 

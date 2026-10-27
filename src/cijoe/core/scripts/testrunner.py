@@ -61,7 +61,8 @@ import uuid
 from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
 
-from cijoe.core.resources import dict_to_tomlfile
+from cijoe.core.facts import Facts
+from cijoe.core.resources import dict_from_tomlfile, dict_to_tomlfile
 
 
 def add_args(parser: ArgumentParser):
@@ -158,6 +159,13 @@ def pytest_remote(args, cijoe):
         str(reportlog_path),
     )
 
+    # The run's facts, where the tests' cijoe loads them
+    if cijoe.facts.data:
+        facts_path_local = args.output / cijoe.output_ident / f"facts-{rand}.toml"
+        Facts(facts_path_local, cijoe.facts.data).save()
+        cijoe.run(f"mkdir -p {output_path}")
+        cijoe.put(str(facts_path_local), str(output_path / Facts.FILENAME))
+
     err, _ = cijoe.run(" ".join(cmdline))
 
     # Retrieve testlog
@@ -166,6 +174,10 @@ def pytest_remote(args, cijoe):
 
     # TODO: Retrieve output
     cijoe.get(str(output_path), str(output_path_local))
+
+    # get() puts a directory in 'output_path_local', or inside it when it exists
+    for retrieved in [output_path_local, output_path_local / output_stem]:
+        merge_tests_facts(cijoe, retrieved / Facts.FILENAME)
 
     # Cleanup: remove "artifacts" on remote
     cijoe.run(f"rm {config_path}")
@@ -182,16 +194,34 @@ def pytest_local(args, cijoe):
     the pytest-cijoe-plugin unmodified.
     """
 
+    output_path = args.output / cijoe.output_ident
     cmdline = pytest_cmdline(
         args,
         str(args.config),
-        str(args.output / cijoe.output_ident),
-        str(args.output / cijoe.output_ident / "testreport.log"),
+        str(output_path),
+        str(output_path / "testreport.log"),
     )
+
+    # The run's facts, where the tests' cijoe loads them
+    if cijoe.facts.data:
+        Facts(output_path / Facts.FILENAME, cijoe.facts.data).save()
 
     err, _ = cijoe.run_local(" ".join(cmdline))
 
+    merge_tests_facts(cijoe, output_path / Facts.FILENAME)
+
     return err
+
+
+def merge_tests_facts(cijoe, path: Path):
+    """
+    Merge the facts at 'path', where the tests' own cijoe saved them, into the
+    run's. They started as the run's, so only what the tests wrote differs; a
+    fact the tests deleted stays in the run's.
+    """
+
+    if path.exists():
+        cijoe.facts.merge(dict_from_tomlfile(path))
 
 
 def main(args, cijoe):
