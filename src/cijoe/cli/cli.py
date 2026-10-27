@@ -26,6 +26,7 @@ from cijoe.core.resources import (
     get_resources,
     substitute_templates,
 )
+from cijoe.core.tools import check as check_tools
 
 DEFAULT_CONFIG_FILENAME = "cijoe-config.toml"
 DEFAULT_TASK_FILENAME = "cijoe-task.yaml"
@@ -168,6 +169,19 @@ def cli_integrity_check(args):
         log_errors(errors)
         log.error("failed: 'see errors above'; Failed")
         return errno.EINVAL
+
+    # What each step's script needs on its target, which only a run can check
+    resources = get_resources()
+    for step in task_dict["steps"]:
+        script = resources["scripts"].get(step.get("uses", ""))
+        try:
+            tools = script.tools() if script else {}
+        except ValueError as exc:
+            log.error(f"step({step['name']}): {exc}")
+            return errno.EINVAL
+        if tools:
+            needs = [f"{t} >= {v}" if v else t for t, v in tools.items()]
+            print(f"step({step['name']}) needs: {', '.join(needs)}")
 
     return 0
 
@@ -418,6 +432,13 @@ def cli_task(args):
     for step in task.state["steps"]:
         script_ident = step["uses"]
         resources["scripts"][script_ident].load()
+        try:
+            tools = resources["scripts"][script_ident].tools()
+        except ValueError as exc:
+            log.error(f"step({step['name']}): {exc}")
+            return errno.EINVAL
+        if tools:
+            step["tools"] = tools
 
         step["description"] = "Undocumented"
         if resources["scripts"][script_ident].mod.__doc__:
@@ -447,6 +468,12 @@ def cli_task(args):
         elif errors := substitute_facts(step, config, cijoe.facts):
             log_errors(errors)
             log.error(f"step({step['name']}) : its references to facts failed")
+            step["status"]["failed"] = 1
+        elif lacking := tools_lacking(step, cijoe, resources):
+            log.error(
+                f"step({step['name']}): {step['uses']} needs, on"
+                f" target({cijoe.default_target}):\n  " + "\n  ".join(lacking)
+            )
             step["status"]["failed"] = 1
         else:
             script_ident = step["uses"]
@@ -538,6 +565,17 @@ def load_facts(args):
         )
 
     return facts
+
+
+def tools_lacking(step: dict, cijoe: Cijoe, resources) -> list:
+    """What the step's script needs, as its 'TOOLS', that the default target
+    lacks, checked, and recorded as facts, just before the step runs"""
+
+    tools = step.get("tools")
+    if not tools:
+        return []
+
+    return check_tools(cijoe, cijoe.default_target, tools)
 
 
 def substitute_facts(step: dict, config: Config, facts: Facts) -> list:
