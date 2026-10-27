@@ -117,9 +117,12 @@ target's name and defaults to the default target, and has the calls of
    release = cijoe.facts.target("machineB").get("kernel.release")
 
 ``core.facts_gather`` writes these sections for its ``target_name``, by default the
-default target, or those named with ``sections``. It finds the target's OS
-family by asking it, ``uname -s``, or PowerShell where there is no ``uname``,
-and leaves out a section it has no way of gathering on that family:
+default target, or those named with ``sections``, less those named with
+``skip``. It finds the target's OS family by asking it, ``uname -s``, or
+PowerShell where there is no ``uname``. Before each section, it checks the
+tools that section runs on that family, such as ``pciconf`` on FreeBSD, and
+records them as facts; it leaves out a section whose tools the target lacks, or
+that it has no way of gathering on that family:
 
 .. list-table::
    :header-rows: 1
@@ -145,6 +148,34 @@ and leaves out a section it has no way of gathering on that family:
      - ``<controller>``: ``bdf``, ``serial``, ``namespaces``, each with
        ``nsid``, ``bdev``, ``cdev``
      - Linux, FreeBSD, Windows, by ``PhysicalDrive<n>``
+   * - ``gpu``
+     - a list of the PCI functions of class display or accelerator, as in
+       ``pci``, each with its ``render`` nodes on Linux
+     - Linux, FreeBSD
+   * - ``nic``
+     - a list of the PCI functions of class network, as in ``pci``, each with
+       its ``netdevs``, and its ``rdma`` devices on Linux
+     - Linux, FreeBSD
+
+A consumer finds the device it wants by what identifies it: an NVMe controller
+by its ``serial``, as a QEMU device's is set by its configuration, and any PCI
+function by its ``bdf``, which a guest's topology fixes. The names a target
+gives its devices, ``nvme9`` or ``eth1``, are its own and may change from boot
+to boot.
+
+Every run gathers the initiator's ``os``, ``kernel`` and ``system`` before its
+first step, so a report always says which machine it ran from, in its Facts tab
+under ``targets.initiator``, written by ``(start of run)``, and a tool check on
+the initiator knows its OS family. The configuration names other sections,
+or none:
+
+.. code-block:: toml
+
+   [cijoe.facts]
+   initiator = ["os", "kernel", "system"]   # the default; [] gathers nothing
+
+Other targets are gathered only by a step that runs ``core.facts_gather`` for
+them.
 
 A package gathers sections of its own the same way, with
 ``cijoe.facts.target().set()``, under the same target.
@@ -167,6 +198,16 @@ version the run needs:
    [tools.fio]
    version = "fio --version"   # how to ask; default: '<tool> --version'
    min = "3.38"                # the least version; default: any
+
+A tool needed on some OS families only says so, as a list of ``linux``,
+``freebsd``, ``darwin`` and ``windows``, and is not checked on others, so one
+configuration serves targets of several; on a target whose family cannot be
+found, it is checked:
+
+.. code-block:: toml
+
+   [tools.pciconf]
+   os = ["freebsd"]
 
 ``core.tools_check`` checks the tools a step names, by default every one the
 configuration describes, records what the target has, and fails, naming every

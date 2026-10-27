@@ -182,10 +182,22 @@ A script that runs tools on its target declares them, as a module-level
 
    TOOLS = {"fio": "3.38", "nvme": None}
 
+A script that runs on several operating systems declares its tools per OS
+family, with ``"*"`` for those every family needs:
+
+.. code-block:: python
+
+   TOOLS = {
+       "*": {"fio": "3.38"},
+       "linux": {"nvme": "2.0"},
+       "freebsd": {"nvmecontrol": None},
+   }
+
 **cijoe** reads ``TOOLS`` from the script without running it, and checks it
 against the default target just before the step that uses the script, filling
 in a least version the declaration leaves open from the configuration's
-``[tools.<tool>]``. When the target lacks any of them, the step fails without
+``[tools.<tool>]``. For a declaration per OS family, the target's family is
+taken from its facts, or asked of it once and recorded. When the target lacks any of them, the step fails without
 running the script, with one message for all it lacks:
 
 .. code-block:: text
