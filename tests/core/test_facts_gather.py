@@ -110,6 +110,7 @@ def test_freebsd_pci_and_nvme():
         "device": "0xa80c",
         "class": "0x010802",
         "driver": "nvme",
+        "name": "nvme0",
     }
     assert "driver" not in pci["0000:00:1f.3"], "'none' is no driver"
     assert pci["0000:0a:00.0"]["vendor"] == "0x1b36", "pciconf's bus is decimal"
@@ -196,6 +197,9 @@ class Target:
         self.default_target = "initiator"
         self.facts = Facts(tmp_path / "facts.toml")
 
+    def getconf(self, key, default=None):
+        return default
+
     def run(self, command, transport_name=None):
         for prefix, (err, text) in self.answers.items():
             if command.startswith(prefix):
@@ -216,9 +220,11 @@ def test_unknown_targets_and_sections_write_nothing(tmp_path):
 
     target = Target({"uname -s": (0, "Linux\n")}, tmp_path)
 
-    args = Namespace(target_name="nosuch", sections="os")
+    args = Namespace(target_name="nosuch", sections="os", skip="")
     assert gather.main(args, target) != 0
-    args = Namespace(target_name=None, sections="os,nosuch")
+    args = Namespace(target_name=None, sections="os,nosuch", skip="")
+    assert gather.main(args, target) != 0
+    args = Namespace(target_name=None, sections="os", skip="nosuch")
     assert gather.main(args, target) != 0
     assert target.facts.data == {}
 
@@ -241,3 +247,77 @@ def test_gathering_from_a_named_task(tmp_path):
     assert result.returncode == 0, result.stderr
     facts = dict_from_tomlfile(tmp_path / "out" / "facts.toml")
     assert facts["targets"]["initiator"]["kernel"]["release"]
+
+
+LINUX_PCI_LISTING = """\
+0000:00:00.0 0x8086 0x29c0 0x060000
+0000:01:00.0 0x1b36 0x0010 0x010802 nvme
+0000:04:00.0 0x1002 0x75c1 0x120000 amdgpu
+0000:05:00.0 0x1af4 0x1041 0x020000 virtio-pci
+0000:06:00.0 0x1dd8 0x1001 0x020000 rocm_ernic
+"""
+
+LINUX_DEVICES_LISTING = """\
+render 0000:04:00.0 renderD128
+netdev 0000:06:00.0 ernic0
+rdma 0000:06:00.0 rocm_ernic0
+"""
+
+
+def test_linux_gpus_and_nics():
+    pci = gather.linux_pci(LINUX_PCI_LISTING)
+
+    assert gather.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "gpu") == [
+        {
+            "bdf": "0000:04:00.0",
+            "vendor": "0x1002",
+            "device": "0x75c1",
+            "class": "0x120000",
+            "driver": "amdgpu",
+            "render": ["/dev/dri/renderD128"],
+        }
+    ]
+    nics = gather.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "nic")
+    assert [n["bdf"] for n in nics] == ["0000:05:00.0", "0000:06:00.0"]
+    assert nics[0]["netdevs"] == [] and nics[0]["rdma"] == []
+    assert nics[1]["netdevs"] == ["ernic0"] and nics[1]["rdma"] == ["rocm_ernic0"]
+
+
+def test_freebsd_gpus_and_nics():
+    listing = (
+        "vgapci0@pci0:0:1:0:\tclass=0x030000 rev=0x02 hdr=0x00 vendor=0x1234 device=0x1111\n"
+        "vtnet0@pci0:0:3:0:\tclass=0x020000 rev=0x00 hdr=0x00 vendor=0x1af4 device=0x1000\n"
+        "none1@pci0:0:4:0:\tclass=0x020000 rev=0x00 hdr=0x00 vendor=0x8086 device=0x10d3\n"
+    )
+    pci = gather.freebsd_pci(listing)
+
+    gpus = gather.freebsd_pci_devices(pci, "gpu")
+    assert [(g["bdf"], g["driver"]) for g in gpus] == [("0000:00:01.0", "vgapci")]
+    nics = gather.freebsd_pci_devices(pci, "nic")
+    assert [(n["bdf"], n["netdevs"]) for n in nics] == [
+        ("0000:00:03.0", ["vtnet0"]),
+        ("0000:00:04.0", []),
+    ]
+
+
+def test_a_section_lacking_its_tools_is_left_out_and_skip_leaves_out(tmp_path):
+    from argparse import Namespace
+
+    answers = {
+        "uname -s -r -m": (0, "Linux 6.12.1 x86_64\n"),
+        "uname -s": (0, "Linux\n"),
+        "uname --version": (0, "uname (GNU coreutils) 9.4\n"),
+        "sh -c 'command -v uname'": (0, "/usr/bin/uname\n"),
+        "sh -c 'command -v getconf'": (1, ""),
+        "cat /etc/os-release": (0, "ID=debian\n"),
+    }
+    target = Target(answers, tmp_path)
+
+    args = Namespace(target_name=None, sections="os,kernel,system", skip="os")
+    assert gather.main(args, target) == 0
+    facts = target.facts.get("targets.initiator")
+    assert facts["kernel"]["release"] == "6.12.1"
+    assert "system" not in facts, "getconf is lacking"
+    assert facts["tools"]["getconf"] == {"name": "getconf", "found": False}
+    assert facts["tools"]["uname"]["found"]
+    assert facts["os"] == {"family": "linux"}, "os was skipped, its family kept"
