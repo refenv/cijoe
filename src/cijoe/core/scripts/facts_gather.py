@@ -13,11 +13,18 @@ hardware alike, and the facts have the same layout whatever its OS:
 * pci: a list of bdf, vendor, device, class, driver, by bdf; a list, as a
   bdf has a dot, which a dotted key cannot hold
 * nvme.<controller>: bdf, serial, namespaces [{nsid, bdev, cdev}]
+* gpu: a list of the PCI functions of class display or accelerator, each with
+  its 'render' nodes on Linux
+* nic: a list of the PCI functions of class network, each with its 'netdevs'
+  and, on Linux, its 'rdma' devices
 
 The OS is found by probing the target, 'uname -s', or PowerShell where there is
-no 'uname'. A section the target's OS has no way of gathering here is left out,
-with a log line, so one task gathers what each target offers; a section that
-was gathered and found nothing, such as no NVMe controllers, is empty. Other packages
+no 'uname'. Before each section, the tools it runs on that OS are checked, as
+core.tools_check does, and recorded as facts; a section whose tools the target
+lacks, or that its OS has no way of gathering here, is left out, with a log
+line, so one task gathers what each target offers. A section that was gathered
+and found nothing, such as no NVMe controllers, is empty. 'sections' picks the
+sections to gather and 'skip' leaves some out. Other packages
 add sections of their own the same way, with cijoe.facts.target().set().
 
 A task reads the facts as '{{ target.os.id }}', for the default target, or as
@@ -33,9 +40,9 @@ import re
 from argparse import ArgumentParser
 
 from cijoe.core.misc import powershell, sh
-from cijoe.core.tools import family_of
+from cijoe.core.tools import check, family_of
 
-SECTIONS = ["os", "kernel", "system", "pci", "nvme"]
+SECTIONS = ["os", "kernel", "system", "pci", "nvme", "gpu", "nic"]
 
 
 def add_args(parser: ArgumentParser):
@@ -50,6 +57,12 @@ def add_args(parser: ArgumentParser):
         type=str,
         default=",".join(SECTIONS),
         help=f"Comma-separated sections to gather; default: {','.join(SECTIONS)}.",
+    )
+    parser.add_argument(
+        "--skip",
+        type=str,
+        default="",
+        help="Comma-separated sections to leave out of those gathered.",
     )
 
 
@@ -185,6 +198,69 @@ def linux_pci(listing: str) -> list:
     return sorted(functions, key=lambda f: f["bdf"])
 
 
+# What the kernel made of a Linux target's PCI functions: their DRM render
+# nodes, network interfaces and RDMA devices
+LINUX_PCI_DEVICES = (
+    "for d in /sys/bus/pci/devices/*; do b=$(basename $d);"
+    " for x in $d/drm/renderD*; do [ -e $x ] && echo render $b $(basename $x); done;"
+    " for x in $d/net/*; do [ -e $x ] && echo netdev $b $(basename $x); done;"
+    " for x in $d/infiniband/*; do [ -e $x ] && echo rdma $b $(basename $x); done;"
+    " done; true"
+)
+
+# PCI base classes, the first byte of 'class': network, display, accelerator
+NIC_CLASSES = ("02",)
+GPU_CLASSES = ("03", "12")
+
+
+def base_class(function: dict) -> str:
+    return function["class"][2:4]
+
+
+def linux_pci_devices(pci: list, listing: str, section: str) -> list:
+    """The GPUs, section 'gpu', or NICs, 'nic', of 'pci', a linux_pci() list,
+    each with what LINUX_PCI_DEVICES' output says the kernel made of it"""
+
+    found: dict = {}
+    for line in listing.splitlines():
+        fields = line.split()
+        if len(fields) == 3 and fields[0] in ("render", "netdev", "rdma"):
+            found.setdefault(fields[1], {}).setdefault(fields[0], []).append(
+                fields[2] if fields[0] != "render" else f"/dev/dri/{fields[2]}"
+            )
+
+    devices = []
+    for function in pci:
+        made = found.get(function["bdf"], {})
+        if section == "gpu" and base_class(function) in GPU_CLASSES:
+            devices.append({**function, "render": sorted(made.get("render", []))})
+        elif section == "nic" and base_class(function) in NIC_CLASSES:
+            devices.append(
+                {
+                    **function,
+                    "netdevs": sorted(made.get("netdev", [])),
+                    "rdma": sorted(made.get("rdma", [])),
+                }
+            )
+
+    return devices
+
+
+def freebsd_pci_devices(pci: list, section: str) -> list:
+    """The GPUs, section 'gpu', or NICs, 'nic', of 'pci', a freebsd_pci() list;
+    a NIC's netdev is the name its driver gave it"""
+
+    devices = []
+    for function in pci:
+        if section == "gpu" and base_class(function) in GPU_CLASSES:
+            devices.append(dict(function))
+        elif section == "nic" and base_class(function) in NIC_CLASSES:
+            netdevs = [function["name"]] if "name" in function else []
+            devices.append({**function, "netdevs": netdevs})
+
+    return devices
+
+
 FREEBSD_NVME = (
     "pciconf -l; camcontrol devlist -v; nvmecontrol devlist;"
     ' for c in $(pciconf -l | sed -n "s/^\\(nvme[0-9]*\\)@.*/\\1/p"); do'
@@ -205,15 +281,16 @@ def pciconf_bdf(dom, bus, slot, func) -> str:
 
 
 def freebsd_pci(listing: str) -> list:
-    """The PCI functions of 'pciconf -l' output, ordered by BDF; a function
-    without a driver is 'none<n>' there, and has no 'driver' here"""
+    """The PCI functions of 'pciconf -l' output, ordered by BDF, each with the
+    'name' its driver gave it, such as vtnet0; a function without a driver is
+    'none<n>' there, and has no 'driver' or 'name' here"""
 
     functions = []
     for line in listing.splitlines():
         match = PCICONF.match(line)
         if not match:
             continue
-        driver, _, dom, bus, slot, func, cls, vendor, device = match.groups()
+        driver, unit, dom, bus, slot, func, cls, vendor, device = match.groups()
         function = {
             "bdf": pciconf_bdf(dom, bus, slot, func),
             "vendor": vendor,
@@ -222,6 +299,7 @@ def freebsd_pci(listing: str) -> list:
         }
         if driver != "none":
             function["driver"] = driver
+            function["name"] = f"{driver}{unit}"
         functions.append(function)
 
     return sorted(functions, key=lambda f: f["bdf"])
@@ -321,6 +399,24 @@ def windows_os(text: str) -> dict:
     }
 
 
+# The tools each section runs on a target of each OS family, beyond the shell's
+# own; a section whose tools the target lacks is left out
+SECTION_TOOLS = {
+    ("linux", "kernel"): ["uname"],
+    ("linux", "system"): ["getconf"],
+    ("freebsd", "kernel"): ["uname"],
+    ("freebsd", "system"): ["sysctl"],
+    ("freebsd", "pci"): ["pciconf"],
+    ("freebsd", "nvme"): ["pciconf", "camcontrol", "nvmecontrol"],
+    ("freebsd", "gpu"): ["pciconf"],
+    ("freebsd", "nic"): ["pciconf"],
+    ("darwin", "os"): ["sw_vers"],
+    ("darwin", "kernel"): ["uname"],
+    ("darwin", "system"): ["sysctl"],
+    **{("windows", s): ["powershell"] for s in ("os", "kernel", "system", "nvme")},
+}
+
+
 def gather_section(cijoe, target, family: str, section: str):
     """The facts of 'section' on 'target', or None when the family has no way of
     gathering them here"""
@@ -368,6 +464,18 @@ def gather_section(cijoe, target, family: str, section: str):
     if family == "freebsd" and section == "pci":
         text = run("pciconf -l")
         return freebsd_pci(text) if text is not None else None
+    if family == "linux" and section in ("gpu", "nic"):
+        pci, devices = run(sh(LINUX_PCI)), run(sh(LINUX_PCI_DEVICES))
+        if pci is None or devices is None:
+            return None
+        return linux_pci_devices(linux_pci(pci), devices, section)
+    if family == "freebsd" and section in ("gpu", "nic"):
+        text = run("pciconf -l")
+        return (
+            freebsd_pci_devices(freebsd_pci(text), section)
+            if text is not None
+            else None
+        )
     if family == "linux" and section == "nvme":
         text = run(sh(LINUX_NVME))
         return linux_nvme(text) if text is not None else None
@@ -408,21 +516,40 @@ def main(args, cijoe):
         log.error(f"no target({target}); known: {', '.join(cijoe.transports)}")
         return errno.EINVAL
     sections = [s.strip() for s in args.sections.split(",") if s.strip()]
-    unknown = [s for s in sections if s not in SECTIONS]
+    skip = [s.strip() for s in args.skip.split(",") if s.strip()]
+    unknown = [s for s in sections + skip if s not in SECTIONS]
     if unknown:
         log.error(
             f"unknown sections({', '.join(unknown)}); known: {', '.join(SECTIONS)}"
         )
         return errno.EINVAL
+    if not gather(cijoe, target, [s for s in sections if s not in skip]):
+        log.error(f"target({target}): neither 'uname -s' nor PowerShell answers")
+        return errno.EIO
+
+    return 0
+
+
+def gather(cijoe, target: str, sections: list) -> str:
+    """Gather 'sections' about 'target' into its facts, each whose tools the
+    target has; its OS family, or '' when it answers neither 'uname -s' nor
+    PowerShell, and nothing is gathered"""
+
     facts = cijoe.facts.target(target)
 
     family = family_of(cijoe, target)
     if not family:
-        log.error(f"target({target}): neither 'uname -s' nor PowerShell answers")
-        return errno.EIO
+        return ""
     facts.update("os", {"family": family})
 
     for section in sections:
+        tools = SECTION_TOOLS.get((family, section), [])
+        lacking = check(cijoe, target, {tool: None for tool in tools})
+        if lacking:
+            log.info(
+                f"target({target}): no {section} facts, lacking {', '.join(lacking)}"
+            )
+            continue
         gathered = gather_section(cijoe, target, family, section)
         if gathered is None:
             log.info(f"target({target}): no {section} facts gathered on {family}")
@@ -431,4 +558,4 @@ def main(args, cijoe):
             gathered = {"family": family, **gathered}
         facts.set(section, gathered)
 
-    return 0
+    return family
