@@ -33,6 +33,7 @@ import re
 from argparse import ArgumentParser
 
 from cijoe.core.misc import powershell, sh
+from cijoe.core.tools import family_of
 
 SECTIONS = ["os", "kernel", "system", "pci", "nvme"]
 
@@ -397,24 +398,6 @@ def gather_section(cijoe, target, family: str, section: str):
         return windows_nvme(text) if text is not None else None
 
     return None
-
-
-def family_of(cijoe, target) -> str:
-    """The OS family of 'target': linux, freebsd, darwin or windows, by probing it"""
-
-    err, state = cijoe.run("uname -s", transport_name=target)
-    if not err:
-        name = state.output().strip().lower()
-        for family in ("linux", "freebsd", "darwin"):
-            if name.startswith(family):
-                return family
-        # Git for Windows, MSYS2 and Cygwin answer uname on Windows
-        if name.startswith(("mingw", "msys", "cygwin")):
-            return "windows"
-        return name
-
-    err, _ = cijoe.run(powershell("$PSVersionTable.PSVersion"), transport_name=target)
-    return "" if err else "windows"
 
 
 def main(args, cijoe):

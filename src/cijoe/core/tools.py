@@ -3,7 +3,10 @@ Checking that a target has the tools a task needs, at the versions it needs.
 
 Which tools a target has is a fact, kept as 'targets.<target>.tools.<tool>',
 the tool's name with a dot as an underscore: its 'name', 'found', and when
-found its 'path' and 'version'. A least version is a string of dotted numbers,
+found its 'path' and 'version'. A '[tools.<tool>]' may say on which OS families
+the tool is needed, 'os = ["freebsd"]'; on others it is not checked. A script's
+TOOLS may be declared per OS family, with "*" for every family, and the target's
+family is then taken from its facts or asked of it. A least version is a string of dotted numbers,
 optionally with a pre-release such as 'rc1', which comes before its release; a
 release with a bare letter, as OpenSSL's 1.0.2a, is given as its numbers. What a run needs is intent:
 the configuration describes a tool once, as '[tools.<tool>]' with the command
@@ -93,6 +96,81 @@ def described(cijoe, tool: str):
     return entry if isinstance(entry, dict) else None
 
 
+FAMILIES = ("linux", "freebsd", "darwin", "windows")
+
+
+def family_of(cijoe, target: str) -> str:
+    """The OS family of 'target', one of FAMILIES or what 'uname -s' says, by
+    asking it; '' when neither 'uname -s' nor PowerShell answers"""
+
+    err, state = cijoe.run("uname -s", transport_name=target)
+    if not err:
+        name = state.output().strip().lower()
+        for family in ("linux", "freebsd", "darwin"):
+            if name.startswith(family):
+                return family
+        # Git for Windows, MSYS2 and Cygwin answer uname on Windows
+        if name.startswith(("mingw", "msys", "cygwin")):
+            return "windows"
+        return name
+
+    err, _ = cijoe.run(powershell("$PSVersionTable.PSVersion"), transport_name=target)
+    return "" if err else "windows"
+
+
+def family(cijoe, target: str) -> str:
+    """The OS family of 'target' as its facts say, or as it says when asked,
+    which is then recorded as its 'os.family'; 'unknown' when it answers
+    neither 'uname -s' nor PowerShell, recorded too, so it is asked once"""
+
+    facts = cijoe.facts.target(target)
+    known = facts.get("os.family")
+    if known:
+        return known
+    found = family_of(cijoe, target) or "unknown"
+    facts.update("os", {"family": found})
+    return found
+
+
+def per_family(tools: dict) -> bool:
+    """Whether 'tools' is declared per OS family, '{"*": {...}, "linux": {...}}',
+    rather than as one table of tool to least version"""
+
+    return bool(tools) and all(isinstance(v, dict) for v in tools.values())
+
+
+def invalid(tools) -> str:
+    """What is wrong with 'tools' as a declaration, flat or per OS family, or ''"""
+
+    def flat(table):
+        return isinstance(table, dict) and all(
+            isinstance(k, str) and (v is None or is_version(v))
+            for k, v in table.items()
+        )
+
+    if not isinstance(tools, dict):
+        return "TOOLS is not a table"
+    if per_family(tools):
+        unknown = [k for k in tools if k != "*" and k not in FAMILIES]
+        if unknown:
+            return f"TOOLS names no OS family {', '.join(unknown)}; known: *, {', '.join(FAMILIES)}"
+        if not all(flat(t) for t in tools.values()):
+            return 'TOOLS maps tool to a version string, such as "5.10", or None'
+        return ""
+    if not flat(tools):
+        return 'TOOLS maps tool to a version string, such as "5.10", or None'
+    return ""
+
+
+def for_family(tools: dict, family_name: str) -> dict:
+    """The tools a declaration needs on a target of 'family_name': all of a flat
+    one, and of a per-family one, those for every family, '*', and its own"""
+
+    if not per_family(tools):
+        return dict(tools)
+    return {**tools.get("*", {}), **tools.get(family_name, {})}
+
+
 def wanted(cijoe, tools: dict):
     """'tools', tool to least version, with the configuration's '[tools.<tool>]'
     filling in a least version a declaration leaves open; and the problems with
@@ -106,6 +184,14 @@ def wanted(cijoe, tools: dict):
         entry = described(cijoe, tool)
         if entry is None:
             problems.append(f"{tool}: [tools.{tool}] is not a table")
+            continue
+        on = entry.get("os")
+        if on is not None and not (
+            isinstance(on, list) and all(f in FAMILIES for f in on)
+        ):
+            problems.append(
+                f"{tool}: os = {on!r} is not a list of OS families, of {', '.join(FAMILIES)}"
+            )
             continue
         found[tool] = least if least is not None else entry.get("min")
 
@@ -156,6 +242,14 @@ def check(cijoe, target: str, tools: dict, refresh: bool = False) -> list:
 
     facts = cijoe.facts.target(target)
     wants, problems = wanted(cijoe, tools)
+    limited = {t for t in wants if (described(cijoe, t) or {}).get("os")}
+    if limited:
+        # A target whose family is unknown is checked for every tool, as it
+        # cannot be told whether one is needed
+        on = family(cijoe, target)
+        for tool in limited:
+            if on != "unknown" and on not in described(cijoe, tool)["os"]:
+                del wants[tool]
     for tool, least in wants.items():
         if least is not None and not is_version(least):
             problems.append(

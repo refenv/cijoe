@@ -75,3 +75,30 @@ def test_a_float_least_version_fails_the_step_not_the_run(tmp_path):
     assert dict_from_yamlfile(tmp_path / "out" / "task.state")["steps"][0]["status"][
         "failed"
     ]
+
+
+def test_a_step_needs_the_tools_of_its_targets_os_family(tmp_path):
+    tools = '{"*": {"sh": None}, "freebsd": {"no-such-tool-x": None}}'
+    result = run(tmp_path, TASK, "-o", "out", tools=tools)
+    assert result.returncode == 0, "the initiator here is not freebsd"
+
+    tools = '{"*": {"sh": None}, "linux": {"no-such-tool-x": None}}'
+    result = run(tmp_path, TASK, "-o", "lin", tools=tools)
+    assert result.returncode != 0 and "no-such-tool-x, not found" in result.stderr
+
+
+def test_the_integrity_check_lists_tools_per_os_family(tmp_path):
+    run(
+        tmp_path,
+        TASK,
+        "-o",
+        "unused",
+        tools='{"*": {"fio": "3.38"}, "linux": {"nvme": None}}',
+    )
+    result = subprocess.run(
+        ["cijoe", "task.yaml", "--config", "config.toml", "--integrity-check"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert "step(needs) needs: fio >= 3.38; on linux: nvme" in result.stdout

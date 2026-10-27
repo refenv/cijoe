@@ -209,3 +209,49 @@ def test_tools_that_is_not_a_table_is_a_problem_not_a_crash(tmp_path):
     target = Target({"fio": "fio-3.38\n"}, tmp_path, {"tools": "fio"})
 
     assert check(target, "guest", {"fio": None}) == ["tools: [tools] is not a table"]
+
+
+def test_declarations_per_os_family():
+    from cijoe.core.tools import for_family, invalid, per_family
+
+    tools = {
+        "*": {"fio": "3.38"},
+        "freebsd": {"nvmecontrol": None},
+        "linux": {"nvme": "2.0"},
+    }
+    assert per_family(tools) and not per_family({"fio": "3.38"})
+    assert for_family(tools, "freebsd") == {"fio": "3.38", "nvmecontrol": None}
+    assert for_family(tools, "darwin") == {"fio": "3.38"}
+    assert for_family({"fio": None}, "linux") == {"fio": None}
+    assert invalid(tools) == ""
+    assert "no OS family plan9" in invalid({"plan9": {"x": None}})
+    assert "version string" in invalid({"linux": {"x": 5.0}})
+
+
+def test_the_config_says_where_a_tool_is_needed(tmp_path):
+    config = {"tools": {"pciconf": {"os": ["freebsd"]}}}
+    target = Target({"uname": "Linux\n"}, tmp_path, config)
+    target.facts.set("targets.guest.os.family", "linux")
+
+    assert check(target, "guest", {"pciconf": None}) == [], "not needed on linux"
+    target.facts.set("targets.guest.os.family", "freebsd")
+    assert check(target, "guest", {"pciconf": None}) == ["pciconf, not found"]
+
+
+def test_a_target_of_unknown_family_is_checked_for_every_tool_and_asked_once(tmp_path):
+    config = {"tools": {"pciconf": {"os": ["freebsd"]}}}
+    target = Target({}, tmp_path, config)
+
+    assert check(target, "guest", {"pciconf": None}) == ["pciconf, not found"]
+    assert target.facts.get("targets.guest.os.family") == "unknown"
+    asked = len(target.asked)
+    check(target, "guest", {"pciconf": None})
+    assert not any("uname -s" == c for c in target.asked[asked:]), "asked once"
+
+
+def test_os_must_be_a_list_of_families(tmp_path):
+    for os_ in ("freebsd", ["plan9"]):
+        config = {"tools": {"pciconf": {"os": os_}}}
+        target = Target({}, tmp_path, config)
+        problems = check(target, "guest", {"pciconf": None})
+        assert problems and "is not a list of OS families" in problems[0]
