@@ -55,6 +55,36 @@ def test_task_lint_valid_task(tmp_path):
     assert result.returncode == 0
 
 
+def test_task_lint_substitutes_as_a_run_does(tmp_path):
+    """The task sees 'config' and 'local', as it does when it is run"""
+
+    config_path = (tmp_path / "test-config.toml").resolve()
+    config_path.write_text('[example]\nvalue = "abc"\n')
+
+    data = copy.deepcopy(TASK_SKELETON)
+    data["steps"].append(
+        {
+            "name": "templated",
+            "run": "echo {{ config.example.value }} {{ local.env.HOME }}",
+        }
+    )
+
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
+
+    result = subprocess.run(
+        [
+            "cijoe",
+            str(task_file),
+            "--integrity-check",
+            "--config",
+            str(config_path),
+        ],
+        cwd=str(tmp_path),
+    )
+    assert result.returncode == 0
+
+
 def test_task_lint_invalid_step_name(tmp_path):
 
     config_path = (tmp_path / "test-config-empty.toml").resolve()

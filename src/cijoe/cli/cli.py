@@ -162,7 +162,7 @@ def cli_integrity_check(args):
             log.error(f"failed: Config.from_path({args.config})")
             return errno.EINVAL
 
-        errors += dict_substitute(task_dict, config.options, defer_facts=True)
+        errors += dict_substitute(task_dict, default_context(config), defer_facts=True)
 
     if errors:
         log_errors(errors)
