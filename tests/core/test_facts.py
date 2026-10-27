@@ -145,9 +145,8 @@ def test_a_step_reads_the_facts_an_earlier_step_wrote(tmp_path):
 
     state = dict_from_yamlfile(tmp_path / "first" / "task.state")
     assert [step["facts"] for step in state["steps"]] == [["guest.kernel"], []]
-    assert dict_from_tomlfile(tmp_path / "first" / "facts.toml") == {
-        "guest": {"kernel": "7.3.0"}
-    }
+    facts = dict_from_tomlfile(tmp_path / "first" / "facts.toml")
+    assert facts["guest"] == {"kernel": "7.3.0"}
 
 
 def test_a_run_starts_from_an_earlier_runs_facts(tmp_path):
@@ -413,3 +412,44 @@ def test_the_report_shows_listed_facts_as_yaml(tmp_path):
     report = (example / "out" / "report.html").read_text()
     pane = report[report.index('id="facts-tab-pane"') :]
     assert "<td><code>[{" not in pane, "a list is not shown as its repr"
+
+
+def test_every_run_records_the_initiator(tmp_path):
+    reader = {
+        "doc": "Reads the initiator",
+        "steps": [
+            {"name": "read", "run": 'test -n "{{ facts.targets.initiator.os.family }}"'}
+        ],
+    }
+
+    result = run(tmp_path, reader, "--output", "on")
+    assert result.returncode == 0, result.stderr
+    initiator = dict_from_tomlfile(tmp_path / "on" / "facts.toml")["targets"][
+        "initiator"
+    ]
+    assert set(initiator) >= {"os", "kernel", "system"}
+    assert "pci" not in initiator, "only the cheap sections by default"
+
+    off = run(
+        tmp_path, TASK, "--output", "off", config="[cijoe.facts]\ninitiator = []\n"
+    )
+    assert off.returncode == 0, off.stderr
+    assert "targets" not in dict_from_tomlfile(tmp_path / "off" / "facts.toml")
+
+
+def test_the_initiators_facts_are_not_artifacts_and_have_a_writer(tmp_path):
+    from cijoe.core.processing import facts_written
+
+    result = run(tmp_path, TASK, "--output", "out")
+    assert result.returncode == 0, result.stderr
+    out = tmp_path / "out"
+    assert not list((out / "artifacts").glob("cmd_*")), "not in the artifacts"
+    assert list((out / "initiator").glob("cmd_*.output"))
+
+    state = dict_from_yamlfile(out / "task.state")
+    assert "targets.initiator.os" in state["facts_at_start"]
+    facts = Facts.load(out / "facts.toml")
+    start = {"name": "(start of run)", "facts": state["facts_at_start"]}
+    rows = facts_written(facts, [start] + state["steps"])
+    kernel = [r for r in rows if r["key"] == "targets.initiator.kernel.release"]
+    assert kernel and kernel[0]["step"] == "(start of run)"
