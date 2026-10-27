@@ -219,7 +219,13 @@ function selectFilter(event) {
                   {% for row in facts %}
                   <tr>
                     <td><code>{{ row.key }}</code></td>
-                    <td><code>{{ row.value }}</code></td>
+                    <td>
+                      {% if row.value is mapping or (row.value is iterable and row.value is not string) %}
+                      <pre>{{ row.value | to_yaml }}</pre>
+                      {% else %}
+                      <code>{{ row.value }}</code>
+                      {% endif %}
+                    </td>
                     <td>{{ row.step }}</td>
                   </tr>
                   {% endfor %}

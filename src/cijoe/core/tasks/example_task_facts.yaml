@@ -1,21 +1,23 @@
 ---
 doc: |
-  An example of facts: one step observes the target, and the steps after it use
-  what it found.
+  An example of facts: core.facts_gather observes the target, and the steps
+  after it use what it found.
 
   The configuration says what is wanted, here at least 'example.min_cpus' CPUs.
-  The first step writes what it observed as the facts 'target.kernel' and
-  'target.cpus'. The second reads them, substituted when the step starts, and
-  the third checks the observation against the wish.
+  The first step records the target's OS, kernel, CPUs, memory, PCI functions
+  and NVMe controllers as facts under 'targets.<target>'. The second shows some
+  of them, read as the facts of the default target, substituted when the step
+  starts, and the third checks the observation against the wish.
 
 steps:
-- name: observe
-  uses: core.example_script_facts
+- name: gather
+  uses: core.facts_gather
 
 - name: show
   run: |
-    echo "kernel {{ facts.target.kernel }}, {{ facts.target.cpus }} CPUs"
+    echo "{{ target.os.pretty_name }}, kernel {{ target.kernel.release }}"
+    echo "{{ target.system.cpus }} CPUs, {{ target.system.memory_kib }} KiB"
 
 - name: check
   run: |
-    test {{ facts.target.cpus }} -ge {{ config.example.min_cpus }}
+    test {{ target.system.cpus }} -ge {{ config.example.min_cpus }}
