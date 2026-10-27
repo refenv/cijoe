@@ -199,8 +199,8 @@ version the run needs:
    version = "fio --version"   # how to ask; default: '<tool> --version'
    min = "3.38"                # the least version; default: any
 
-A tool needed on some OS families only says so, as a list of ``linux``,
-``freebsd``, ``darwin`` and ``windows``, and is not checked on others, so one
+A tool needed on some OS families only says so, as a non-empty list of
+``linux``, ``freebsd``, ``darwin`` and ``windows``, and is not checked on others, so one
 configuration serves targets of several; on a target whose family cannot be
 found, it is checked:
 

@@ -187,7 +187,7 @@ def wanted(cijoe, tools: dict):
             continue
         on = entry.get("os")
         if on is not None and not (
-            isinstance(on, list) and all(f in FAMILIES for f in on)
+            isinstance(on, list) and on and all(f in FAMILIES for f in on)
         ):
             problems.append(
                 f"{tool}: os = {on!r} is not a list of OS families, of {', '.join(FAMILIES)}"
