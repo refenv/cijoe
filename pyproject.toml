@@ -47,8 +47,8 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://cijoe.readthedocs.io/"
-documentation = "https://cijoe.readthedocs.io/"
+homepage = "https://refenv.github.io/cijoe/"
+documentation = "https://refenv.github.io/cijoe/"
 repository = "https://github.com/refenv/cijoe"
 changelog = "https://github.com/refenv/cijoe/blob/main/CHANGELOG.md"
 
