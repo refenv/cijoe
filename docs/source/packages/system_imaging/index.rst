@@ -16,4 +16,5 @@ Scripts
 
 
    scripts/diskimage_from_cloudimage.rst
+   scripts/diskimage_from_oras.rst
    scripts/dockerimage_from_diskimage.rst

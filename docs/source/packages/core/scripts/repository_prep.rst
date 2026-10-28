@@ -17,3 +17,7 @@ CLI arguments
 * ``--single_branch {true,false}``
 
   Argument for git: Clone only the history leading to the tip of the specified revision. (default: False)
+
+* ``--recursive {true,false}``
+
+  Argument for git: Recurse into the registered submodules, and update any nested submodules within. (default: True)
