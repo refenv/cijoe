@@ -9,9 +9,9 @@ cijoe: tools for systems development and testing
    :target: https://github.com/refenv/cijoe/actions
    :alt: Build Status
 
-.. image:: https://readthedocs.org/projects/cijoe/badge/?version=latest
-   :target: https://cijoe.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
+.. image:: https://github.com/refenv/cijoe/actions/workflows/docs.yml/badge.svg
+   :target: https://refenv.github.io/cijoe/
+   :alt: Documentation
 
 .. image:: https://coveralls.io/repos/github/refenv/cijoe/badge.svg?branch=main
    :target: https://coveralls.io/github/refenv/cijoe?branch=main
@@ -28,8 +28,8 @@ If you find bugs or need help then feel free to submit an `Issue`_. If you want
 to get involved head over to the `GitHub page`_ to get the source code and
 submit a `Pull request`_ with your changes.
 
-.. _Quickstart Guide: https://cijoe.readthedocs.io/
-.. _Usage: https://cijoe.readthedocs.io/
+.. _Quickstart Guide: https://refenv.github.io/cijoe/
+.. _Usage: https://refenv.github.io/cijoe/
 .. _GitHub page: https://github.com/refenv/cijoe
 .. _Pull request: https://github.com/refenv/cijoe/pulls
 .. _Issue: https://github.com/refenv/cijoe/issues
