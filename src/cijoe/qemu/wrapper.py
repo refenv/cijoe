@@ -302,7 +302,7 @@ class Guest(object):
 
         start = time.time()
         while True:
-            if not self.get_pid():
+            if not self.is_running():
                 return 0, True
             if time.time() - start > timeout:
                 break
