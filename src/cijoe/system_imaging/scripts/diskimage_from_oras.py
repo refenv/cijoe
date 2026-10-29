@@ -94,7 +94,11 @@ def diskimage_from_oras(cijoe, image: dict):
     # a stamp next to the qcow2 and a digest bump in the config re-stages. A tag
     # is resolved to the digest it names now, so it is staged once, and again
     # only if the tag moves.
-    ref = oras.parse_ref(url)
+    try:
+        ref = oras.parse_ref(url)
+    except oras.OrasError as exc:
+        log.error(f"invalid .oras.url: {exc}")
+        return errno.EINVAL
     stamp = Path(f"{disk_path}.digest")
     origin = Path(f"{disk_path}.ref")
     resolved = None
@@ -126,7 +130,12 @@ def diskimage_from_oras(cijoe, image: dict):
         log.info(f"image already staged at {disk_path} ({digest}); skipping pull")
         return 0
 
-    resolved = resolved or oras.resolve_ref(ref)
+    if resolved is None:
+        try:
+            resolved = oras.resolve_ref(ref)
+        except oras.OrasError as exc:
+            log.error(f"cannot resolve {url}: {exc}")
+            return errno.EHOSTUNREACH
     disk_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Workdir on disk_path's filesystem; a /tmp overlay may be too small for the
