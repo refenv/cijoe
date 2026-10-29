@@ -43,8 +43,8 @@ class Local(Transport):
     def run(self, cmd, cwd, env, cmd_output):
         """Invoke the given command"""
 
-        env = dict(os.environ)
-        env.update(env)
+        full_env = dict(os.environ)
+        full_env.update(env or {})
 
         with subprocess.Popen(
             cmd,
@@ -52,7 +52,7 @@ class Local(Transport):
             stderr=subprocess.STDOUT,
             shell=True,
             cwd=cwd,
-            env=env,
+            env=full_env,
         ) as process:
             while process.poll() is None:
                 cmd_output.write(process.stdout.read(1))
