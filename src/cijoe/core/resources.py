@@ -709,7 +709,7 @@ class Collector(object):
         ("auxiliary", ".*"),
     ]
     LEGACY_CATEGORIES = {"workflows": "tasks"}
-    IGNORE = ["__init__.py", "__pycache__", "setup.py"]
+    IGNORE = ["__init__.py", "__pycache__", "setup.py", ".keep"]
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
@@ -771,7 +771,7 @@ class Collector(object):
         if prefix is None:
             prefix = ""
 
-        canonical_categories = {cat for cat, _ in Collector.RESOURCES}
+        suffixes = dict(Collector.RESOURCES)
 
         for pkg in pkgutil.walk_packages(path, prefix):
             comp = pkg.name.split(".")[1:]  # drop the 'cijoe.' prefix
@@ -786,11 +786,15 @@ class Collector(object):
                     f"rename to '{Collector.LEGACY_CATEGORIES[category]}/'"
                 )
                 category = Collector.LEGACY_CATEGORIES[category]
-            elif category not in canonical_categories:
+            elif category not in suffixes:
                 continue
 
             for candidate in importlib_files(f"{pkg.name}").iterdir():
                 if candidate.name in Collector.IGNORE:
+                    continue
+                if category != "auxiliary" and (
+                    Path(candidate.name).suffix != suffixes[category]
+                ):
                     continue
 
                 self.__process_candidate(candidate, category, pkg)
