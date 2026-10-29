@@ -5,8 +5,8 @@ cijoe: tools for systems development and testing
    :target: https://pypi.org/project/cijoe
    :alt: PyPI
 
-.. image:: https://github.com/refenv/cijoe/workflows/selftest/badge.svg
-   :target: https://github.com/refenv/cijoe/actions
+.. image:: https://github.com/refenv/cijoe/actions/workflows/extended.yml/badge.svg?branch=main
+   :target: https://github.com/refenv/cijoe/actions/workflows/extended.yml?query=branch%3Amain
    :alt: Build Status
 
 .. image:: https://github.com/refenv/cijoe/actions/workflows/docs.yml/badge.svg
@@ -28,8 +28,8 @@ If you find bugs or need help then feel free to submit an `Issue`_. If you want
 to get involved head over to the `GitHub page`_ to get the source code and
 submit a `Pull request`_ with your changes.
 
-.. _Quickstart Guide: https://refenv.github.io/cijoe/
-.. _Usage: https://refenv.github.io/cijoe/
+.. _Quickstart Guide: https://refenv.github.io/cijoe/#quickstart
+.. _Usage: https://refenv.github.io/cijoe/usage/index.html
 .. _GitHub page: https://github.com/refenv/cijoe
 .. _Pull request: https://github.com/refenv/cijoe/pulls
 .. _Issue: https://github.com/refenv/cijoe/issues
