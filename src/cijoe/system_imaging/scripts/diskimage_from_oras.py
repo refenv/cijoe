@@ -84,10 +84,11 @@ def diskimage_from_oras(cijoe, image: dict):
         log.error("missing .oras.url entry in configuration file")
         return errno.EINVAL
 
-    if not (disk := image.get("disk", {})):
-        log.error("missing .disk entry in configuration file")
+    disk = image.get("disk", {})
+    if not (disk_path := disk.get("path")):
+        log.error("missing .disk.path entry in configuration file")
         return errno.EINVAL
-    disk_path = Path(disk.get("path"))
+    disk_path = Path(disk_path)
     grow = disk.get("grow", GROW)
 
     # Skip when the pinned image is already staged; the content digest is kept in
