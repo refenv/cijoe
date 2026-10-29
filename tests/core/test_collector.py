@@ -68,10 +68,32 @@ def test_compare_from_path_with_from_package():
     )
 
 
-def test_collect_from_empty_path():
+def test_collect_from_empty_path(tmp_path, monkeypatch):
     """This should return an empty dictionary"""
 
+    monkeypatch.delattr(Collector, "instance", raising=False)
+
     collector = Collector()
-    collector.collect_from_path("/tmp")
+    collector.collect_from_path(tmp_path)
 
     assert len(collector.resources["scripts"]) == 0, "Did not expect to find any"
+
+
+def test_collect_from_packages_skips_other_suffixes(tmp_path, monkeypatch):
+    """A file in a category directory is only collected with that category's suffix"""
+
+    for sub in ["cijoe_fake", "cijoe_fake/demo", "cijoe_fake/demo/tasks"]:
+        (tmp_path / sub).mkdir()
+        (tmp_path / sub / "__init__.py").write_text("")
+    (tmp_path / "cijoe_fake/demo/tasks/README.md").write_text("not a task")
+    (tmp_path / "cijoe_fake/demo/tasks/.keep").write_text("")
+    (tmp_path / "cijoe_fake/demo/tasks/real.yaml").write_text("doc: x\nsteps: []\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.delattr(Collector, "instance", raising=False)
+
+    import cijoe_fake
+
+    collector = Collector()
+    collector.collect_from_packages(cijoe_fake.__path__, "cijoe_fake.")
+
+    assert list(collector.resources["tasks"]) == ["demo.real"]

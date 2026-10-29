@@ -28,8 +28,8 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Copies the file at args.src on the local machine to args.dst on the remote machine"""
 
-    if not ("src" in args and "dst" in args):
-        log.error("missing step-argument: with.src and/or with.dst")
+    if not args.src:
+        log.error("missing step-argument: with.src")
         return errno.EINVAL
 
     if args.transport:

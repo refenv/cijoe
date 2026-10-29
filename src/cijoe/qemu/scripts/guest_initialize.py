@@ -68,7 +68,7 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Provision using an existing boot image"""
 
-    if "guest_name" not in args:
+    if not args.guest_name:
         log.error("missing argument: guest_name")
         return errno.EINVAL
 
@@ -77,7 +77,7 @@ def main(args, cijoe):
     system_image_name = cijoe.getconf(
         f"qemu.guests.{args.guest_name}.system_image_name", None
     )
-    if "system_image_name" in args:
+    if args.system_image_name:
         system_image_name = args.system_image_name
 
     if system_image_name is None:

@@ -81,7 +81,7 @@ def dockerimage_from_diskimage(cijoe, image):
 def main(args, cijoe):
     """Create a docker image using the content of a .qcow2 image"""
 
-    if "pattern" not in args:
+    if not args.pattern:
         log.error("missing step-argument: with.pattern")
         return 1
     pattern = args.pattern

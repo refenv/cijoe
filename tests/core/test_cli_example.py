@@ -34,6 +34,28 @@ def test_emit_example_core(cijoe, tmp_path):
     assert not err
 
 
+def test_cli_example_listing_with_a_task_in_the_cwd(cijoe, tmp_path):
+    (tmp_path / "mine.yaml").write_text("doc: x\nsteps: []\n")
+
+    err, state = cijoe.run("cijoe --example", cwd=tmp_path)
+    assert not err
+    assert "core.default" in state.output()
+
+
+def test_emit_example_twice(cijoe, tmp_path):
+    for _ in range(2):
+        err, _ = cijoe.run("cijoe --example core.default", cwd=tmp_path)
+        assert not err
+
+
+def test_emit_example_that_does_not_exist(cijoe, tmp_path):
+    err, _ = cijoe.run("cijoe --example core.nosuch", cwd=tmp_path)
+    assert err
+
+    err, _ = cijoe.run("cijoe --example nosuch", cwd=tmp_path)
+    assert err
+
+
 def test_cli_version(cijoe):
     err, _ = cijoe.run("cijoe --version")
     pass
@@ -80,6 +102,12 @@ def test_cli_environment_variables(cijoe):
     # This should fail since 0xg is not a valid hex value
     os.environ["HELLO_WORLD"] = "0xg"
     message = cijoe.getconf("hello.world", None)
+
+
+def test_getconf_reads_a_dashed_key_from_underscores(cijoe, monkeypatch):
+    monkeypatch.setenv("SYSTEM_IMAGING_IMAGES_FEDORA_43", "from-env")
+
+    assert cijoe.getconf("system-imaging.images.fedora-43") == "from-env"
 
 
 def test_cli_search_for_file_exists():

@@ -1,6 +1,7 @@
 import errno
 import logging as log
 import os
+import shlex
 import shutil
 import subprocess
 import weakref
@@ -43,8 +44,8 @@ class Local(Transport):
     def run(self, cmd, cwd, env, cmd_output):
         """Invoke the given command"""
 
-        env = dict(os.environ)
-        env.update(env)
+        full_env = dict(os.environ)
+        full_env.update(env or {})
 
         with subprocess.Popen(
             cmd,
@@ -52,7 +53,7 @@ class Local(Transport):
             stderr=subprocess.STDOUT,
             shell=True,
             cwd=cwd,
-            env=env,
+            env=full_env,
         ) as process:
             while process.poll() is None:
                 cmd_output.write(process.stdout.read(1))
@@ -190,8 +191,11 @@ class SSH(Transport):
             prefix_env = ""
 
         cmd = f"{prefix_env}{cmd}"
-        if cwd:
+        # shlex quotes for POSIX shells and csh; cmd and pwsh quote differently
+        if cwd and self.shell in ("cmd", "pwsh"):
             cmd = f"cd {cwd}; {cmd}"
+        elif cwd:
+            cmd = f"cd {shlex.quote(str(cwd))} && {cmd}"
 
         try:
             self.__connect()
@@ -249,7 +253,7 @@ class SSH(Transport):
 
         if dst is None:
             dst = os.path.basename(src)
-        if not os.path.isabs(src):
+        if not os.path.isabs(dst):
             dst = os.path.join(self.output_path, self.output_ident, dst)
 
         try:
