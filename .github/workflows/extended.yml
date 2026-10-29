@@ -1,5 +1,6 @@
 ---
 name: extended
+run-name: extended ${{ inputs.ref || github.head_ref || 'latest release' }}
 
 on:
   workflow_dispatch:
@@ -13,7 +14,7 @@ on:
 
 concurrency:
   group: >-
-    ${{ github.workflow }}-${{ github.ref }}${{
+    ${{ github.workflow }}-${{ github.ref }}-${{ inputs.ref }}${{
       github.event.action == 'labeled' && github.event.label.name != 'extended'
       && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
