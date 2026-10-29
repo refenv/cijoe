@@ -1,6 +1,10 @@
+import os
+import platform
 import subprocess
 
+from cijoe.core.command import Cijoe
 from cijoe.core.facts import Facts, gathering
+from cijoe.core.resources import Config
 from cijoe.core.scripts import facts_gather
 
 # What the listings printed on Linux, FreeBSD 14.4 and a Windows 11 guest
@@ -330,3 +334,47 @@ def test_gather_is_part_of_core_facts():
 
     assert facts.gather is gathering.gather
     assert facts.SECTIONS is gathering.SECTIONS
+
+
+def initiator(tmp_path) -> Cijoe:
+    (tmp_path / "config.toml").write_text("")
+    return Cijoe(Config.from_path(tmp_path / "config.toml"), tmp_path / "out", False)
+
+
+def test_gather_every_section_on_this_machine(tmp_path):
+    """Every section, gathered from the machine running the tests, as it is"""
+
+    cijoe = initiator(tmp_path)
+    family = gathering.gather(cijoe, "initiator", gathering.SECTIONS)
+    facts = cijoe.facts.get("targets.initiator")
+
+    assert facts["os"]["family"] == family
+    assert facts["kernel"]["name"] == platform.system()
+    assert facts["kernel"]["release"] == platform.release()
+    assert facts["kernel"]["machine"] == platform.machine()
+    assert 0 < facts["system"]["cpus"] <= (os.cpu_count() or 1)
+    assert facts["system"]["memory_kib"] > 0
+
+    if family == "darwin":
+        assert facts["os"]["id"] == "macos"
+        assert not {"pci", "nvme", "gpu", "nic"} & set(facts), "no way on macOS"
+        return
+
+    assert family == "linux", "the families CI runs the tests on"
+    assert facts["os"]["id"]
+    bdfs = {function["bdf"] for function in facts["pci"]}
+    assert all(gathering.BDF.fullmatch(bdf) for bdf in bdfs)
+    for section in ["gpu", "nic"]:
+        assert {function["bdf"] for function in facts[section]} <= bdfs
+    for controller in facts["nvme"].values():
+        assert controller["bdf"] in bdfs
+        for namespace in controller["namespaces"]:
+            assert namespace.get("bdev") or namespace.get("cdev")
+            assert isinstance(namespace.get("nsid", 0), int)
+
+
+def test_a_family_without_a_way_gathers_nothing(tmp_path):
+    cijoe = initiator(tmp_path)
+
+    assert gathering.gather_section(cijoe, "initiator", "plan9", "os") is None
+    assert gathering.gather_section(cijoe, "initiator", "darwin", "pci") is None
