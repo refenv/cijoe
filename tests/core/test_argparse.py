@@ -206,3 +206,19 @@ def test_defaults():
     err, args = parse_args()
     assert not err
     assert args.task.name == os.environ.get("CIJOE_DEFAULT_TASK", DEFAULT_TASK_FILENAME)
+
+
+def test_each_config_is_given_once(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["cijoe", "-c", "a.toml", "-c", "b.toml"])
+
+    err, args = parse_args()
+    assert not err
+    assert [str(path) for path in args.config] == ["a.toml", "b.toml"]
+
+
+def test_no_config_is_none_given(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["cijoe"])
+
+    err, args = parse_args()
+    assert not err
+    assert not args.config
