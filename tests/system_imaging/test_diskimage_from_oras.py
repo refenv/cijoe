@@ -183,3 +183,21 @@ def test_changing_the_growth_restages(tmp_path, monkeypatch):
             return 9, None
 
     assert mod.diskimage_from_oras(Refusing(), grown) == 9, "another growth pulls"
+
+
+def test_unstaged_digest_fails_when_the_registry_is_unreachable(tmp_path, monkeypatch):
+    import errno
+
+    monkeypatch.setattr(mod.oras, "resolve_ref", Unreachable)
+    image = {"oras": {"url": REF}, "disk": {"path": str(tmp_path / "image.qcow2")}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EHOSTUNREACH
+
+
+def test_malformed_url_is_rejected(tmp_path):
+    import errno
+
+    url = "https://ghcr.io/safl/nosi/example:v1.2.3"
+    image = {"oras": {"url": url}, "disk": {"path": str(tmp_path / "image.qcow2")}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EINVAL
