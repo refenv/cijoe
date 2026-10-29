@@ -67,3 +67,16 @@ def test_download_and_verify(served, tmp_path):
     )
     assert err == 0
     assert path.read_text() == "content"
+
+
+def test_decompress_strips_only_the_file_suffix(tmp_path):
+    folder = tmp_path / "images.gz.d"
+    folder.mkdir()
+    src = folder / "disk.img.gz"
+    with gzip.open(src, "wb") as compressed:
+        compressed.write(b"disk")
+
+    err, dst = decompress_file(src)
+    assert err == 0
+    assert dst == folder / "disk.img"
+    assert dst.read_bytes() == b"disk"
