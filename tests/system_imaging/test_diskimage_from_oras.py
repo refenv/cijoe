@@ -101,6 +101,7 @@ def test_tag_pulls_when_it_names_another_digest(tmp_path, monkeypatch):
     assert mod.diskimage_from_oras(cijoe, image) == 0
     assert moved in cijoe.commands[0]
     assert (tmp_path / "image.qcow2.digest").read_text() == moved
+    assert (tmp_path / "image.qcow2.ref").read_text() == TAG
 
 
 class Unreachable:
@@ -113,10 +114,27 @@ def test_staged_tag_is_used_when_the_registry_is_unreachable(tmp_path, monkeypat
     disk = tmp_path / "image.qcow2"
     disk.write_bytes(b"staged")
     (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+    (tmp_path / "image.qcow2.ref").write_text(TAG)
 
     image = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
 
     assert mod.diskimage_from_oras(FakeCijoe(), image) == 0
+
+
+def test_another_tag_staged_is_not_used_when_the_registry_is_unreachable(
+    tmp_path, monkeypatch
+):
+    import errno
+
+    monkeypatch.setattr(mod.oras, "resolve_ref", Unreachable)
+    disk = tmp_path / "image.qcow2"
+    disk.write_bytes(b"staged")
+    (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+    (tmp_path / "image.qcow2.ref").write_text(TAG.replace("v1.2.3", "v1.2.2"))
+
+    image = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EHOSTUNREACH
 
 
 def test_unstaged_tag_fails_when_the_registry_is_unreachable(tmp_path, monkeypatch):
