@@ -46,3 +46,9 @@ repos:
     - types-paramiko
     - types-PyYAML
     - types-requests
+
+- repo: https://github.com/fsfe/reuse-tool
+  rev: v6.2.0
+  hooks:
+  - id: reuse
+    name: REUSE-lint

@@ -1,0 +1,7 @@
+version = 1
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2022 Simon A. F. Lund"
+SPDX-License-Identifier = "BSD-3-Clause"
