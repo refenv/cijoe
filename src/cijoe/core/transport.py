@@ -253,7 +253,7 @@ class SSH(Transport):
 
         if dst is None:
             dst = os.path.basename(src)
-        if not os.path.isabs(src):
+        if not os.path.isabs(dst):
             dst = os.path.join(self.output_path, self.output_ident, dst)
 
         try:

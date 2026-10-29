@@ -447,3 +447,14 @@ def test_run_in_a_cwd_with_a_space(ssh_cijoe, tmp_path):
     err, _ = ssh_cijoe.run("touch ran", cwd=tmp_path / "missing")
     assert err != 0
     assert not (Path.home() / "ran").exists()
+
+
+def test_get_to_a_relative_dst_lands_in_the_step_directory(ssh_cijoe, tmp_path):
+    """An absolute src with a relative dst is fetched into the step's directory"""
+
+    remote = tmp_path / "remote"
+    remote.write_text("over ssh\n")
+    ssh_cijoe.set_output_ident("step")
+
+    assert ssh_cijoe.get(str(remote), "fetched")
+    assert (tmp_path / "output" / "step" / "fetched").read_text() == "over ssh\n"
