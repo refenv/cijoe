@@ -286,10 +286,9 @@ def cli_produce_report(args):
 def _example_id_from_task_name(task_name: str) -> Optional[str]:
     """Strip the example prefix from a task resource name; None if no match."""
 
-    _, tail = task_name.split(".", 1)
+    pkg_name, _, tail = task_name.partition(".")
     for prefix in ("example_task_", "example_workflow_"):
         if tail.startswith(prefix):
-            pkg_name = task_name.split(".", 1)[0]
             return f"{pkg_name}.{tail[len(prefix):]}"
     return None
 
@@ -314,8 +313,9 @@ def cli_example(args):
         return errno.EINVAL
 
     # Emit examples
+    emitted = 0
     for task_name, task in sorted(resources.get("tasks", {}).items()):
-        if not task_name.startswith(pkg_name):  # Not the requested package
+        if task_name.split(".", 1)[0] != pkg_name:  # Not the requested package
             continue
 
         cur_example_id = _example_id_from_task_name(task_name)
@@ -330,7 +330,8 @@ def cli_example(args):
             log.debug(f"skipping example_name({cur_example_name})")
             continue
 
-        cur_example_dir.mkdir()
+        cur_example_dir.mkdir(exist_ok=True)
+        emitted += 1
 
         for section, default_filename, resource_category, prefixes in [
             ("config", DEFAULT_CONFIG_FILENAME, "configs", ["example_config_"]),
@@ -363,6 +364,10 @@ def cli_example(args):
                 continue
 
             shutil.copyfile(resource.path, dst)
+
+    if not emitted:
+        log.error(f"no example({args.example}); list them with 'cijoe --example'")
+        return errno.EINVAL
 
     return 0
 
