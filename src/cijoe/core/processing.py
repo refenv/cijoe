@@ -26,11 +26,14 @@ def runlog_from_path(path: Path):
     if not (path.is_dir() and path.exists()):
         return run
 
-    for cmd_path in sorted(path.glob("cmd_*.*"), key=cmd_number_from_path):
+    cmd_paths = [
+        cmd_path
+        for cmd_path in path.glob("cmd_*.*")
+        if cmd_path.suffix in (".output", ".state") and cmd_path.stem[4:].isdigit()
+    ]
+    for cmd_path in sorted(cmd_paths, key=cmd_number_from_path):
         stem = cmd_path.stem
         suffix = cmd_path.suffix[1:]
-        if suffix not in ["output", "state"]:
-            continue
 
         if stem not in run:
             run[stem] = {
