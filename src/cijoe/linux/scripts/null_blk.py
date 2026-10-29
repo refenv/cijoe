@@ -4,6 +4,9 @@ insert / remove null_blk
 
 Insert or remove null_blk instances, based on the value of args.do
 
+Deprecated: this will be removed in v1.0, as will cijoe.linux.null_blk and the rest
+of the linux package.
+
 Retargetable: True
 ------------------
 """
@@ -12,6 +15,7 @@ import errno
 from argparse import ArgumentParser
 
 import cijoe.linux.null_blk as null_blk
+from cijoe.core.misc import deprecated
 
 
 def add_args(parser: ArgumentParser):
@@ -26,6 +30,7 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Insert or remove the null_blk"""
 
+    deprecated("linux.null_blk")
     do = args.do
     if do == "insert":
         err, _ = null_blk.insert(cijoe)

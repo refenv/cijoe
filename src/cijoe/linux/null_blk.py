@@ -1,6 +1,8 @@
 """
     null_blk module, helpers to load/unload null block instances
 
+    Deprecated: this will be removed in v1.0, with the rest of the linux package.
+
     To use it, one must have permissions to modprobe, rmmod and modify the /syscfg
 
     NOTE: This is **fully** re-targetable, that is, changing transport changes where it
