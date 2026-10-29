@@ -68,11 +68,13 @@ def test_compare_from_path_with_from_package():
     )
 
 
-def test_collect_from_empty_path():
+def test_collect_from_empty_path(tmp_path, monkeypatch):
     """This should return an empty dictionary"""
 
+    monkeypatch.delattr(Collector, "instance", raising=False)
+
     collector = Collector()
-    collector.collect_from_path("/tmp")
+    collector.collect_from_path(tmp_path)
 
     assert len(collector.resources["scripts"]) == 0, "Did not expect to find any"
 
