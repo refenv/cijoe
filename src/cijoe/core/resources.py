@@ -36,6 +36,7 @@
         cijoe --resources
 """
 import ast
+import copy
 import importlib
 import inspect
 import logging as log
@@ -676,10 +677,9 @@ class Task(Resource):
             if step_templates:
                 step["with_facts"] = step_templates
 
-        state = Task.STATE.copy()
+        state = copy.deepcopy(Task.STATE)
         state["doc"] = task_dict.get("doc")
         state["config"] = task_dict.get("config", {})
-        state["steps"] = list(state["steps"])
         for nr, step in enumerate(task_dict["steps"], 1):
             step["nr"] = nr
             step["status"] = {
