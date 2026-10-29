@@ -82,6 +82,12 @@ def test_cli_environment_variables(cijoe):
     message = cijoe.getconf("hello.world", None)
 
 
+def test_getconf_reads_a_dashed_key_from_underscores(cijoe, monkeypatch):
+    monkeypatch.setenv("SYSTEM_IMAGING_IMAGES_FEDORA_43", "from-env")
+
+    assert cijoe.getconf("system-imaging.images.fedora-43") == "from-env"
+
+
 def test_cli_search_for_file_exists():
     filename = "tmpfile.txt"
     file = (SEARCH_PATHS[0] / filename).resolve()

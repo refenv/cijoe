@@ -328,11 +328,11 @@ class Cijoe(object):
         "foo.bar.jazz".
 
         The value is found in the cijoe configuration file, but is overwritten
-        if the key (with points replaced with underscores, ex. FOO_BAR_JAZZ) is
-        found in the initiator's environment variables.
+        if the key, with points and dashes replaced with underscores, ex.
+        FOO_BAR_JAZZ, is found in the initiator's environment variables.
         """
 
-        envkey = key.replace(".", "_").replace("-", ".").upper()
+        envkey = key.replace(".", "_").replace("-", "_").upper()
         envvar = os.getenv(envkey)
         if envvar:
             log.debug(f"found {key} ({envkey}) in environment variables.")
