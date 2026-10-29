@@ -130,14 +130,15 @@ def pytest_remote(args, cijoe):
     cwd = Path(state.output().strip())
     rand = str(uuid.uuid4())[:8]
 
-    # Construct config based on current config, but without "ssh" transport
+    # Construct config based on current config, but without its targets, since
+    # pytest runs on the target, where the initiator is the only one
     config_stem = f"cijoe-config-{rand}.toml"
     config_path = cwd / config_stem
     config_path_local = args.output / cijoe.output_ident / config_stem
 
     config = copy.deepcopy(cijoe.config.options)
-    if "transport" in config.get("cijoe", {}):
-        del config["cijoe"]["transport"]
+    for key in ["transport", "targets", "default_target"]:
+        config.get("cijoe", {}).pop(key, None)
 
     dict_to_tomlfile(config, config_path_local)
     cijoe.put(str(config_path_local), config_path)

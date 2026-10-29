@@ -89,15 +89,12 @@ def main(args, cijoe):
     Return 0 on success, 1 on timeout or invalid transport.
     """
 
-    # Pick transport name: explicit if given, else first defined
-    transport_name = args.transport_name or next(
-        iter(cijoe.getconf("cijoe.transport", {})), None
-    )
-    if not transport_name:
-        log.error("No transport_name given, and none to select in cijoe.transport")
+    transport_name = args.transport_name or cijoe.default_target
+    if transport_name == "initiator":
+        log.error("No transport_name given, and none to select in cijoe.targets")
         return 1
 
-    transport = cijoe.getconf(f"cijoe.transport.{transport_name}", {})
+    transport = cijoe.getconf(f"cijoe.targets.{transport_name}.ssh", {})
     hostname = transport.get("hostname", "")
     if not transport or not hostname:
         log.error(f"Invalid transport({transport})")

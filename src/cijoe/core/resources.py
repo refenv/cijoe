@@ -67,6 +67,8 @@ else:
 
 import tomli_w
 
+from cijoe.core.misc import deprecated
+
 
 def dict_from_yamlfile(path: Path):
     """Returns content of yamlfile at 'path' as dict and {} on empty document."""
@@ -220,6 +222,48 @@ class Resource(object):
             self.content = resource_file.read()
 
 
+def config_targets(config_dict: dict) -> list:
+    """
+    Check the targets 'cijoe.targets' describes, each by a table naming how it is
+    reached, '[cijoe.targets.<name>.ssh]'. A deprecated '[cijoe.transport.<name>]'
+    is copied there, and left in place for what still reads it. Returns errors.
+    """
+
+    errors: list = []
+
+    options = config_dict.get("cijoe", {})
+    targets = options.get("targets", {})
+    if not isinstance(targets, dict):
+        return ["The key cijoe.targets must be a table, of one table per target."]
+
+    for name, ssh in options.get("transport", {}).items():
+        deprecated(f"[cijoe.transport.{name}]", f"[cijoe.targets.{name}.ssh]")
+        if name in targets:
+            errors.append(
+                f"The target {name} is in both cijoe.targets and cijoe.transport."
+            )
+            continue
+        targets[name] = {"ssh": ssh}
+
+    if "initiator" in targets:
+        errors.append("The key cijoe.targets.initiator is reserved.")
+    for name, target in targets.items():
+        if not isinstance(target, dict) or not isinstance(target.get("ssh"), dict):
+            errors.append(f"The target {name} has no [cijoe.targets.{name}.ssh].")
+
+    default = options.get("default_target")
+    if default is not None and default not in [*targets, "initiator"]:
+        errors.append(
+            f"The cijoe.default_target ({default}) is not a target; known:"
+            f" {', '.join([*targets, 'initiator'])}"
+        )
+
+    if targets and not errors:
+        options["targets"] = targets
+
+    return errors
+
+
 class Config(Resource):
     """
     Encapsulation of a CIJOE config-file, e.g. 'example_config_default.toml'
@@ -246,6 +290,10 @@ class Config(Resource):
 
         if config_dict.get("cijoe", {}).get("transport", {}).get("initiator"):
             errors.append("The key cijoe.transport.initiator is reserved.")
+            return errors
+
+        errors = config_targets(config_dict)
+        if errors:
             return errors
 
         if "facts" in config_dict:

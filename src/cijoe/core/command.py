@@ -160,10 +160,10 @@ class Cijoe(object):
 
         self.transports = {}
 
-        config_transports = self.config.options.get("cijoe", {}).get("transport", {})
-        for transport_name in config_transports:
-            self.transports[transport_name] = transport.SSH(
-                self.config, self.output_path, transport_name
+        targets = self.config.options.get("cijoe", {}).get("targets", {})
+        for name, target in targets.items():
+            self.transports[name] = transport.SSH(
+                self.config, self.output_path, target["ssh"]
             )
 
         self.transports["initiator"] = transport.Local(self.config, self.output_path)
@@ -173,11 +173,13 @@ class Cijoe(object):
     def default_target(self) -> str:
         """
         The name of the target that run(), put() and get() reach when given no
-        'transport_name': the first in the config's 'cijoe.transport', or the
-        initiator when there is none
+        'transport_name': the config's 'cijoe.default_target', else the first in
+        its 'cijoe.targets', or the initiator when there is none
         """
 
-        return next(iter(self.transports))
+        return self.config.options.get("cijoe", {}).get(
+            "default_target", next(iter(self.transports))
+        )
 
     def set_output_ident(self, output_ident: str, transport_name=None):
         """
