@@ -148,12 +148,12 @@ def test_one_connection(remote_cijoe):
     assert remote_cijoe.put("/tmp/src", "dst")
     assert remote_cijoe.get("src", "/tmp/dst")
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
     assert ssh.connects == 1
     assert ssh.commands == commands
     assert ssh.transport.keepalive == transport.KEEPALIVE_SECONDS
     assert all(channel.closed for channel in ssh.channels)
-    assert [kind for kind, _, _ in remote_cijoe.transports["remote"].scp.transfers] == [
+    assert [kind for kind, _, _ in remote_cijoe.targets["remote"].scp.transfers] == [
         "put",
         "get",
     ]
@@ -162,7 +162,7 @@ def test_one_connection(remote_cijoe):
 def test_reconnect_after_drop(remote_cijoe):
     """A connection that dropped is made again on next use, for commands and transfers"""
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
 
     err, _ = remote_cijoe.run("true")
     assert err == 0 and ssh.connects == 1
@@ -179,14 +179,14 @@ def test_reconnect_after_drop(remote_cijoe):
 def test_closed(remote_cijoe):
     """Cijoe.close() closes the connection, and a later command connects again"""
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
 
     err, _ = remote_cijoe.run("true")
     assert err == 0 and ssh.transport is not None
 
     remote_cijoe.close()
     assert ssh.transport is None
-    assert remote_cijoe.transports["remote"].scp is None
+    assert remote_cijoe.targets["remote"].scp is None
 
     err, _ = remote_cijoe.run("true")
     assert err == 0 and ssh.connects == 2
@@ -206,9 +206,9 @@ def test_wait_for_transport_probes_a_fresh_connection(remote_cijoe, monkeypatch)
         wait_for_transport.socket, "create_connection", lambda *a, **k: io.BytesIO()
     )
 
-    err, _ = remote_cijoe.run("true", transport_name="remote")
+    err, _ = remote_cijoe.run("true", target="remote")
     assert not err
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
     assert ssh.connects == 1
 
     args = argparse.Namespace(transport_name="remote", state="up", timeout=10)
@@ -219,7 +219,7 @@ def test_wait_for_transport_probes_a_fresh_connection(remote_cijoe, monkeypatch)
 def test_failed_connect_is_not_kept(remote_cijoe):
     """A connect that fails after the transport started is not kept for next use"""
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
 
     ssh.fail_auth = 1
     assert not remote_cijoe.put("/tmp/src", "dst")
@@ -232,7 +232,7 @@ def test_failed_connect_is_not_kept(remote_cijoe):
 def test_command_failure_drops_the_connection(remote_cijoe):
     """An SSH error in a command closes the connection, so the next connects again"""
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
 
     err, _ = remote_cijoe.run("true")
     assert err == 0 and ssh.connects == 1
@@ -248,7 +248,7 @@ def test_command_failure_drops_the_connection(remote_cijoe):
 def test_transfer_failure_drops_the_connection(remote_cijoe, monkeypatch):
     """A failed transfer closes the connection, so the next transfer connects again"""
 
-    ssh = remote_cijoe.transports["remote"].ssh
+    ssh = remote_cijoe.targets["remote"].ssh
 
     assert remote_cijoe.put("/tmp/src", "dst")
     assert ssh.connects == 1
@@ -264,11 +264,30 @@ def test_transfer_failure_drops_the_connection(remote_cijoe, monkeypatch):
 def test_close_one_transport(remote_cijoe):
     """Cijoe.close(name) closes only the named transport's connection"""
 
-    err, _ = remote_cijoe.run("true", transport_name="remote")
+    err, _ = remote_cijoe.run("true", target="remote")
     assert not err
-    err, _ = remote_cijoe.run("true", transport_name="other")
+    err, _ = remote_cijoe.run("true", target="other")
     assert not err
 
     remote_cijoe.close("remote")
-    assert remote_cijoe.transports["remote"].ssh.transport is None
-    assert remote_cijoe.transports["other"].ssh.transport is not None
+    assert remote_cijoe.targets["remote"].ssh.transport is None
+    assert remote_cijoe.targets["other"].ssh.transport is not None
+
+
+def test_transport_name_is_a_deprecated_target(remote_cijoe, capsys):
+    """transport_name= still reaches the target it names, with a warning"""
+
+    err, _ = remote_cijoe.run("hostname", transport_name="other")
+    assert not err
+    assert remote_cijoe.targets["other"].ssh.commands == ["hostname"]
+    assert remote_cijoe.targets["remote"].ssh.commands == []
+    assert remote_cijoe.put("/tmp/src", "dst", transport_name="other")
+    assert remote_cijoe.targets["other"].scp.transfers
+    assert capsys.readouterr().err == (
+        "WARNING: transport_name= is deprecated; use target=\n"
+    )
+
+    assert remote_cijoe.transports is remote_cijoe.targets
+    assert "Cijoe.transports is deprecated; use Cijoe.targets" in (
+        capsys.readouterr().err
+    )

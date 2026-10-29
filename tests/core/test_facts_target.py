@@ -1,3 +1,5 @@
+import pytest
+
 from cijoe.core.command import Cijoe
 from cijoe.core.facts import Facts
 from cijoe.core.resources import (
@@ -37,6 +39,23 @@ def test_the_default_target_is_the_first_transport(tmp_path):
     cijoe = Cijoe(Config.from_path(tmp_path / "two.toml"), tmp_path / "b", False)
     assert cijoe.default_target == "guest"
     assert cijoe.facts.target().prefix == "targets.guest"
+
+
+def test_setting_the_default_target_moves_the_facts_with_it(tmp_path):
+    (tmp_path / "two.toml").write_text(
+        '[cijoe.targets.guest.ssh]\nhostname = "localhost"\n'
+        '[cijoe.targets.other.ssh]\nhostname = "localhost"\n'
+    )
+    cijoe = Cijoe(Config.from_path(tmp_path / "two.toml"), tmp_path / "a", False)
+
+    cijoe.default_target = "other"
+    assert cijoe.facts.target().prefix == "targets.other"
+    cijoe.default_target = "initiator"
+    assert cijoe.facts.target().prefix == "targets.initiator"
+
+    with pytest.raises(ValueError, match="no target\\(nope\\); known: guest"):
+        cijoe.default_target = "nope"
+    assert cijoe.default_target == "initiator"
 
 
 def test_target_is_left_to_the_step_and_config_target_is_not():

@@ -131,7 +131,7 @@ def main(args, cijoe):
         # a fresh connect, which is what tells a host that went down or came up.
         try:
             cijoe.close(transport_name)
-            err, _ = cijoe.run("hostname", transport_name=transport_name)
+            err, _ = cijoe.run("hostname", target=transport_name)
             ssh_up = err == 0
         except Exception as exc:
             log.debug("Probe exception treated as down: %r", exc)
