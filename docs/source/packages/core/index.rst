@@ -25,4 +25,5 @@ Scripts
    scripts/repository_prep.rst
    scripts/testrunner.rst
    scripts/tools_check.rst
+   scripts/wait_for_target.rst
    scripts/wait_for_transport.rst

@@ -36,9 +36,9 @@ steps:
     guest_name: generic-bios-kvm-x86_64
 
 - name: guest_wait_start
-  uses: core.wait_for_transport
+  target: qemu_guest
+  uses: core.wait_for_target
   with:
-    transport_name: qemu_guest
     timeout: 120
 
 - name: guest_check

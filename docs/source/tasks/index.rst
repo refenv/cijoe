@@ -107,22 +107,49 @@ into execution of functions in the **cijoe** Python module:
    this **unfolds** as.
 
 Because ``run:`` is sugar for ``core.cmdrunner``, you can pass any of its
-arguments alongside ``run:`` using a ``with:`` block. The most common use is
-selecting which transport executes the commands:
+arguments alongside ``run:`` using a ``with:`` block. See
+:ref:`core.cmdrunner <sec-packages-core-cmdrunner>` for the full set of
+arguments.
+
+.. _sec-resources-tasks-step-target:
+
+Choosing the target of a step
+-----------------------------
+
+A step runs on the **default target**, see
+:ref:`sec-resources-configs-targets`. To run a step elsewhere, name the target
+with ``target:``, beside ``run:`` or ``uses:``:
 
 .. code-block:: yaml
 
-   - name: on_remote
-     run: |
-       hostname
-       uname -a
+   - name: nvme_facts
+     target: storage_node
+     uses: core.facts_gather
      with:
-       transport: ssh
+       sections: "nvme"
 
-Without ``transport``, commands run on the first transport defined in the
-configuration file (``initiator`` if none are defined). See
-:ref:`core.cmdrunner <sec-packages-core-cmdrunner>` for the full set of
-arguments.
+   - name: storage
+     target: storage_node
+     run: |
+       echo "{{ target.nvme | length }} NVMe controller(s)"
+       lsblk -f
+
+   - name: tools
+     target: storage_node
+     uses: core.tools_check
+     with:
+       tools: "fio,nvme"
+
+Here ``storage`` reads the NVMe controllers that ``nvme_facts`` found on
+``storage_node``, and lists its block devices; its tools are checked too.
+``target:`` works for any script: everything the step does on "the target", its
+commands, transfers, tool checks and its ``{{ target.* }}`` references to facts,
+is about the one it names. The step after it is back on the default target. A
+name the configuration does not describe is an error when the task loads, and
+for ``cijoe -i``.
+
+Before ``target:``, scripts took arguments of their own for this, such as
+``with: transport:`` for ``core.cmdrunner``. Those still work, and warn.
 
 
 .. _sec-resources-tasks-step-scripts:

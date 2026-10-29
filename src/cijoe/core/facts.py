@@ -8,7 +8,7 @@ values are what TOML can hold. get() returns a copy, so the facts change only
 through the calls that write them.
 
 Facts about a machine are kept under 'targets.<name>', where the name is the
-one the config gives the machine as 'cijoe.transport.<name>', or 'initiator',
+one the config gives the machine as 'cijoe.targets.<name>', or 'initiator',
 whether it is a QEMU guest or hardware; target() reads and writes them, by
 default for the target cijoe.run() reaches, and a task reads them as
 '{{ target.* }}'.

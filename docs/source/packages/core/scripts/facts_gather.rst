@@ -10,10 +10,6 @@ core.facts_gather
 CLI arguments
 -------------
 
-* ``--target_name TARGET_NAME``
-
-  The transport of the target to gather facts about; default: cijoe's. (default: None)
-
 * ``--sections SECTIONS``
 
   Comma-separated sections to gather; default: os,kernel,system,pci,nvme,gpu,nic. (default: os,kernel,system,pci,nvme,gpu,nic)

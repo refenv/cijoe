@@ -90,12 +90,12 @@ Facts about targets
 ===================
 
 Facts about a machine are kept under ``targets.<name>``, where the name is the
-one the configuration gives it as ``[cijoe.transport.<name>]``, or
+one the configuration gives it as ``[cijoe.targets.<name>]``, or
 ``initiator``. A QEMU guest and a machine on the bench are alike: what is known
 about either is under its name, whoever wrote it. The **default target** is the
-one ``cijoe.run()`` reaches when given no ``transport_name``: the first
-transport in the configuration, or the initiator when there is none, and
-``cijoe.default_target`` names it.
+one ``cijoe.run()`` reaches when given no ``target``, see
+:ref:`sec-resources-configs-targets`. While a step runs, it is the step's
+``target:``, and ``cijoe.default_target`` names it.
 
 A task reads the default target's facts as ``{{ target.* }}``, short for
 ``{{ facts.targets.<default target>.* }}``, and another target's in full:
@@ -116,13 +116,12 @@ target's name and defaults to the default target, and has the calls of
    cijoe.facts.target().set("gpu", {"vendor": "0x1002"})   # targets.<default>.gpu
    release = cijoe.facts.target("machineB").get("kernel.release")
 
-``core.facts_gather`` writes these sections for its ``target_name``, by default the
-default target, or those named with ``sections``, less those named with
-``skip``. It finds the target's OS family by asking it, ``uname -s``, or
-PowerShell where there is no ``uname``. Before each section, it checks the
-tools that section runs on that family, such as ``pciconf`` on FreeBSD, and
-records them as facts; it leaves out a section whose tools the target lacks, or
-that it has no way of gathering on that family:
+About the step's target, ``core.facts_gather`` writes these sections, or those
+named with ``sections``, less those named with ``skip``. It finds the target's
+OS family by asking it, ``uname -s``, or PowerShell where there is no ``uname``.
+Before each section, it checks the tools that section runs on that family, such
+as ``pciconf`` on FreeBSD, and records them as facts; it leaves out a section
+whose tools the target lacks, or that it has no way of gathering on that family:
 
 .. list-table::
    :header-rows: 1
@@ -261,7 +260,7 @@ unplugged. ``get()`` returns a copy, so changing what it returned changes no
 fact.
 
 A task reads facts in a step's ``with``, as ``{{ facts.build.version }}``, as
-``{{ target.os.id }}`` for the default target, or in a block such as
+``{{ target.os.id }}`` for the step's target, or in a block such as
 ``{% if target.gpu %}``. Other variables in a task are
 substituted when the task is loaded, before any step has run. A string that
 refers to facts is substituted when its step starts, so the step sees what the
