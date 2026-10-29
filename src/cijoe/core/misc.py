@@ -163,7 +163,7 @@ def decompress_file(src: Path, dst: Optional[Path] = None):
     src = src.resolve()
 
     if not dst:
-        dst = Path(str(src).replace(src.suffix, "")).resolve()
+        dst = src.with_suffix("")
 
     if dst.exists():
         log.info(f"File({dst}) already exists, skipping decompression")
