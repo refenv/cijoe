@@ -10,6 +10,13 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.69
+
+`system_imaging.diskimage_from_oras` grows a staged image by `disk.grow`, 8G when
+it is not given, so a guest that builds large software in place can ask for the
+room, `disk.grow = "32G"`. A growth other than the default is kept in the stamp,
+so changing it re-stages the image.
+
 ## 0.9.68
 
 `system_imaging.diskimage_from_oras` stages an image pinned by tag, such as
