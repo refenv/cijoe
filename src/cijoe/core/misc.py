@@ -48,11 +48,15 @@ def download(url: str, path: Path):
     if not (path.parent.is_dir() and path.parent.exists()):
         return errno.EINVAL, path
 
-    with requests.get(url, stream=True) as request:
-        request.raise_for_status()
-        with path.open("wb") as local:
-            for chunk in request.iter_content(chunk_size=8192):
-                local.write(chunk)
+    try:
+        with requests.get(url, stream=True, timeout=60) as request:
+            request.raise_for_status()
+            with path.open("wb") as local:
+                for chunk in request.iter_content(chunk_size=8192):
+                    local.write(chunk)
+    except requests.RequestException as exc:
+        log.error(f"download({url}): {exc}")
+        return errno.EIO, path
 
     return 0, path
 
@@ -79,7 +83,7 @@ def get_checksums_from_url(url_checksum: str):
                 return 0, checksum_f.read(), algorithm
 
     log.error(
-        "error: downloaded checksum does contain the name of a valid hash algorithm"
+        "error: downloaded checksum does not contain the name of a valid hash algorithm"
     )
     return 1, None, None
 
@@ -100,6 +104,7 @@ def download_and_verify(url: str, url_checksum: str, path: Path):
     err, verification, algorithm = get_checksums_from_url(url_checksum)
     if err:
         log.error(f"error when downloading checksum ({url_checksum})")
+        return err, None
 
     # The checksum of the existing file at path
     checksum = None
