@@ -171,10 +171,17 @@ def decompress_file(src: Path, dst: Optional[Path] = None):
 
     decompressor = lzma if src.suffix == ".xz" else gzip
 
-    with decompressor.open(src, mode="rb") as fsrc:
-        with open(dst, "xb") as fdst:
-            shutil.copyfileobj(fsrc, fdst)
-            log.info(f"Decompressed file({src}) to destination({dst})")
+    # Decompressed under another name and renamed when complete, since an existing
+    # dst is taken as done
+    partial = dst.with_name(f".{dst.name}.partial")
+    try:
+        with decompressor.open(src, mode="rb") as fsrc:
+            with open(partial, "wb") as fdst:
+                shutil.copyfileobj(fsrc, fdst)
+        partial.replace(dst)
+    finally:
+        partial.unlink(missing_ok=True)
+    log.info(f"Decompressed file({src}) to destination({dst})")
 
     return 0, dst
 
