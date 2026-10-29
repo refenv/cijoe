@@ -22,25 +22,24 @@ bin = "qemu-system-aarch64"
 bin = "qemu-system-x86_64"
 
 # Used by: qemu.guest_initialize.py, qemu.guest_start.py, and qemu.guest_kill.py
-[qemu.guests.generic-uefi-tcg-aarch64]
-path = "{{ local.env.HOME }}/guests/generic-uefi-tcg-aarch64"
+[qemu.guests.generic-bios-kvm-x86_64]
+path = "{{ local.env.HOME }}/guests/generic-bios-kvm-x86_64"
 
 # Label of the qemu-system emulerator to use; see "qemu.systems"
-system_label = "aarch64"
+system_label = "x86_64"
+
+# Name of the system_image to use; see "system_imaging.images"
+# Uncomment here, or set as task-argument when using "qemu.guest_initialize"
+#system_image_name = "debian-13-x86_64"
 
 # Keyword arguments: joined onto the form: "-cpu host -smp 4 -m 4" etc.
-system_args.kwa = {cpu = "max", smp = 4, m = "6G", accel = "tcg,thread=multi"}
+system_args.kwa = {cpu = "host", smp = 4, m = "6G", accel = "kvm"}
 
 # Raw arguments: passed without modification to qemu-system-{arch}
 system_args.raw = """\
--M "virt,iommu=smmuv3,gic-version=3" \
+-M "type=q35,kernel_irqchip=split" \
+-device "intel-iommu,pt=on,intremap=on" \
 """
-
-# INITIALIZE.DISKIMAGE: Options for the "qemu.guest_initialize" script
-#
-# You can uncomment it in your config here, or provide as argument as a task step-argument
-#
-#initialize.diskimage = "debian-13-aarch64"
 
 # TCP_FORWARD: Setup ssh forward from host to guest
 #
@@ -56,19 +55,15 @@ system_args.tcp_forward = {host = 4200, guest = 22}
 # This is is a "special" argument, managed by the cijoe qemu-wrapper,
 # specifically by 'guest.start_guest()'
 system_args.host_share = "{{ local.env.HOME }}"
-
 # SYSTEM_IMAGING: A collection of system images in the form of cloudimages,
 # diskimages, and docker images.
-[system-imaging.images.debian-13-aarch64]
-system_label = "aarch64"
 
-cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-arm64-daily.qcow2"
-cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-aarch64-daily.qcow2"
+[system-imaging.images.debian-13-x86_64]
+system_label = "x86_64"
+
+cloud.url = "https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-generic-amd64-daily.qcow2"
+cloud.path = "{{ local.env.HOME }}/system_imaging/cloud/debian-13-generic-amd64-daily.qcow2"
 cloud.metadata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-metadata'] }}"
 cloud.userdata_path = "{{ resources.auxiliary['system_imaging.cloudinit-linux-common-userdata'] }}"
 
-disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-aarch64.qcow2"
-
-docker.url = "ghcr.io/refenv/debian-13-aarch64:main"
-docker.name = "debian-13-aarch64"
-docker.tag = "example"
+disk.path = "{{ local.env.HOME }}/system_imaging/disk/debian-13-x86_64.qcow2"
