@@ -1,0 +1,194 @@
+---
+name: extended
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}${{
+      github.event.action == 'labeled' && github.event.label.name != 'extended'
+      && format('-{0}', github.run_id) || '' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  examples:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (contains(github.event.pull_request.labels.*.name, 'extended') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'extended'))
+    runs-on: ubuntu-22.04
+
+    # This is needed for 'guestmount' / 'libguestfs'
+    env:
+      LIBGUESTFS_BACKEND: direct
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: >
+        --device=/dev/kvm
+        --device=/dev/fuse
+        --cap-add=SYS_ADMIN
+        --security-opt apparmor=unconfined
+
+    strategy:
+      fail-fast: false
+      matrix:
+        usage_example:
+        - core.testrunner
+        - core.get_put
+        - qemu.guest_x86_64
+        - qemu.guest_aarch64
+        - linux.build_kdebs
+        - linux.null_blk
+        - qemu.build
+        - system_imaging.debian
+        python-version: ['3.12']
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v5.0.1
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v6.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: tmp install deps
+      run: |
+        apt-get update -y
+        apt-get install libdw-dev -y
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    # This is necessary for running pytest, which is invoked in
+    # the testrunner example
+    - name: Inject pytest
+      if: matrix.usage_example == 'core.testrunner'
+      run: |
+        pipx inject cijoe --force pytest --include-apps
+
+    - name: Emit the example configuration file and workflow
+      run: |
+        cijoe --example ${{ matrix.usage_example }}
+
+    - name: Rename cijoe-script to match pytest naming conventions
+      if: matrix.usage_example == 'core.testrunner'
+      run: |
+        mv cijoe-example-${{ matrix.usage_example }}/cijoe-script.py \
+          cijoe-example-${{ matrix.usage_example }}/test_cijoe-script.py
+
+    - name: Run it!
+      run: |
+        cijoe --monitor -l \
+          --config cijoe-example-${{ matrix.usage_example }}/cijoe-config.toml \
+          cijoe-example-${{ matrix.usage_example }}/cijoe-task.yaml
+
+    - name: Upload report
+      if: always()
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: report-cijoe_packages-${{ matrix.usage_example }}
+        path: cijoe-output/*
+        if-no-files-found: error
+
+
+  test_config_images:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (contains(github.event.pull_request.labels.*.name, 'extended') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'extended'))
+    runs-on: ubuntu-22.04
+
+    # This is needed for 'guestmount' / 'libguestfs'
+    env:
+      LIBGUESTFS_BACKEND: direct
+
+    container:
+      image: ghcr.io/refenv/cijoe-docker:latest
+      options: >
+        --device=/dev/kvm
+        --device=/dev/fuse
+        --cap-add=SYS_ADMIN
+        --security-opt apparmor=unconfined
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+        - debian-13
+        - fedora-44
+        - ubuntu-2404
+        - freebsd-14
+        architecture:
+        - x86_64
+        include:
+        - image: debian-13
+          architecture: aarch64
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v5.0.1
+    - name: Set up Python
+      uses: actions/setup-python@v6.0.0
+      with:
+        python-version: 3.12
+
+    - name: tmp install deps
+      run: |
+        apt-get update -y
+        apt-get install libdw-dev -y
+
+    - name: Build and install cijoe from source
+      run: |
+        pipx uninstall cijoe
+        make deps info build install
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Get config file
+      run: |
+        cp \
+          $(cijoe -r | grep "system_imaging.example_config_debian" -A 1 | tail -n1 | sed -n -e 's/^.*path: //p') \
+          cijoe-config.toml
+
+    - name: Run system_imaging.diskimage_from_cloudimage
+      run: |
+        $(which cijoe) \
+          system_imaging.diskimage_from_cloudimage \
+          --monitor -l \
+          --config cijoe-config.toml \
+          --output report-${{ matrix.image }}-${{ matrix.architecture }}-diskimage_from_cloudimage \
+          --pattern ${{ matrix.image }}-${{ matrix.architecture }}
+
+    - name: Run system_imaging.dockerimage_from_diskimage
+      if: contains(matrix.image, 'freebsd') == false
+      run: |
+        $(which cijoe) \
+          system_imaging.dockerimage_from_diskimage \
+          --monitor -l \
+          --config cijoe-config.toml \
+          --output report-${{ matrix.image }}-${{ matrix.architecture }}-dockerimage_from_diskimage \
+          --pattern ${{ matrix.image }}-${{ matrix.architecture }}
+
+    - name: Archive reports
+      if: always()
+      run: |
+        tar czf report-config_img-${{ matrix.image }}_${{ matrix.architecture }}.tar.gz \
+          report-${{ matrix.image }}-${{ matrix.architecture }}-*
+
+    - name: Upload reports
+      uses: actions/upload-artifact@v6.0.0
+      if: always()
+      with:
+        name: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}
+        path: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}.tar.gz
+        if-no-files-found: error
