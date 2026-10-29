@@ -10,6 +10,14 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.68
+
+`system_imaging.diskimage_from_oras` stages an image pinned by tag, such as
+`oras://ghcr.io/xnvme/xnvme-devenv/guest-ubuntu-2610:v0.10.0`, once: the tag is
+resolved to the digest it names, which is stamped next to the qcow2, so the image
+is pulled again only when the tag moves, as a digest-pinned one is only when the
+digest is bumped. A staged tag whose registry cannot be reached is used as it is.
+
 ## 0.9.67
 
 Gathering facts is part of `cijoe.core.facts`: a script gathers the common facts
