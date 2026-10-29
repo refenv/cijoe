@@ -111,3 +111,15 @@ def test_script_takes_the_system_image_name_from_the_config(tmp_path, monkeypatc
 
     assert guest_initialize.main(args, cijoe) == 0
     assert initialized == [disk]
+
+
+def test_start_passes_every_option_of_a_kwa_table(tmp_path, monkeypatch):
+    guest, commands = make_guest(tmp_path, monkeypatch)
+    guest.guest_config["system_label"] = "x86_64"
+    guest.guest_config["system_args"] = {
+        "kwa": {"machine": {"type": "q35", "accel": "kvm"}, "m": "2G"}
+    }
+    guest.cijoe.config.options["qemu"]["systems"] = {"x86_64": {"bin": "qemu"}}
+
+    assert guest.start() == 0
+    assert commands[0].startswith("qemu -machine type=q35,accel=kvm -m 2G ")
