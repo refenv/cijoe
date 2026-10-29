@@ -1,7 +1,7 @@
 import subprocess
 
-from cijoe.core.facts import Facts
-from cijoe.core.scripts import facts_gather as gather
+from cijoe.core.facts import Facts, gathering
+from cijoe.core.scripts import facts_gather
 
 # What the listings printed on Linux, FreeBSD 14.4 and a Windows 11 guest
 PCI = "/sys/devices/pci0000:00/0000:00:03.0"
@@ -47,22 +47,22 @@ def test_os_release_and_uname():
     text = (
         'NAME="Ubuntu"\nVERSION_ID="26.04"\nID=ubuntu\nPRETTY_NAME="Ubuntu 26.04 LTS"\n'
     )
-    assert gather.os_release(text) == {
+    assert gathering.os_release(text) == {
         "id": "ubuntu",
         "version_id": "26.04",
         "name": "Ubuntu",
         "pretty_name": "Ubuntu 26.04 LTS",
     }
-    assert gather.uname("FreeBSD 14.4-RELEASE-p6 amd64\n") == {
+    assert gathering.uname("FreeBSD 14.4-RELEASE-p6 amd64\n") == {
         "name": "FreeBSD",
         "release": "14.4-RELEASE-p6",
         "machine": "amd64",
     }
-    assert gather.uname("") == {}
+    assert gathering.uname("") == {}
 
 
 def test_linux_nvme_by_controller():
-    ctrls = gather.linux_nvme(LINUX_NVME)
+    ctrls = gathering.linux_nvme(LINUX_NVME)
 
     assert ctrls["nvme1"] == {
         "bdf": "0000:01:00.0",
@@ -85,7 +85,7 @@ def test_linux_pci_by_bdf():
         "0000:01:00.0 0x144d 0xa80c 0x010802 nvme\n"
         "not a function\n"
     )
-    assert gather.linux_pci(listing) == [
+    assert gathering.linux_pci(listing) == [
         {
             "bdf": "0000:00:00.0",
             "vendor": "0x8086",
@@ -103,7 +103,7 @@ def test_linux_pci_by_bdf():
 
 
 def test_freebsd_pci_and_nvme():
-    pci = {f["bdf"]: f for f in gather.freebsd_pci(FREEBSD_NVME)}
+    pci = {f["bdf"]: f for f in gathering.freebsd_pci(FREEBSD_NVME)}
     assert pci["0000:01:00.0"] == {
         "bdf": "0000:01:00.0",
         "vendor": "0x144d",
@@ -116,7 +116,7 @@ def test_freebsd_pci_and_nvme():
     assert pci["0000:0a:00.0"]["vendor"] == "0x1b36", "pciconf's bus is decimal"
     assert list(pci) == sorted(pci), "ordered by bdf"
 
-    assert gather.freebsd_nvme(FREEBSD_NVME) == {
+    assert gathering.freebsd_nvme(FREEBSD_NVME) == {
         "nvme0": {
             "bdf": "0000:01:00.0",
             "serial": "S7HENU0Y551082W",
@@ -131,7 +131,7 @@ def test_freebsd_pci_and_nvme():
 
 
 def test_windows_nvme_and_os():
-    assert gather.windows_nvme(WINDOWS_NVME) == {
+    assert gathering.windows_nvme(WINDOWS_NVME) == {
         "PhysicalDrive0": {
             "namespaces": [{"bdev": "//./PhysicalDrive0"}],
             "bdf": "0000:00:1f.2",
@@ -143,12 +143,12 @@ def test_windows_nvme_and_os():
         },
         "PhysicalDrive2": {"namespaces": [{"bdev": "//./PhysicalDrive2"}]},
     }
-    found = gather.windows_os("Microsoft Windows 11 Pro|10.0.26100|64-bit\n")
+    found = gathering.windows_os("Microsoft Windows 11 Pro|10.0.26100|64-bit\n")
     assert found["os"]["id"] == "windows" and found["kernel"]["release"] == "10.0.26100"
 
 
 def test_listings_parse_as_shell():
-    for listing in (gather.LINUX_NVME, gather.LINUX_PCI, gather.FREEBSD_NVME):
+    for listing in (gathering.LINUX_NVME, gathering.LINUX_PCI, gathering.FREEBSD_NVME):
         subprocess.run(["sh", "-n", "-c", listing], check=True)
 
 
@@ -159,7 +159,7 @@ def test_linux_namespaces_without_nsid_stay_apart():
         f"ns nvme1n2 {PCI}/0000:01:00.0/nvme/nvme1/nvme1n2\n"
         f"ns ng1n2 {PCI}/0000:01:00.0/nvme/nvme1/ng1n2\n"
     )
-    assert gather.linux_nvme(listing)["nvme1"]["namespaces"] == [
+    assert gathering.linux_nvme(listing)["nvme1"]["namespaces"] == [
         {"bdev": "/dev/nvme1n1", "cdev": "/dev/ng1n1"},
         {"bdev": "/dev/nvme1n2", "cdev": "/dev/ng1n2"},
     ]
@@ -169,7 +169,7 @@ def test_powershell_needs_no_quoting():
     import base64
 
     command = '$o = Get-CimInstance Win32_OperatingSystem; "{0}|{1}" -f $o.Caption'
-    words = gather.powershell(command).split()
+    words = gathering.powershell(command).split()
 
     assert words[:4] == [
         "powershell",
@@ -209,10 +209,10 @@ class Target:
 
 def test_windows_with_msys_is_windows(tmp_path):
     target = Target({"uname -s": (0, "MINGW64_NT-10.0-26100\n")}, tmp_path)
-    assert gather.family_of(target, "initiator") == "windows"
+    assert gathering.family_of(target, "initiator") == "windows"
 
     target = Target({"powershell": (0, "7.4\n")}, tmp_path)
-    assert gather.family_of(target, "initiator") == "windows"
+    assert gathering.family_of(target, "initiator") == "windows"
 
 
 def test_unknown_targets_and_sections_write_nothing(tmp_path):
@@ -221,11 +221,11 @@ def test_unknown_targets_and_sections_write_nothing(tmp_path):
     target = Target({"uname -s": (0, "Linux\n")}, tmp_path)
 
     args = Namespace(target_name="nosuch", sections="os", skip="")
-    assert gather.main(args, target) != 0
+    assert facts_gather.main(args, target) != 0
     args = Namespace(target_name=None, sections="os,nosuch", skip="")
-    assert gather.main(args, target) != 0
+    assert facts_gather.main(args, target) != 0
     args = Namespace(target_name=None, sections="os", skip="nosuch")
-    assert gather.main(args, target) != 0
+    assert facts_gather.main(args, target) != 0
     assert target.facts.data == {}
 
 
@@ -265,9 +265,9 @@ rdma 0000:06:00.0 rocm_ernic0
 
 
 def test_linux_gpus_and_nics():
-    pci = gather.linux_pci(LINUX_PCI_LISTING)
+    pci = gathering.linux_pci(LINUX_PCI_LISTING)
 
-    assert gather.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "gpu") == [
+    assert gathering.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "gpu") == [
         {
             "bdf": "0000:04:00.0",
             "vendor": "0x1002",
@@ -277,7 +277,7 @@ def test_linux_gpus_and_nics():
             "render": ["/dev/dri/renderD128"],
         }
     ]
-    nics = gather.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "nic")
+    nics = gathering.linux_pci_devices(pci, LINUX_DEVICES_LISTING, "nic")
     assert [n["bdf"] for n in nics] == ["0000:05:00.0", "0000:06:00.0"]
     assert nics[0]["netdevs"] == [] and nics[0]["rdma"] == []
     assert nics[1]["netdevs"] == ["ernic0"] and nics[1]["rdma"] == ["rocm_ernic0"]
@@ -289,11 +289,11 @@ def test_freebsd_gpus_and_nics():
         "vtnet0@pci0:0:3:0:\tclass=0x020000 rev=0x00 hdr=0x00 vendor=0x1af4 device=0x1000\n"
         "none1@pci0:0:4:0:\tclass=0x020000 rev=0x00 hdr=0x00 vendor=0x8086 device=0x10d3\n"
     )
-    pci = gather.freebsd_pci(listing)
+    pci = gathering.freebsd_pci(listing)
 
-    gpus = gather.freebsd_pci_devices(pci, "gpu")
+    gpus = gathering.freebsd_pci_devices(pci, "gpu")
     assert [(g["bdf"], g["driver"]) for g in gpus] == [("0000:00:01.0", "vgapci")]
-    nics = gather.freebsd_pci_devices(pci, "nic")
+    nics = gathering.freebsd_pci_devices(pci, "nic")
     assert [(n["bdf"], n["netdevs"]) for n in nics] == [
         ("0000:00:03.0", ["vtnet0"]),
         ("0000:00:04.0", []),
@@ -314,10 +314,19 @@ def test_a_section_lacking_its_tools_is_left_out_and_skip_leaves_out(tmp_path):
     target = Target(answers, tmp_path)
 
     args = Namespace(target_name=None, sections="os,kernel,system", skip="os")
-    assert gather.main(args, target) == 0
+    assert facts_gather.main(args, target) == 0
     facts = target.facts.get("targets.initiator")
     assert facts["kernel"]["release"] == "6.12.1"
     assert "system" not in facts, "getconf is lacking"
     assert facts["tools"]["getconf"] == {"name": "getconf", "found": False}
     assert facts["tools"]["uname"]["found"]
     assert facts["os"] == {"family": "linux"}, "os was skipped, its family kept"
+
+
+def test_gather_is_part_of_core_facts():
+    """A script gathers facts of its own with cijoe.core.facts.gather()"""
+
+    from cijoe.core import facts
+
+    assert facts.gather is gathering.gather
+    assert facts.SECTIONS is gathering.SECTIONS
