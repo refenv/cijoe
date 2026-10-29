@@ -575,7 +575,7 @@ class Task(Resource):
             errors.append(f"Duplicate step-names: {duplicate_names}")
             return errors
 
-        valid = set(["name", "uses", "with"])
+        valid = set(["name", "uses", "with", "target"])
         required = set(["name", "uses"])
 
         for nr, step in enumerate(topic["steps"], 1):
@@ -601,6 +601,10 @@ class Task(Resource):
                 )
                 continue
 
+            if not isinstance(step.get("target", ""), str):
+                errors.append(f"Invalid step({nr}); 'target' must be a target's name")
+                continue
+
             if "with" in step:
                 reserved = [key for key in step["with"] if key in args]
                 if reserved:
@@ -622,6 +626,18 @@ class Task(Resource):
 
         return errors
 
+    @staticmethod
+    def dict_lint_targets(topic: dict, config: Config) -> list:
+        """Errors for the steps whose 'target' the config does not describe"""
+
+        known = [*config.options.get("cijoe", {}).get("targets", {}), "initiator"]
+
+        return [
+            f"Invalid step({nr}); no target({step['target']}); known: {', '.join(known)}"
+            for nr, step in enumerate(topic["steps"], 1)
+            if "target" in step and step["target"] not in known
+        ]
+
     def load(self, args: Namespace, config: Config, extra_steps: list = []):
         """
         Load the task-yamlfile, normalize it, lint it, substitute, then construct
@@ -641,6 +657,10 @@ class Task(Resource):
             return errors
 
         errors += Task.dict_lint(args, task_dict)
+        if errors:
+            return errors
+
+        errors += Task.dict_lint_targets(task_dict, config)
         if errors:
             return errors
 

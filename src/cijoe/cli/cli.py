@@ -159,11 +159,14 @@ def cli_integrity_check(args):
         create_combined_toml(args.config, Path(config_file.name))
         args.config = Path(config_file.name)
 
-        config = Config.from_path(args.config)
-        if not config:
-            log.error(f"failed: Config.from_path({args.config})")
+        config = Config(args.config)
+        if config_errors := config.load():
+            log_errors(config_errors)
+            log.error(f"failed: Config({args.config}).load()")
             return errno.EINVAL
 
+        if not errors:
+            errors += Task.dict_lint_targets(task_dict, config)
         errors += dict_substitute(task_dict, default_context(config), defer_facts=True)
 
     if errors:
@@ -463,6 +466,7 @@ def cli_task(args):
     fail_fast = _get_fail_fast(cijoe)
     gather_initiator(cijoe)
     task.state["facts_at_start"] = sorted(cijoe.facts.changed)
+    run_target = cijoe.default_target
 
     for step in task.state["steps"]:
         log.info(f"step({step['name']}) - begin")
@@ -471,6 +475,7 @@ def cli_task(args):
         step["status"]["started"] = begin
         task.state_dump(args.output / Task.STATE_FILENAME)
 
+        cijoe.default_target = step.get("target", run_target)
         cijoe.set_output_ident(step["id"])
         os.makedirs(os.path.join(cijoe.output_path, step["id"]), exist_ok=True)
 
