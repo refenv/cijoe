@@ -10,6 +10,21 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.65
+
+The `linux` package is deprecated, and will be removed at v1.0. `linux.null_blk`,
+`linux.build_kdebs` and `linux.sysinfo` warn when they run; for
+`linux.sysinfo`, use `core.facts_gather`, which records the target's OS,
+kernel, CPUs, memory, PCI functions and NVMe controllers as facts.
+
+Building QEMU from source is deprecated, and will be removed at v1.0: `qemu.build`
+and `qemu.install` warn when they run. Install QEMU as your distribution or
+upstream provides it, and name its binaries in `qemu.systems` and
+`qemu.img_bin`; `qemu.qemu_version` records which versions a run used.
+
+The package declares its license as the SPDX expression `BSD-3-Clause`, rather
+than by a license classifier, and the project is REUSE compliant.
+
 ## 0.9.64
 
 `core.facts_gather` also records a target's GPUs and NICs, as `gpu` and `nic`:
