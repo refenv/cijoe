@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 from cijoe.core.processing import runlog_from_path
-from cijoe.core.resources import dict_from_tomlfile, get_resources
+from cijoe.core.resources import Task, dict_from_tomlfile, get_resources
 
 TASK_SKELETON = {
     "doc": "Some description",
@@ -372,3 +372,12 @@ def test_task_step_target_tools(tmp_path):
     assert status["local"]["passed"] == 1
     assert facts["targets"]["initiator"]["tools"]["sh"]["found"]
     assert "nowhere" not in facts.get("targets", {})
+
+
+def test_task_lint_step_target_is_a_name():
+    topic = {
+        "doc": "A step whose target is not a name",
+        "steps": [{"name": "a", "uses": "core.cmdrunner", "target": ["guest"]}],
+    }
+    errors = Task.dict_lint(Namespace(), topic)
+    assert errors == ["Invalid step(1); 'target' must be a target's name"]

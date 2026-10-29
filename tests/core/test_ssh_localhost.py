@@ -3,11 +3,13 @@ cijoe over real SSH, to an sshd the test starts on 127.0.0.1 as the current
 user, with keys of its own; skipped where there is no sshd or ssh-keygen
 """
 
+import contextlib
 import getpass
 import os
 import shutil
 import socket
 import subprocess
+import threading
 import time
 from argparse import Namespace
 from pathlib import Path
@@ -36,14 +38,15 @@ def free_port() -> int:
         return sock.getsockname()[1]
 
 
-@pytest.fixture(scope="module")
-def sshd(tmp_path_factory):
-    """The SSH settings of a target reaching the sshd this starts"""
+@contextlib.contextmanager
+def running_sshd(path: Path):
+    """An sshd on 127.0.0.1 as the current user, with its keys in 'path': the
+    SSH settings of a target reaching it, and its process"""
 
     if not Path(SSHD).exists() or not shutil.which("ssh-keygen"):
         unavailable("no sshd or ssh-keygen")
 
-    path = tmp_path_factory.mktemp("sshd")
+    path.mkdir(parents=True, exist_ok=True)
     for key in ["host_key", "client_key"]:
         subprocess.run(
             ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(path / key)],
@@ -74,9 +77,10 @@ def sshd(tmp_path_factory):
             time.sleep(0.1)
     else:
         server.kill()
+        log.close()
         unavailable(f"sshd did not start: {(path / 'sshd.log').read_text()}")
 
-    yield {
+    settings = {
         "hostname": "127.0.0.1",
         "port": port,
         "username": getpass.getuser(),
@@ -84,10 +88,21 @@ def sshd(tmp_path_factory):
         "look_for_keys": False,
         "allow_agent": False,
     }
+    try:
+        yield settings, server
+    finally:
+        if server.poll() is None:
+            server.terminate()
+            server.wait()
+        log.close()
 
-    server.terminate()
-    server.wait()
-    log.close()
+
+@pytest.fixture(scope="module")
+def sshd(tmp_path_factory):
+    """The SSH settings of a target reaching the sshd this starts"""
+
+    with running_sshd(tmp_path_factory.mktemp("sshd")) as (settings, _):
+        yield settings
 
 
 @pytest.fixture
@@ -189,3 +204,57 @@ def test_step_target_over_ssh(sshd, tmp_path):
     )
     assert remote["output"].startswith("at=127.0.0.1 ")
     assert not local["output"].startswith("at=127.0.0.1 ")
+
+
+def cijoe_reaching(ssh: dict, path: Path) -> Cijoe:
+    """A cijoe whose default target is reached with the SSH settings 'ssh'"""
+
+    config = path / "config.toml"
+    dict_to_tomlfile({"cijoe": {"targets": {"guest": {"ssh": ssh}}}}, config)
+    return Cijoe(Config.from_path(config), path / "output", False)
+
+
+def test_wait_for_target_down_when_sshd_stops(tmp_path):
+    from cijoe.core.scripts import wait_for_target
+
+    with running_sshd(tmp_path / "sshd") as (ssh, server):
+        cijoe = cijoe_reaching(ssh, tmp_path)
+        assert wait_for_target.main(Namespace(state="up", timeout=20), cijoe) == 0
+
+        server.terminate()
+        server.wait()
+        assert wait_for_target.main(Namespace(state="down", timeout=20), cijoe) == 0
+        cijoe.close()
+
+
+def test_wait_for_target_down_when_the_port_is_not_ssh(tmp_path):
+    """A port that accepts connections, and closes them without speaking SSH"""
+
+    from cijoe.core.scripts import wait_for_target
+
+    listener = socket.create_server(("127.0.0.1", 0))
+
+    def accept():
+        while True:
+            try:
+                listener.accept()[0].close()
+            except OSError:
+                return
+
+    threading.Thread(target=accept, daemon=True).start()
+    ssh = {"hostname": "127.0.0.1", "port": listener.getsockname()[1]}
+    cijoe = cijoe_reaching({**ssh, "username": getpass.getuser()}, tmp_path)
+
+    assert wait_for_target.main(Namespace(state="down", timeout=20), cijoe) == 0
+    listener.close()
+
+
+def test_wait_for_target_gives_up(tmp_path):
+    """A port nobody listens on is not up, however long one waits"""
+
+    from cijoe.core.scripts import wait_for_target
+
+    ssh = {"hostname": "127.0.0.1", "port": free_port(), "username": "nobody"}
+    cijoe = cijoe_reaching(ssh, tmp_path)
+
+    assert wait_for_target.main(Namespace(state="up", timeout=3), cijoe) == 1

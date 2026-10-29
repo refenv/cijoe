@@ -98,3 +98,8 @@ def test_ssh_by_name_is_deprecated(tmp_path, capsys):
     assert "transport.SSH(config, output_path, <name>) is deprecated" in (
         capsys.readouterr().err
     )
+
+
+def test_targets_is_a_table(tmp_path):
+    _, errors = load(tmp_path, 'cijoe.targets = "guest"\n')
+    assert errors == ["The key cijoe.targets must be a table, of one table per target."]
