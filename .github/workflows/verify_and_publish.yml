@@ -44,9 +44,6 @@ jobs:
 
     - name: Python dependencies and their versions
       run: |
-        brew untap aws/tap || true
-        brew update || true
-        brew upgrade pipx || true
         make deps
         make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -67,6 +64,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-15]
         python-version: ['3.10', '3.11', '3.12', '3.13']
+        exclude:
+        - os: macos-15
+          python-version: '3.11'
+        - os: macos-15
+          python-version: '3.12'
 
     steps:
     - name: Grab source
@@ -78,9 +80,6 @@ jobs:
 
     - name: Python dependencies and their versions
       run: |
-        brew untap aws/tap || true
-        brew update || true
-        brew upgrade pipx || true
         make deps
         make info
         echo "$HOME/.local/bin" >> $GITHUB_PATH
