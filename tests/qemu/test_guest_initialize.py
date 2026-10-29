@@ -6,6 +6,7 @@ last one creates real qcow2 images, and is skipped where qemu-img is not
 installed.
 """
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -123,3 +124,23 @@ def test_start_passes_every_option_of_a_kwa_table(tmp_path, monkeypatch):
 
     assert guest.start() == 0
     assert commands[0].startswith("qemu -machine type=q35,accel=kvm -m 2G ")
+
+
+def test_wait_for_termination_of_a_guest_that_left_its_pidfile(tmp_path):
+    """qemu leaves guest.pid behind when it is killed or crashes"""
+
+    guest, _ = make_guest(tmp_path)
+    guest.guest_path.mkdir(parents=True)
+    gone = subprocess.Popen(["true"])
+    gone.wait()
+    guest.pid.write_text(f"{gone.pid}\n")
+
+    assert guest.wait_for_termination(timeout=3) == (0, True)
+
+
+def test_wait_for_termination_of_a_running_guest(tmp_path):
+    guest, _ = make_guest(tmp_path)
+    guest.guest_path.mkdir(parents=True)
+    guest.pid.write_text(f"{os.getpid()}\n")
+
+    assert guest.wait_for_termination(timeout=1) == (0, False)
