@@ -2,7 +2,7 @@
 put
 ===
 
-Copies a file from local to remote.
+Copies a file from the initiator to the step's target.
 
 Retargetable: True
 ------------------
@@ -10,7 +10,9 @@ Retargetable: True
 
 import errno
 import logging as log
-from argparse import ArgumentParser
+from argparse import SUPPRESS, ArgumentParser
+
+from cijoe.core.misc import deprecated
 
 
 def add_args(parser: ArgumentParser):
@@ -20,16 +22,7 @@ def add_args(parser: ArgumentParser):
         type=str,
         help="path to where the file should be placed on the remote machine",
     )
-    parser.add_argument(
-        "--transport",
-        type=str,
-        default=None,
-        help=(
-            "The name of the transport which should be considered as the remote machine. "
-            "Use 'initiator' if the commands should be run locally. "
-            "Defaults to the first transport in the config file ('initiator' if none are defined)."
-        ),
-    )
+    parser.add_argument("--transport", type=str, default=None, help=SUPPRESS)
 
 
 def main(args, cijoe):
@@ -38,5 +31,8 @@ def main(args, cijoe):
     if not ("src" in args and "dst" in args):
         log.error("missing step-argument: with.src and/or with.dst")
         return errno.EINVAL
+
+    if args.transport:
+        deprecated("core.put's 'transport'", "the step's 'target'")
 
     return int(not cijoe.put(args.src, args.dst, target=args.transport))

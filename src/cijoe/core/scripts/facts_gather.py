@@ -37,21 +37,16 @@ Retargetable: True
 import errno
 import logging as log
 import re
-from argparse import ArgumentParser
+from argparse import SUPPRESS, ArgumentParser
 
-from cijoe.core.misc import powershell, sh
+from cijoe.core.misc import deprecated, powershell, sh
 from cijoe.core.tools import check, family_of
 
 SECTIONS = ["os", "kernel", "system", "pci", "nvme", "gpu", "nic"]
 
 
 def add_args(parser: ArgumentParser):
-    parser.add_argument(
-        "--target_name",
-        type=str,
-        default=None,
-        help="The transport of the target to gather facts about; default: cijoe's.",
-    )
+    parser.add_argument("--target_name", type=str, default=None, help=SUPPRESS)
     parser.add_argument(
         "--sections",
         type=str,
@@ -511,6 +506,8 @@ def gather_section(cijoe, target, family: str, section: str):
 def main(args, cijoe):
     """Gather the facts about the target"""
 
+    if args.target_name:
+        deprecated("core.facts_gather's 'target_name'", "the step's 'target'")
     target = args.target_name or cijoe.default_target
     if target not in cijoe.targets:
         log.error(f"no target({target}); known: {', '.join(cijoe.targets)}")

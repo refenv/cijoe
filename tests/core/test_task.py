@@ -288,6 +288,31 @@ def test_task_lint_step_target(tmp_path):
             assert "no target(elsewhere); known: nowhere, initiator" in result.stderr
 
 
+def test_task_step_transport_is_a_deprecated_target(tmp_path):
+    """A step's 'with: transport:' still picks where it runs, with a warning"""
+
+    config_path = (tmp_path / "config.toml").resolve()
+    config_path.write_text(UNREACHABLE_DEFAULT)
+
+    data = {
+        "doc": "A step on the initiator, the old way",
+        "steps": [{"name": "local", "run": "true", "with": {"transport": "initiator"}}],
+    }
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
+
+    result = subprocess.run(
+        ["cijoe", str(task_file), "-o", "output", "-c", str(config_path)],
+        cwd=str(tmp_path),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (
+        "WARNING: core.cmdrunner's 'transport' is deprecated; use the step's 'target'"
+        in result.stderr
+    )
+
 
 def run_task(tmp_path, steps):
     """Run 'steps' with UNREACHABLE_DEFAULT; their status by name, and the facts"""
