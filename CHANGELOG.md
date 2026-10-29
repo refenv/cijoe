@@ -15,7 +15,9 @@ HEAD can be subject to a git rebase.
 `system_imaging.diskimage_from_oras` grows a staged image by `disk.grow`, 8G when
 it is not given, so a guest that builds large software in place can ask for the
 room, `disk.grow = "32G"`. A growth other than the default is kept in the stamp,
-so changing it re-stages the image.
+so changing it re-stages the image. Without the registry, a staged tag is used
+only if it was staged from the reference the config names, which is kept next to
+the image.
 
 ## 0.9.68
 
