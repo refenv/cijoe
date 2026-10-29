@@ -24,10 +24,9 @@ steps:
     hostname
 
 - name: create_file
+  target: initiator
   run: |
-    echo "Hello World" > /tmp/hello.txt 
-  with:
-    transport: initiator
+    echo "Hello World" > /tmp/hello.txt
 
 - name: put
   uses: core.put
@@ -42,10 +41,9 @@ steps:
     dst: /tmp/hello_from_target.txt
 
 - name: check
+  target: initiator
   run: |
     cat /tmp/hello_from_target.txt
-  with:
-    transport: initiator
 
 - name: guest_kill
   uses: qemu.guest_kill

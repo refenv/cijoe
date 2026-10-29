@@ -1,6 +1,6 @@
 #
 # This part of the CIJOE qemu package is not retargetable, that means, this
-# scripts only run on the initiator, thus, there is no "cijoe.transport"
+# scripts only run on the initiator, thus, there is no "cijoe.targets"
 # configuration here.
 #
 

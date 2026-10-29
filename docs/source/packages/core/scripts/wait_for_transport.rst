@@ -12,11 +12,11 @@ CLI arguments
 
 * ``--transport_name TRANSPORT_NAME``
 
-  Name of the transport to be used. If none is given, use the first defined transport in the config. (default: None)
+  Name of the target to wait for; default: the step's target. (default: None)
 
 * ``--state {down,up}``
 
-  Desired transport state to wait for: 'down' or 'up'. Default: up. (default: up)
+  Desired target state to wait for: 'down' or 'up'. Default: up. (default: up)
 
 * ``--timeout TIMEOUT``
 

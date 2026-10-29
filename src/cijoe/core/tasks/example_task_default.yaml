@@ -46,14 +46,12 @@ steps:
 #  uses: cijoe-script
 
 #
-# A step using 'run:' can also pass arguments to 'core.cmdrunner' via 'with:'.
-# The most common one is 'transport', selecting which transport executes the
-# commands. Without it, commands run on the first transport defined in the
-# configuration file ('initiator' if none are defined).
+# Any step can name the target it runs on with 'target:'. Without it, a step runs
+# on the default target: 'cijoe.default_target', else the first target the
+# configuration describes ('initiator' if none are).
 #
 #- name: inline_commands_on_remote
+#  target: ssh
 #  run: |
 #    hostname
 #    uname -a
-#  with:
-#    transport: ssh

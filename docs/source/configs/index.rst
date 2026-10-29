@@ -30,7 +30,7 @@ You can put whatever information about the target machine that you need in the
 configuration file. However, there are a couple of **cijoe** specific keys that
 you should avoid using for other things than the intended purpose:
 
-* SSH Transport Configuration
+* Target Configuration
 * Shell Configuration
 * Task Configuration
 
@@ -40,7 +40,7 @@ a relevant key. Thus, the those for **cijoe** itself are all stored under the
 
 .. code-block:: toml
 
-   [cijoe.transport]
+   [cijoe.targets]
    ...
 
    [cijoe.run]
@@ -50,13 +50,20 @@ a relevant key. Thus, the those for **cijoe** itself are all stored under the
    ...
 
 
-.. _sec-resources-configs-transport:
+.. _sec-resources-configs-targets:
 
-Transport Configuration
------------------------
+Target Configuration
+--------------------
 
-**cijoe** uses :paramiko:`paramiko <>` as the **ssh** implementation.
-Consequently, the values you set here are the ones used for the call to
+A **target** is a machine that **cijoe** runs commands on and transfers files
+to and from, such as a QEMU guest or a physical machine. Each is described
+under ``cijoe.targets``, by a name of your choosing, with a table saying how it
+is reached. The **initiator**, the machine **cijoe** itself runs on, is always a
+target, and needs no description.
+
+A target is reached over **ssh**. **cijoe** uses :paramiko:`paramiko <>` as the
+**ssh** implementation. Consequently, the values you set here are the ones
+used for the call to
 :paramiko_client:`connect() <#paramiko.client.SSHClient.connect>`.
 
 Authentication setup is straightforward and supports either username and
@@ -64,7 +71,7 @@ password login or key-based login. You can configure it as follows:
 
 .. code-block:: toml
 
-   [cijoe.transport.ssh]
+   [cijoe.targets.guest.ssh]
    hostname     = "foo"
    port         = 22
    username     = "bar"
@@ -81,36 +88,41 @@ that follow, with a keepalive every 30 seconds. When it has dropped, for example
 because the remote rebooted, it is made again on next use. ``cijoe.close()``
 closes it; otherwise it is closed as Python exits.
 
+Configuring multiple targets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring multiple transports
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When executing scripts over an **ssh** connection, **cijoe** connects to the
-first transport defined under the ``cijoe.transport`` key. If you need to 
-connect to multiple different transports, you can define them under different
-keys, for example:
+Commands run on the **default target**: the one ``cijoe.default_target``
+names, otherwise the first one described, or the initiator when none are.
+Describe more targets under their own names, for example:
 
 .. code-block:: toml
-   
-   [cijoe.transport.machineA]
+
+   cijoe.default_target = "machineA"
+
+   [cijoe.targets.machineA.ssh]
    hostname = "machineA"
    port = 22
    username = "foo"
    password = "bar"
 
-   [cijoe.transport.machineB]
-   hostname = "machineB"
+   [cijoe.targets.storage_node.ssh]
+   hostname = "storage_node"
    port = 22
    username = "foo"
    key_filename = "path/to/private_key"
 
-To execute commands on a specific transport, use the ``transport_name`` 
-parameter of ``cijoe.run(...)``, for example:
+A task step runs on another target by naming it, see
+:ref:`sec-resources-tasks`, and a script reaches one with the ``target``
+parameter of ``cijoe.run(...)``, ``cijoe.put(...)`` and ``cijoe.get(...)``:
 
 .. code-block:: python
 
-   cijoe.run("hostname")                             # will run on machineA
-   cijoe.run("hostname", transport_name="machineB")  # will run on machineB
+   cijoe.run("hostname")                     # will run on machineA
+   cijoe.run("hostname", target="storage_node")  # will run on storage_node
+
+Before targets, a machine was described as ``[cijoe.transport.<name>]``, and
+reached with ``transport_name=``. Both still work, as a target of that name,
+and warn.
 
 
 Shell Configuration

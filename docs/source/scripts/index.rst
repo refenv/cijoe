@@ -55,7 +55,7 @@ behavioral differences:
 
 * You **can** change where the **command** is executed!
 
-  - Via the configuration-file; see :ref:`sec-resources-configs-transport`.
+  - Via the configuration-file; see :ref:`sec-resources-configs-targets`.
 
 * You **cannot** change where the Python code is executing!
 
@@ -194,11 +194,12 @@ family, with ``"*"`` for those every family needs:
    }
 
 **cijoe** reads ``TOOLS`` from the script without running it, and checks it
-against the default target just before the step that uses the script, filling
-in a least version the declaration leaves open from the configuration's
+against the step's target just before the step that uses the script, filling in
+a least version the declaration leaves open from the configuration's
 ``[tools.<tool>]``. For a declaration per OS family, the target's family is
-taken from its facts, or asked of it once and recorded. When the target lacks any of them, the step fails without
-running the script, with one message for all it lacks:
+taken from its facts, or asked of it once and recorded. When the target lacks
+any of them, the step fails without running the script, with one message for all
+it lacks:
 
 .. code-block:: text
 
@@ -207,10 +208,9 @@ running the script, with one message for all it lacks:
      nvme, not found
 
 The check is made before each step rather than when the task starts, as an
-earlier step may install what a later one needs, and on the default target. A
-script that acts on another target, as one given ``target_name``, checks its
-tools there with a ``core.tools_check`` step that names the same target. ``cijoe -i`` lists what each
-step's script declares. See :ref:`sec-resources-facts-tools` for how tools are
+earlier step may install what a later one needs, and on the step's target, see
+:ref:`sec-resources-tasks-step-target`. ``cijoe -i`` lists what each step's
+script declares. See :ref:`sec-resources-facts-tools` for how tools are
 found and recorded as facts.
 
 
