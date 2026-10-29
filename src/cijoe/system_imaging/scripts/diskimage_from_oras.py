@@ -21,6 +21,11 @@ digest recorded in a stamp next to the qcow2; bumping the digest in the config
 re-stages. A tag, ``oras://...:v1.2.3``, is keyed on the digest it resolves to,
 so it is pulled once, and again only when the tag is moved.
 
+The qcow2 is grown by ``disk.grow`` (default ``8G``) beyond the image, as
+headroom the guest's rootfs grows into at boot; a guest that builds large
+software in place asks for more, ``disk.grow = "32G"``. A size other than the
+default is kept in the stamp too, so changing it re-stages.
+
 Restrict which images are built with a case-insensitive fnmatch ``pattern``::
 
     with:
@@ -48,6 +53,16 @@ def add_args(parser: ArgumentParser):
     parser.add_argument("--pattern", type=str, help="Pattern for image names to build")
 
 
+GROW = "8G"
+
+
+def staged(digest: str, grow: str) -> str:
+    """What the stamp of an image staged from 'digest', grown by 'grow', holds; the
+    default growth is left out, so stamps written before it was configurable hold"""
+
+    return digest if grow == GROW else f"{digest} +{grow}"
+
+
 def _curl(cijoe, url: str, headers: dict, dst: Path):
     """Pull ``url`` to ``dst`` with curl; retries and resumes on failure."""
 
@@ -71,6 +86,7 @@ def diskimage_from_oras(cijoe, image: dict):
         log.error("missing .disk entry in configuration file")
         return errno.EINVAL
     disk_path = Path(disk.get("path"))
+    grow = disk.get("grow", GROW)
 
     # Skip when the pinned image is already staged; the content digest is kept in
     # a stamp next to the qcow2 and a digest bump in the config re-stages. A tag
@@ -96,7 +112,7 @@ def diskimage_from_oras(cijoe, image: dict):
         digest
         and disk_path.exists()
         and stamp.exists()
-        and stamp.read_text().strip() == digest
+        and stamp.read_text().strip() == staged(digest, grow)
     ):
         log.info(f"image already staged at {disk_path} ({digest}); skipping pull")
         return 0
@@ -135,11 +151,11 @@ def diskimage_from_oras(cijoe, image: dict):
             return err
 
     # Headroom for the guest; cloud-init growpart grows the rootfs at boot.
-    if err := qemu_img(cijoe, f"resize {disk_path} +8G")[0]:
+    if err := qemu_img(cijoe, f"resize {disk_path} +{grow}")[0]:
         log.error(f"qemu-img resize({disk_path}): failed")
         return err
 
-    stamp.write_text(digest)
+    stamp.write_text(staged(digest, grow))
     qemu_img(cijoe, f"info {disk_path}")
     return 0
 
