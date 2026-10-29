@@ -10,6 +10,13 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.67
+
+Gathering facts is part of `cijoe.core.facts`: a script gathers the common facts
+about a target with `cijoe.core.facts.gather()`, the sections being
+`cijoe.core.facts.SECTIONS`, rather than importing them from the
+`core.facts_gather` script.
+
 ## 0.9.66
 
 A machine is described as a target, `[cijoe.targets.<name>.ssh]`, with
