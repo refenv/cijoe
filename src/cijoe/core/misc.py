@@ -126,7 +126,10 @@ def download_and_verify(url: str, url_checksum: str, path: Path):
 
             # Check that downloaded checksum file contains the checksum of
             # the downloaded file
-            new_checksum = hashlib.file_digest(dwnld, algorithm).hexdigest()
+            digest = hashlib.new(algorithm)
+            while chunk := dwnld.read(1 << 20):
+                digest.update(chunk)
+            new_checksum = digest.hexdigest()
             if new_checksum not in verification:
                 log.error(
                     f"error while downloading file: checksum ({new_checksum}) not in checksum file:\n{verification}"
