@@ -80,3 +80,23 @@ def test_decompress_strips_only_the_file_suffix(tmp_path):
     assert err == 0
     assert dst == folder / "disk.img"
     assert dst.read_bytes() == b"disk"
+
+
+def test_decompress_leaves_nothing_behind_when_interrupted(tmp_path, monkeypatch):
+    src = tmp_path / "disk.img.gz"
+    with gzip.open(src, "wb") as compressed:
+        compressed.write(b"disk")
+
+    def interrupted(fsrc, fdst):
+        fdst.write(fsrc.read(2))
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("cijoe.core.misc.shutil.copyfileobj", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        decompress_file(src)
+    monkeypatch.undo()
+
+    assert list(tmp_path.iterdir()) == [src]
+    err, dst = decompress_file(src)
+    assert err == 0
+    assert dst.read_bytes() == b"disk"
