@@ -145,7 +145,8 @@ whose tools the target lacks, or that it has no way of gathering on that family:
      - Linux, FreeBSD
    * - ``nvme``
      - ``<controller>``: ``bdf``, ``serial``, ``namespaces``, each with
-       ``nsid``, ``bdev``, ``cdev``
+       its ``bdev`` or ``cdev``, or both, and its ``nsid`` where the kernel
+       or nvme-cli gives it
      - Linux, FreeBSD, Windows, by ``PhysicalDrive<n>``
    * - ``gpu``
      - a list of the PCI functions of class display or accelerator, as in

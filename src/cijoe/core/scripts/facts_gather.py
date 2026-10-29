@@ -12,7 +12,8 @@ hardware alike, and the facts have the same layout whatever its OS:
 * system: cpus, memory_kib
 * pci: a list of bdf, vendor, device, class, driver, by bdf; a list, as a
   bdf has a dot, which a dotted key cannot hold
-* nvme.<controller>: bdf, serial, namespaces [{nsid, bdev, cdev}]
+* nvme.<controller>: bdf, serial, namespaces [{bdev and/or cdev, and nsid
+  where the kernel or nvme-cli gives it}]
 * gpu: a list of the PCI functions of class display or accelerator, each with
   its 'render' nodes on Linux
 * nic: a list of the PCI functions of class network, each with its 'netdevs'
