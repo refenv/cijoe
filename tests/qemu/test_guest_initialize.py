@@ -85,3 +85,29 @@ def test_overlay_is_a_qcow2_backed_by_the_disk_image(tmp_path):
     ).stdout
     assert f'"backing-filename": "{disk.resolve()}"' in info
     assert '"virtual-size": 67108864' in info
+
+
+def test_script_takes_the_system_image_name_from_the_config(tmp_path, monkeypatch):
+    from argparse import ArgumentParser
+
+    from cijoe.qemu.scripts import guest_initialize
+
+    disk = tmp_path / "disk.qcow2"
+    disk.write_bytes(b"")
+    config = Config(Path("guest.toml"))
+    config.options = {
+        "qemu": {"guests": {"g": {"path": str(tmp_path), "system_image_name": "i"}}},
+        "system-imaging": {"images": {"i": {"disk": {"path": str(disk)}}}},
+    }
+    cijoe = Cijoe(config, tmp_path / "output", False)
+    initialized = []
+    monkeypatch.setattr(
+        Guest, "initialize", lambda self, path, overlay: initialized.append(path)
+    )
+
+    parser = ArgumentParser()
+    guest_initialize.add_args(parser)
+    args = parser.parse_args(["--guest_name", "g"])
+
+    assert guest_initialize.main(args, cijoe) == 0
+    assert initialized == [disk]
