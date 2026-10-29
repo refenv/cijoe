@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 from cijoe.core.processing import runlog_from_path
-from cijoe.core.resources import get_resources
+from cijoe.core.resources import dict_from_tomlfile, get_resources
 
 TASK_SKELETON = {
     "doc": "Some description",
@@ -228,3 +228,122 @@ def test_task_run_multiline(tmp_path):
 
     assert len(runlog) == 1
     assert "hello world" in runlog["cmd_01"]["output"]
+
+
+UNREACHABLE_DEFAULT = '[cijoe.targets.nowhere.ssh]\nhostname = "127.0.0.1"\nport = 1\n'
+
+
+def test_task_step_target(tmp_path):
+    """A step's 'target' is where it runs; the step after it is back on the
+    default, here one that nothing answers on"""
+
+    config_path = (tmp_path / "config.toml").resolve()
+    config_path.write_text(UNREACHABLE_DEFAULT)
+
+    data = {
+        "doc": "Steps on a target of their own",
+        "steps": [
+            {"name": "local", "target": "initiator", "run": "echo hello"},
+            {"name": "default", "run": "echo hello"},
+        ],
+    }
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump(data))
+    output_path = (tmp_path / "output").resolve()
+
+    subprocess.run(
+        ["cijoe", str(task_file), "-o", str(output_path), "-c", str(config_path)],
+        cwd=str(tmp_path),
+    )
+
+    state = yaml.safe_load((output_path / "task.state").read_text())
+    status = {step["name"]: step["status"] for step in state["steps"]}
+    assert status["local"]["passed"] == 1
+    assert status["default"]["failed"] == 1
+
+    runlog = runlog_from_path(output_path / state["steps"][0]["id"])
+    assert "hello" in list(runlog.values())[0]["output"]
+
+
+def test_task_lint_step_target(tmp_path):
+    """-i accepts a step 'target' the config describes, and no other"""
+
+    config_path = (tmp_path / "config.toml").resolve()
+    config_path.write_text(UNREACHABLE_DEFAULT)
+
+    for target, returncode in [("nowhere", 0), ("initiator", 0), ("elsewhere", 22)]:
+        data = copy.deepcopy(TASK_SKELETON)
+        data["steps"][0]["target"] = target
+        task_file = (tmp_path / "task.yaml").resolve()
+        task_file.write_text(yaml.dump(data))
+
+        result = subprocess.run(
+            ["cijoe", str(task_file), "-i", "-c", str(config_path)],
+            cwd=str(tmp_path),
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == returncode, result.stderr
+        if returncode:
+            assert "no target(elsewhere); known: nowhere, initiator" in result.stderr
+
+
+
+def run_task(tmp_path, steps):
+    """Run 'steps' with UNREACHABLE_DEFAULT; their status by name, and the facts"""
+
+    config_path = (tmp_path / "config.toml").resolve()
+    config_path.write_text(UNREACHABLE_DEFAULT)
+    task_file = (tmp_path / "task.yaml").resolve()
+    task_file.write_text(yaml.dump({"doc": "Steps", "steps": steps}))
+
+    subprocess.run(
+        ["cijoe", str(task_file), "-o", "output", "-c", str(config_path)],
+        cwd=str(tmp_path),
+    )
+
+    output = tmp_path / "output"
+    state = yaml.safe_load((output / "task.state").read_text())
+    status = {step["name"]: step["status"] for step in state["steps"]}
+    facts = dict_from_tomlfile(output / "facts.toml")
+
+    return state, status, facts
+
+
+def test_task_step_target_facts(tmp_path):
+    """{{ target.* }} in a step is about the step's target"""
+
+    state, status, facts = run_task(
+        tmp_path,
+        [
+            {
+                "name": "local",
+                "target": "initiator",
+                "run": "echo family={{ target.os.family }}",
+            },
+            {"name": "default", "run": "echo family={{ target.os.family }}"},
+        ],
+    )
+    family = facts["targets"]["initiator"]["os"]["family"]
+
+    assert status["local"]["passed"] == 1
+    runlog = runlog_from_path(tmp_path / "output" / state["steps"][0]["id"])
+    assert f"family={family}" in list(runlog.values())[0]["output"]
+    assert status["default"]["failed"] == 1, "'nowhere' has no facts to read"
+
+
+def test_task_step_target_tools(tmp_path):
+    """A script's TOOLS are checked on the step's target, and recorded there"""
+
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "needs_sh.py").write_text(
+        'TOOLS = {"sh": None}\n\n\ndef main(args, cijoe):\n    return 0\n'
+    )
+
+    _, status, facts = run_task(
+        tmp_path, [{"name": "local", "target": "initiator", "uses": "needs_sh"}]
+    )
+
+    assert status["local"]["passed"] == 1
+    assert facts["targets"]["initiator"]["tools"]["sh"]["found"]
+    assert "nowhere" not in facts.get("targets", {})
