@@ -208,7 +208,7 @@ class Guest(object):
         for key, value in system_args.get("kwa", {}).items():
             args.append(f"-{key}")
             if isinstance(value, dict):
-                args.append(next((f"{opt}={val}" for opt, val in value.items())))
+                args.append(",".join(f"{opt}={val}" for opt, val in value.items()))
             else:
                 args.append(str(value))
 
