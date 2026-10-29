@@ -3,6 +3,10 @@
 Install qemu
 ============
 
+Deprecated: this will be removed in v1.0, along with building QEMU from source. Install
+QEMU from your distribution, or as upstream provides it, and point the
+qemu.systems and qemu.img_bin configuration at its binaries.
+
 This script installs qemu on the host machine. It is assumed that qemu has been
 built in advance at the given repository path.
 
@@ -20,9 +24,13 @@ import errno
 import logging as log
 from pathlib import Path
 
+from cijoe.core.misc import deprecated
+
 
 def main(args, cijoe):
     """Install qemu"""
+
+    deprecated("qemu.install")
 
     path = cijoe.getconf("qemu.repository.path", None)
     if not path:
