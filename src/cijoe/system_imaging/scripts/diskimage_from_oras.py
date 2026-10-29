@@ -18,7 +18,8 @@ shim, if one is configured in the environment, caches the transfer transparently
 
 The pull is skipped when the pinned image is already staged, keyed on the content
 digest recorded in a stamp next to the qcow2; bumping the digest in the config
-re-stages.
+re-stages. A tag, ``oras://...:v1.2.3``, is keyed on the digest it resolves to,
+so it is pulled once, and again only when the tag is moved.
 
 Restrict which images are built with a case-insensitive fnmatch ``pattern``::
 
@@ -72,9 +73,25 @@ def diskimage_from_oras(cijoe, image: dict):
     disk_path = Path(disk.get("path"))
 
     # Skip when the pinned image is already staged; the content digest is kept in
-    # a stamp next to the qcow2 and a digest bump in the config re-stages.
-    digest = oras.parse_ref(url).digest
+    # a stamp next to the qcow2 and a digest bump in the config re-stages. A tag
+    # is resolved to the digest it names now, so it is staged once, and again
+    # only if the tag moves.
+    ref = oras.parse_ref(url)
     stamp = Path(f"{disk_path}.digest")
+    resolved = None
+    if ref.digest:
+        digest = ref.digest
+    else:
+        try:
+            resolved = oras.resolve_ref(ref)
+        except oras.OrasError as exc:
+            # A staged tag needs no registry, as a staged digest does not
+            if disk_path.exists() and stamp.exists():
+                log.warning(f"cannot resolve {url} ({exc}); using staged {disk_path}")
+                return 0
+            log.error(f"cannot resolve {url}: {exc}")
+            return errno.EHOSTUNREACH
+        digest = resolved.digest
     if (
         digest
         and disk_path.exists()
@@ -84,7 +101,7 @@ def diskimage_from_oras(cijoe, image: dict):
         log.info(f"image already staged at {disk_path} ({digest}); skipping pull")
         return 0
 
-    resolved = oras.resolve_ref(url)
+    resolved = resolved or oras.resolve_ref(ref)
     disk_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Workdir on disk_path's filesystem; a /tmp overlay may be too small for the
@@ -122,7 +139,7 @@ def diskimage_from_oras(cijoe, image: dict):
         log.error(f"qemu-img resize({disk_path}): failed")
         return err
 
-    stamp.write_text(digest or "")
+    stamp.write_text(digest)
     qemu_img(cijoe, f"info {disk_path}")
     return 0
 

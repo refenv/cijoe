@@ -4,6 +4,9 @@ These cover the parts that need neither network nor qemu: the digest-keyed skip
 and the image-selection in ``main``. Any unexpected ``run_local`` fails the test.
 """
 
+import shlex
+from pathlib import Path
+
 from cijoe.system_imaging.scripts import diskimage_from_oras as mod
 
 DIGEST = "sha256:" + "a" * 64
@@ -50,3 +53,76 @@ def test_main_requires_images_config():
     import errno
 
     assert mod.main(Args(pattern="*"), FakeCijoe({})) == errno.EINVAL
+
+
+TAG = "oras://ghcr.io/safl/nosi/example:v1.2.3"
+
+
+class Resolved:
+    def __init__(self, digest):
+        self.digest = digest
+        self.blob_url = f"https://ghcr.io/v2/safl/nosi/example/blobs/{digest}"
+        self.headers = {}
+
+
+def test_tag_skips_when_the_digest_it_names_is_staged(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod.oras, "resolve_ref", lambda ref: Resolved(DIGEST))
+    disk = tmp_path / "image.qcow2"
+    disk.write_bytes(b"staged")
+    (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+
+    image = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == 0
+
+
+def test_tag_pulls_when_it_names_another_digest(tmp_path, monkeypatch):
+    moved = "sha256:" + "b" * 64
+    monkeypatch.setattr(mod.oras, "resolve_ref", lambda ref: Resolved(moved))
+    disk = tmp_path / "image.qcow2"
+    disk.write_bytes(b"staged")
+    (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+
+    class Pulling(FakeCijoe):
+        commands = []
+
+        def run_local(self, cmd):
+            self.commands.append(cmd)
+            if cmd.startswith("curl"):
+                Path(shlex.split(cmd)[shlex.split(cmd).index("-o") + 1]).write_bytes(
+                    b"qcow"
+                )
+            return 0, None
+
+    monkeypatch.setattr(mod, "qemu_img", lambda cijoe, args: (0, None))
+    cijoe = Pulling()
+    image = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
+
+    assert mod.diskimage_from_oras(cijoe, image) == 0
+    assert moved in cijoe.commands[0]
+    assert (tmp_path / "image.qcow2.digest").read_text() == moved
+
+
+class Unreachable:
+    def __init__(self, ref):
+        raise mod.oras.OrasError("no route to ghcr.io")
+
+
+def test_staged_tag_is_used_when_the_registry_is_unreachable(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod.oras, "resolve_ref", Unreachable)
+    disk = tmp_path / "image.qcow2"
+    disk.write_bytes(b"staged")
+    (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+
+    image = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == 0
+
+
+def test_unstaged_tag_fails_when_the_registry_is_unreachable(tmp_path, monkeypatch):
+    import errno
+
+    monkeypatch.setattr(mod.oras, "resolve_ref", Unreachable)
+    image = {"oras": {"url": TAG}, "disk": {"path": str(tmp_path / "image.qcow2")}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EHOSTUNREACH
