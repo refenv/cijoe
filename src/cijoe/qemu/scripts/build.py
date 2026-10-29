@@ -3,6 +3,10 @@
 Build qemu system and default tools
 ===================================
 
+Deprecated: this will be removed in v1.0, along with building QEMU from source. Install
+QEMU from your distribution, or as upstream provides it, and point the
+qemu.systems and qemu.img_bin configuration at its binaries.
+
 This script automates the process of building QEMU from its source repository at
 the given repository path. It configures the build environment with VirtFS and 
 debugging enabled.
@@ -33,9 +37,13 @@ import errno
 import logging as log
 from pathlib import Path
 
+from cijoe.core.misc import deprecated
+
 
 def main(args, cijoe):
     """Build qemu"""
+
+    deprecated("qemu.build")
 
     repos_path = cijoe.getconf("qemu.repository.path", None)
     if not repos_path:
