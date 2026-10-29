@@ -392,3 +392,22 @@ def test_runlog_skips_files_that_only_look_like_commands(tmp_path):
     (tmp_path / "cmd_log.output").write_text("not a command\n")
 
     assert list(runlog_from_path(tmp_path)) == ["cmd_01"]
+
+
+def test_task_state_starts_from_zero_for_each_load(tmp_path):
+    """A task run in the same process does not start with an earlier run's counts"""
+
+    resources = get_resources()
+    config = resources["configs"]["core.example_config_default"]
+    assert not config.load()
+
+    path = tmp_path / "task.yaml"
+    path.write_text(yaml.dump(TASK_SKELETON))
+
+    first = Task(path)
+    assert not first.load(Namespace(), config, [])
+    first.state["status"]["failed"] += 1
+
+    second = Task(path)
+    assert not second.load(Namespace(), config, [])
+    assert second.state["status"]["failed"] == 0
