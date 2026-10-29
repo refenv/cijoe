@@ -34,6 +34,28 @@ def test_emit_example_core(cijoe, tmp_path):
     assert not err
 
 
+def test_cli_example_listing_with_a_task_in_the_cwd(cijoe, tmp_path):
+    (tmp_path / "mine.yaml").write_text("doc: x\nsteps: []\n")
+
+    err, state = cijoe.run("cijoe --example", cwd=tmp_path)
+    assert not err
+    assert "core.default" in state.output()
+
+
+def test_emit_example_twice(cijoe, tmp_path):
+    for _ in range(2):
+        err, _ = cijoe.run("cijoe --example core.default", cwd=tmp_path)
+        assert not err
+
+
+def test_emit_example_that_does_not_exist(cijoe, tmp_path):
+    err, _ = cijoe.run("cijoe --example core.nosuch", cwd=tmp_path)
+    assert err
+
+    err, _ = cijoe.run("cijoe --example nosuch", cwd=tmp_path)
+    assert err
+
+
 def test_cli_version(cijoe):
     err, _ = cijoe.run("cijoe --version")
     pass
