@@ -126,3 +126,42 @@ def test_unstaged_tag_fails_when_the_registry_is_unreachable(tmp_path, monkeypat
     image = {"oras": {"url": TAG}, "disk": {"path": str(tmp_path / "image.qcow2")}}
 
     assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EHOSTUNREACH
+
+
+def test_a_growth_other_than_the_default_is_stamped_and_applied(tmp_path, monkeypatch):
+    moved = "sha256:" + "c" * 64
+    monkeypatch.setattr(mod.oras, "resolve_ref", lambda ref: Resolved(moved))
+    resized = []
+    monkeypatch.setattr(
+        mod, "qemu_img", lambda cijoe, args: resized.append(args) or (0, None)
+    )
+
+    class Pulling(FakeCijoe):
+        def run_local(self, cmd):
+            Path(shlex.split(cmd)[shlex.split(cmd).index("-o") + 1]).write_bytes(b"x")
+            return 0, None
+
+    disk = tmp_path / "image.qcow2"
+    image = {"oras": {"url": TAG}, "disk": {"path": str(disk), "grow": "32G"}}
+
+    assert mod.diskimage_from_oras(Pulling(), image) == 0
+    assert any(args.startswith("resize") and args.endswith("+32G") for args in resized)
+    assert (tmp_path / "image.qcow2.digest").read_text() == f"{moved} +32G"
+
+
+def test_changing_the_growth_restages(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod.oras, "resolve_ref", lambda ref: Resolved(DIGEST))
+    disk = tmp_path / "image.qcow2"
+    disk.write_bytes(b"staged")
+    (tmp_path / "image.qcow2.digest").write_text(DIGEST)
+
+    staged = {"oras": {"url": TAG}, "disk": {"path": str(disk)}}
+    assert mod.diskimage_from_oras(FakeCijoe(), staged) == 0, "the default is staged"
+
+    grown = {"oras": {"url": TAG}, "disk": {"path": str(disk), "grow": "32G"}}
+
+    class Refusing(FakeCijoe):
+        def run_local(self, cmd):
+            return 9, None
+
+    assert mod.diskimage_from_oras(Refusing(), grown) == 9, "another growth pulls"
