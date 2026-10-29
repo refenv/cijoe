@@ -186,7 +186,7 @@ def diskimage_from_cloudimage(cijoe, image: dict):
 def main(args, cijoe):
     """Provision a qemu-guest using a cloud-init image"""
 
-    if "pattern" not in args:
+    if not args.pattern:
         log.error("missing step-argument: with.pattern")
         return errno.EINVAL
     pattern = args.pattern
