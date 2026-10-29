@@ -13,8 +13,10 @@ from argparse import Namespace
 from pathlib import Path
 
 import pytest
+import yaml
 
 from cijoe.core.command import Cijoe
+from cijoe.core.processing import runlog_from_path
 from cijoe.core.resources import Config, dict_to_tomlfile
 
 SSHD = shutil.which("sshd") or "/usr/sbin/sshd"
@@ -93,7 +95,7 @@ def ssh_cijoe(sshd, tmp_path):
     """A cijoe whose default target is reached over SSH to localhost"""
 
     config = tmp_path / "config.toml"
-    dict_to_tomlfile({"cijoe": {"transport": {"localhost": sshd}}}, config)
+    dict_to_tomlfile({"cijoe": {"targets": {"localhost": {"ssh": sshd}}}}, config)
     cijoe = Cijoe(Config.from_path(config), tmp_path / "output", False)
 
     yield cijoe
@@ -131,13 +133,13 @@ def test_reconnect_after_close(ssh_cijoe):
     assert ssh_cijoe.run("true")[0] == 0
 
 
-def test_wait_for_transport(ssh_cijoe):
-    """The target is up, as wait_for_transport finds by its probe"""
+def test_wait_for_target(ssh_cijoe):
+    """The target is up, as wait_for_target finds by its probe"""
 
-    from cijoe.core.scripts import wait_for_transport
+    from cijoe.core.scripts import wait_for_target
 
-    args = Namespace(transport_name=None, state="up", timeout=20)
-    assert wait_for_transport.main(args, ssh_cijoe) == 0
+    args = Namespace(state="up", timeout=20)
+    assert wait_for_target.main(args, ssh_cijoe) == 0
 
 
 def test_facts_over_ssh(ssh_cijoe):
@@ -151,3 +153,39 @@ def test_facts_over_ssh(ssh_cijoe):
     uname = subprocess.run(["uname", "-s"], capture_output=True, text=True)
     kernel = ssh_cijoe.facts.get("targets.localhost.kernel.name")
     assert kernel == uname.stdout.strip()
+
+
+def test_step_target_over_ssh(sshd, tmp_path):
+    """A step with 'target:' runs over SSH; the step after it, on the default"""
+
+    config = tmp_path / "config.toml"
+    dict_to_tomlfile(
+        {
+            "cijoe": {
+                "default_target": "initiator",
+                "targets": {"localhost": {"ssh": sshd}},
+            }
+        },
+        config,
+    )
+    steps = [
+        {"name": "remote", "target": "localhost", "run": "echo at=$SSH_CONNECTION"},
+        {"name": "local", "run": "echo at=$SSH_CONNECTION"},
+    ]
+    (tmp_path / "task.yaml").write_text(yaml.dump({"doc": "SSH", "steps": steps}))
+
+    result = subprocess.run(
+        ["cijoe", "task.yaml", "-c", str(config), "-o", "output", "--report-skip"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    state = yaml.safe_load((tmp_path / "output" / "task.state").read_text())
+    remote, local = (
+        list(runlog_from_path(tmp_path / "output" / step["id"]).values())[0]
+        for step in state["steps"]
+    )
+    assert remote["output"].startswith("at=127.0.0.1 ")
+    assert not local["output"].startswith("at=127.0.0.1 ")

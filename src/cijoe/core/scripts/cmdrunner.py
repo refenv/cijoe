@@ -10,23 +10,22 @@ Usage from a task
 
 The two steps below are equivalent. The first invokes the script directly; the
 second uses the ``run:`` shorthand, which is desugared into the same call.
-Either form can carry the script's arguments (such as ``transport``) via the
-``with:`` block::
+Either form runs the commands on the step's ``target``, by default the config's
+``cijoe.default_target``::
 
     - name: explicit
+      target: guest
       uses: core.cmdrunner
       with:
         commands:
         - hostname
         - uname -a
-        transport: ssh
 
     - name: shorthand
+      target: guest
       run: |
         hostname
         uname -a
-      with:
-        transport: ssh
 
 Retargetable: True
 ------------------
@@ -34,23 +33,16 @@ Retargetable: True
 
 import errno
 import logging as log
-from argparse import ArgumentParser
+from argparse import SUPPRESS, ArgumentParser
+
+from cijoe.core.misc import deprecated
 
 
 def add_args(parser: ArgumentParser):
     parser.add_argument(
         "--commands", nargs="+", type=str, help="The commands to be run"
     )
-    parser.add_argument(
-        "--transport",
-        type=str,
-        default=None,
-        help=(
-            "The key of the transport from the cijoe config file on which the commands should be run. "
-            "Use 'initiator' if the commands should be run locally. "
-            "Defaults to the first transport in the config file ('initiator' if none are defined)."
-        ),
-    )
+    parser.add_argument("--transport", type=str, default=None, help=SUPPRESS)
 
 
 def main(args, cijoe):
@@ -60,6 +52,9 @@ def main(args, cijoe):
     if "commands" not in args:
         log.error("missing step-argument: with.commands")
         return errno.EINVAL
+
+    if args.transport:
+        deprecated("core.cmdrunner's 'transport'", "the step's 'target'")
 
     for cmd in args.commands:
         err, _ = cijoe.run(cmd, target=args.transport)

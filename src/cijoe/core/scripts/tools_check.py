@@ -26,8 +26,9 @@ Retargetable: True
 
 import errno
 import logging as log
-from argparse import ArgumentParser
+from argparse import SUPPRESS, ArgumentParser
 
+from cijoe.core.misc import deprecated
 from cijoe.core.tools import check, configured
 
 
@@ -38,12 +39,7 @@ def add_args(parser: ArgumentParser):
         default=None,
         help="Comma-separated tools to check; default: those '[tools]' describes.",
     )
-    parser.add_argument(
-        "--target_name",
-        type=str,
-        default=None,
-        help="The transport of the target to check; default: cijoe's.",
-    )
+    parser.add_argument("--target_name", type=str, default=None, help=SUPPRESS)
     parser.add_argument(
         "--refresh",
         type=str,
@@ -55,6 +51,8 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Check the target's tools, and record them as facts"""
 
+    if args.target_name:
+        deprecated("core.tools_check's 'target_name'", "the step's 'target'")
     target = args.target_name or cijoe.default_target
     if target not in cijoe.targets:
         log.error(f"no target({target}); known: {', '.join(cijoe.targets)}")

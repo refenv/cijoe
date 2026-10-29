@@ -192,28 +192,71 @@ def test_closed(remote_cijoe):
     assert err == 0 and ssh.connects == 2
 
 
-def test_wait_for_transport_probes_a_fresh_connection(remote_cijoe, monkeypatch):
+def no_waiting(monkeypatch):
+    """wait_for_target without its pauses, and with every port open"""
+
+    from cijoe.core.scripts import wait_for_target
+
+    monkeypatch.setattr(wait_for_target.time, "sleep", lambda secs: None)
+    monkeypatch.setattr(
+        wait_for_target.socket, "create_connection", lambda *a, **k: io.BytesIO()
+    )
+
+    return wait_for_target
+
+
+def test_wait_for_target_probes_a_fresh_connection(remote_cijoe, monkeypatch):
     """
-    wait_for_transport's probe connects afresh, rather than riding the kept
+    wait_for_target's probe connects afresh, rather than riding the kept
     connection, which may outlive the remote accepting new ones
     """
     import argparse
 
-    from cijoe.core.scripts import wait_for_transport
+    wait_for_target = no_waiting(monkeypatch)
 
-    monkeypatch.setattr(wait_for_transport.time, "sleep", lambda secs: None)
-    monkeypatch.setattr(
-        wait_for_transport.socket, "create_connection", lambda *a, **k: io.BytesIO()
-    )
-
-    err, _ = remote_cijoe.run("true", target="remote")
+    err, _ = remote_cijoe.run("true")
     assert not err
     ssh = remote_cijoe.targets["remote"].ssh
     assert ssh.connects == 1
 
-    args = argparse.Namespace(transport_name="remote", state="up", timeout=10)
-    assert wait_for_transport.main(args, remote_cijoe) == 0
+    args = argparse.Namespace(state="up", timeout=10)
+    assert wait_for_target.main(args, remote_cijoe) == 0
     assert ssh.connects == 2, "the probe reused the kept connection"
+
+
+def test_wait_for_target_needs_a_target(remote_cijoe, monkeypatch):
+    """There is nothing to wait for on the initiator"""
+    import argparse
+
+    wait_for_target = no_waiting(monkeypatch)
+
+    remote_cijoe.default_target = "initiator"
+    args = argparse.Namespace(state="up", timeout=10)
+    assert wait_for_target.main(args, remote_cijoe) == 1
+
+
+def test_wait_for_transport_is_a_deprecated_wait_for_target(
+    remote_cijoe, monkeypatch, capsys
+):
+    """wait_for_transport waits on 'transport_name', and leaves the step's target"""
+    import argparse
+
+    from cijoe.core.scripts import wait_for_transport
+
+    no_waiting(monkeypatch)
+
+    args = argparse.Namespace(transport_name="other", state="up", timeout=10)
+    assert wait_for_transport.main(args, remote_cijoe) == 0
+    assert remote_cijoe.targets["other"].ssh.commands == ["hostname"]
+    assert remote_cijoe.targets["remote"].ssh.commands == []
+    assert remote_cijoe.default_target == "remote"
+
+    err = capsys.readouterr().err
+    assert "core.wait_for_transport is deprecated; use core.wait_for_target" in err
+    assert "'transport_name' is deprecated; use the step's 'target'" in err
+
+    args = argparse.Namespace(transport_name="nope", state="up", timeout=10)
+    assert wait_for_transport.main(args, remote_cijoe) == 1
 
 
 def test_failed_connect_is_not_kept(remote_cijoe):

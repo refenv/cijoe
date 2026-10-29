@@ -230,7 +230,7 @@ def test_unknown_targets_and_sections_write_nothing(tmp_path):
 
 
 def test_gathering_from_a_named_task(tmp_path):
-    # cijoe's own 'target' is the task file; the step's target is 'target_name'
+    # cijoe's own 'target' is the task file, which must not collide with the step's
     import yaml
 
     from cijoe.core.resources import dict_from_tomlfile
