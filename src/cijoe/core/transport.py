@@ -1,6 +1,7 @@
 import errno
 import logging as log
 import os
+import shlex
 import shutil
 import subprocess
 import weakref
@@ -190,8 +191,11 @@ class SSH(Transport):
             prefix_env = ""
 
         cmd = f"{prefix_env}{cmd}"
-        if cwd:
+        # shlex quotes for POSIX shells and csh; cmd and pwsh quote differently
+        if cwd and self.shell in ("cmd", "pwsh"):
             cmd = f"cd {cwd}; {cmd}"
+        elif cwd:
+            cmd = f"cd {shlex.quote(str(cwd))} && {cmd}"
 
         try:
             self.__connect()
