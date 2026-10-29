@@ -144,3 +144,11 @@ def test_malformed_url_is_rejected(tmp_path):
     image = {"oras": {"url": url}, "disk": {"path": str(tmp_path / "image.qcow2")}}
 
     assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EINVAL
+
+
+def test_missing_disk_path_is_rejected():
+    import errno
+
+    image = {"oras": {"url": REF}, "disk": {"size": "8G"}}
+
+    assert mod.diskimage_from_oras(FakeCijoe(), image) == errno.EINVAL

@@ -67,10 +67,10 @@ def diskimage_from_oras(cijoe, image: dict):
         log.error("missing .oras.url entry in configuration file")
         return errno.EINVAL
 
-    if not (disk := image.get("disk", {})):
-        log.error("missing .disk entry in configuration file")
+    if not (disk_path := image.get("disk", {}).get("path")):
+        log.error("missing .disk.path entry in configuration file")
         return errno.EINVAL
-    disk_path = Path(disk.get("path"))
+    disk_path = Path(disk_path)
 
     # Skip when the pinned image is already staged; the content digest is kept in
     # a stamp next to the qcow2 and a digest bump in the config re-stages. A tag
