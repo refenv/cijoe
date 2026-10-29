@@ -16,6 +16,9 @@ default for the target cijoe.run() reaches, and a task reads them as
 Every write saves the whole set to 'facts.toml' in the output directory, so the
 report shows what was observed, and a later run can start from it with
 '--facts'. A fact never overrides config, and config never sets a fact.
+
+gather() records the common facts about a target, its SECTIONS; see
+cijoe.core.facts.gathering.
 """
 
 import copy
@@ -25,6 +28,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 import tomli_w
+
+from cijoe.core.facts.gathering import SECTIONS, gather
+
+__all__ = ["Facts", "TargetFacts", "SECTIONS", "gather"]
 
 if sys.version_info >= (3, 11):
     import tomllib  # Python 3.11 and newer

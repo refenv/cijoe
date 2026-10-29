@@ -14,7 +14,7 @@ import jinja2
 
 import cijoe.core
 from cijoe.core.command import Cijoe, default_output_path
-from cijoe.core.facts import Facts
+from cijoe.core.facts import SECTIONS, Facts, gather
 from cijoe.core.resources import (
     Config,
     Task,
@@ -601,8 +601,6 @@ def gather_initiator(cijoe: Cijoe):
         sections = [s.strip() for s in sections.split(",") if s.strip()]
     if not sections:
         return
-
-    from cijoe.core.scripts.facts_gather import SECTIONS, gather
 
     unknown = [s for s in sections if s not in SECTIONS]
     if unknown:
