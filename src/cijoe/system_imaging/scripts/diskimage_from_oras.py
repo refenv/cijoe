@@ -19,7 +19,9 @@ shim, if one is configured in the environment, caches the transfer transparently
 The pull is skipped when the pinned image is already staged, keyed on the content
 digest recorded in a stamp next to the qcow2; bumping the digest in the config
 re-stages. A tag, ``oras://...:v1.2.3``, is keyed on the digest it resolves to,
-so it is pulled once, and again only when the tag is moved.
+so it is pulled once, and again only when the tag is moved. Without the
+registry, a staged tag is used only if it was staged from that same reference,
+which is kept next to the qcow2 too.
 
 The qcow2 is grown by ``disk.grow`` (default ``8G``) beyond the image, as
 headroom the guest's rootfs grows into at boot; a guest that builds large
@@ -94,6 +96,7 @@ def diskimage_from_oras(cijoe, image: dict):
     # only if the tag moves.
     ref = oras.parse_ref(url)
     stamp = Path(f"{disk_path}.digest")
+    origin = Path(f"{disk_path}.ref")
     resolved = None
     if ref.digest:
         digest = ref.digest
@@ -101,8 +104,14 @@ def diskimage_from_oras(cijoe, image: dict):
         try:
             resolved = oras.resolve_ref(ref)
         except oras.OrasError as exc:
-            # A staged tag needs no registry, as a staged digest does not
-            if disk_path.exists() and stamp.exists():
+            # A staged tag needs no registry, as a staged digest does not, as
+            # long as it was staged from the reference the config names now
+            if (
+                disk_path.exists()
+                and stamp.exists()
+                and origin.exists()
+                and origin.read_text().strip() == url
+            ):
                 log.warning(f"cannot resolve {url} ({exc}); using staged {disk_path}")
                 return 0
             log.error(f"cannot resolve {url}: {exc}")
@@ -156,6 +165,7 @@ def diskimage_from_oras(cijoe, image: dict):
         return err
 
     stamp.write_text(staged(digest, grow))
+    origin.write_text(url)
     qemu_img(cijoe, f"info {disk_path}")
     return 0
 
