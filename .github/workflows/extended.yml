@@ -244,3 +244,27 @@ jobs:
         name: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}
         path: report-config_img-${{ matrix.image }}_${{ matrix.architecture }}.tar.gz
         if-no-files-found: error
+
+  report:
+    needs: [build, examples, test_config_images]
+    if: failure() && inputs.ref != ''
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+    - name: Open an issue about the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        RELEASE: ${{ inputs.ref }}
+        RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        title="$RELEASE: extended failed"
+        open=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" \
+          --json title --jq "[.[] | select(.title == \"$title\")] | length")
+        if [ "$open" != "0" ]; then
+          echo "There is an open issue '$title' already"
+          exit 0
+        fi
+        gh issue create --repo "$REPO" --title "$title" \
+          --body "The extended workflow failed on $RELEASE, after it was released: $RUN"
