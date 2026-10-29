@@ -6,18 +6,18 @@ steps:
 - name: diskimage_from_cloudimage
   uses: system_imaging.diskimage_from_cloudimage
   with:
-    pattern: "debian-13-aarch64"
+    pattern: "debian-13-x86_64"
 
 - name: guest_initialize
   uses: qemu.guest_initialize
   with:
-    guest_name: generic-uefi-tcg-aarch64
-    system_image_name: debian-13-aarch64
+    guest_name: generic-bios-kvm-x86_64
+    system_image_name: debian-13-x86_64
 
 - name: guest_start
   uses: qemu.guest_start
   with:
-    guest_name: generic-uefi-tcg-aarch64
+    guest_name: generic-bios-kvm-x86_64
 
 - name: guest_check
   run: |
@@ -50,4 +50,4 @@ steps:
 - name: guest_kill
   uses: qemu.guest_kill
   with:
-    guest_name: generic-uefi-tcg-aarch64
+    guest_name: generic-bios-kvm-x86_64
