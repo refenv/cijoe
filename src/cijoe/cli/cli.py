@@ -48,12 +48,6 @@ class OverrideDefaultAction(argparse._StoreAction):
         setattr(namespace, self.dest, values)
 
 
-class AppendDefaultAction(argparse._AppendAction):
-    def __call__(self, parser, namespace, values, option_string=None):
-        self.default.append(values)
-        super().__call__(parser, namespace, values, option_string)
-
-
 def _resolve_default_task_filename() -> str:
     """Pick the default task filename, honoring deprecated env var."""
 
@@ -735,8 +729,8 @@ def parse_args():
         "--config",
         "-c",
         type=Path,
-        action=AppendDefaultAction,
-        default=[],
+        action="append",
+        default=None,
         help=f"Path a Configuration file. Multiple can be specified. (default: {os.environ.get('CIJOE_DEFAULT_CONFIG', DEFAULT_CONFIG_FILENAME)})",
     )
     run_group.add_argument(
