@@ -432,3 +432,18 @@ def test_transport_name_is_a_deprecated_target(sshd, tmp_path, capsys):
         capsys.readouterr().err
     )
     cijoe.close()
+
+
+def test_run_in_a_cwd_with_a_space(ssh_cijoe, tmp_path):
+    """A cwd is quoted, and a cwd that cannot be entered fails the command"""
+
+    spaced = tmp_path / "my dir"
+    spaced.mkdir()
+
+    err, state = ssh_cijoe.run("pwd", cwd=spaced)
+    assert err == 0
+    assert state.output().strip() == str(spaced)
+
+    err, _ = ssh_cijoe.run("touch ran", cwd=tmp_path / "missing")
+    assert err != 0
+    assert not (Path.home() / "ran").exists()
