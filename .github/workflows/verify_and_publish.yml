@@ -7,14 +7,6 @@ on:
     paths-ignore:
     - "docs/**"
     - "**.md"
-  push:
-    branches:
-    - "main"
-    paths-ignore:
-    - "docs/**"
-    - "**.md"
-    tags:
-    - "v*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -56,8 +48,34 @@ jobs:
       run: |
         make format-all
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v5.0.1
+    - name: Set up Python
+      uses: actions/setup-python@v6.0.0
+      with:
+        python-version: '3.12'
+
+    - name: Build tools
+      run: |
+        make deps
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Build the sdist and wheel
+      run: |
+        make build
+
+    - name: Upload the build
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+
   unittest:
-    needs: format
+    needs: [format, build]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -91,9 +109,15 @@ jobs:
         sudo apt-get -qq update
         sudo apt-get -qq install -y qemu-utils
 
-    - name: All
+    - name: Download the build
+      uses: actions/download-artifact@v7.0.0
+      with:
+        name: dist
+        path: dist/
+
+    - name: Install the build and test it
       run: |
-        make all
+        make uninstall install info test
         cijoe -r
 
     - name: Upload coverage file
@@ -107,7 +131,7 @@ jobs:
 
 
   examples:
-    needs: format
+    needs: [format, build]
     runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
@@ -143,10 +167,16 @@ jobs:
         apt-get update -y
         apt-get install libdw-dev -y
 
-    - name: Build and install cijoe from source
+    - name: Download the build
+      uses: actions/download-artifact@v7.0.0
+      with:
+        name: dist
+        path: dist/
+
+    - name: Install the build
       run: |
         pipx uninstall cijoe
-        make deps info build install
+        make deps info install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     # This is necessary for running pytest, which is invoked in
@@ -196,7 +226,7 @@ jobs:
 
 
   test_cli:
-    needs: format
+    needs: [format, build]
     runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
@@ -235,10 +265,16 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Build and install cijoe from source
+    - name: Download the build
+      uses: actions/download-artifact@v7.0.0
+      with:
+        name: dist
+        path: dist/
+
+    - name: Install the build
       run: |
         pipx uninstall cijoe
-        make deps info build install
+        make deps info install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Emit the example configuration file and workflow
@@ -268,35 +304,6 @@ jobs:
         include-hidden-files: true
         if-no-files-found: error
 
-
-  publish:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs:
-    - unittest
-    - examples
-    - test_cli
-
-    runs-on: ubuntu-latest
-    steps:
-    - name: Grab source
-      uses: actions/checkout@v5.0.1
-    - name: Set up Python
-      uses: actions/setup-python@v6.0.0
-      with:
-        python-version: '3.10'
-
-    - name: Python dependencies and their versions
-      run: |
-        make deps
-        make info
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Build and publish
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        make release
 
   publish-coverage:
     runs-on: ${{ matrix.os }}

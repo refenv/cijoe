@@ -3,6 +3,11 @@ name: extended
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: The release to run on; default, the latest release
+        required: false
+        default: ""
   pull_request:
     types: [opened, reopened, synchronize, labeled]
 
@@ -18,11 +23,45 @@ defaults:
     shell: bash
 
 jobs:
-  examples:
+  build:
     if: >-
       github.event_name != 'pull_request' ||
       (contains(github.event.pull_request.labels.*.name, 'extended') &&
       (github.event.action != 'labeled' || github.event.label.name == 'extended'))
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get the pull request's build, or the release's
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        HEAD: ${{ github.event.pull_request.head.sha }}
+        RELEASE: ${{ inputs.ref }}
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          for _ in $(seq 60); do
+            run=$(gh run list --repo "$REPO" --workflow verify_and_publish.yml \
+              --commit "$HEAD" --limit 1 --json databaseId --jq '.[0].databaseId')
+            if [ -n "$run" ] &&
+              gh run download "$run" --repo "$REPO" --name dist --dir dist; then
+              break
+            fi
+            sleep 10
+          done
+        else
+          gh release download ${RELEASE:+"$RELEASE"} --repo "$REPO" \
+            --pattern 'cijoe-*' --dir dist
+        fi
+        ls dist/cijoe-*.tar.gz
+
+    - name: Upload the build
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+
+  examples:
+    needs: build
     runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
@@ -54,6 +93,8 @@ jobs:
     steps:
     - name: Grab source
       uses: actions/checkout@v5.0.1
+      with:
+        ref: ${{ inputs.ref }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6.0.0
       with:
@@ -64,10 +105,16 @@ jobs:
         apt-get update -y
         apt-get install libdw-dev -y
 
-    - name: Build and install cijoe from source
+    - name: Download the build
+      uses: actions/download-artifact@v7.0.0
+      with:
+        name: dist
+        path: dist/
+
+    - name: Install the build
       run: |
         pipx uninstall cijoe
-        make deps info build install
+        make deps info install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     # This is necessary for running pytest, which is invoked in
@@ -103,10 +150,7 @@ jobs:
 
 
   test_config_images:
-    if: >-
-      github.event_name != 'pull_request' ||
-      (contains(github.event.pull_request.labels.*.name, 'extended') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'extended'))
+    needs: build
     runs-on: ubuntu-22.04
 
     # This is needed for 'guestmount' / 'libguestfs'
@@ -138,6 +182,8 @@ jobs:
     steps:
     - name: Grab source
       uses: actions/checkout@v5.0.1
+      with:
+        ref: ${{ inputs.ref }}
     - name: Set up Python
       uses: actions/setup-python@v6.0.0
       with:
@@ -148,10 +194,16 @@ jobs:
         apt-get update -y
         apt-get install libdw-dev -y
 
-    - name: Build and install cijoe from source
+    - name: Download the build
+      uses: actions/download-artifact@v7.0.0
+      with:
+        name: dist
+        path: dist/
+
+    - name: Install the build
       run: |
         pipx uninstall cijoe
-        make deps info build install
+        make deps info install
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Get config file

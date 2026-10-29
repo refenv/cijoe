@@ -126,7 +126,7 @@ endef
 .PHONY: install
 install:
 	@echo "## ${PROJECT_NAME}: make install"
-	@${PIPX} install dist/*.tar.gz --force --python python3
+	@${PIPX} install dist/*.whl --force --python python3
 	@${PIPX} inject cijoe coverage --include-apps --include-deps --force
 	@${PIPX} inject cijoe pytest-cov --force
 	@echo "## ${PROJECT_NAME}: make install [DONE]"
