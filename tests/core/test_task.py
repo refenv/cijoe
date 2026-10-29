@@ -381,3 +381,14 @@ def test_task_lint_step_target_is_a_name():
     }
     errors = Task.dict_lint(Namespace(), topic)
     assert errors == ["Invalid step(1); 'target' must be a target's name"]
+
+
+def test_runlog_skips_files_that_only_look_like_commands(tmp_path):
+    """A step may leave a file such as cmd_log.txt among its command files"""
+
+    (tmp_path / "cmd_01.output").write_text("hello\n")
+    (tmp_path / "cmd_01.state").write_text("err: 0\nis_done: true\n")
+    (tmp_path / "cmd_log.txt").write_text("not a command\n")
+    (tmp_path / "cmd_log.output").write_text("not a command\n")
+
+    assert list(runlog_from_path(tmp_path)) == ["cmd_01"]
