@@ -103,7 +103,7 @@ def family_of(cijoe, target: str) -> str:
     """The OS family of 'target', one of FAMILIES or what 'uname -s' says, by
     asking it; '' when neither 'uname -s' nor PowerShell answers"""
 
-    err, state = cijoe.run("uname -s", transport_name=target)
+    err, state = cijoe.run("uname -s", target=target)
     if not err:
         name = state.output().strip().lower()
         for family in ("linux", "freebsd", "darwin"):
@@ -114,7 +114,7 @@ def family_of(cijoe, target: str) -> str:
             return "windows"
         return name
 
-    err, _ = cijoe.run(powershell("$PSVersionTable.PSVersion"), transport_name=target)
+    err, _ = cijoe.run(powershell("$PSVersionTable.PSVersion"), target=target)
     return "" if err else "windows"
 
 
@@ -214,14 +214,14 @@ def ask(cijoe, target: str, tool: str) -> dict:
         where = powershell(f"(Get-Command '{name}' -ErrorAction Stop).Source")
     else:
         where = sh(f"command -v {shlex.quote(tool)}")
-    err, state = cijoe.run(where, transport_name=target)
+    err, state = cijoe.run(where, target=target)
     if err:
         return {"name": tool, "found": False}
 
     lines = state.output().strip().splitlines()
     found = {"name": tool, "found": True, "path": lines[0] if lines else tool}
     command = (described(cijoe, tool) or {}).get("version") or f"{tool} --version"
-    err, state = cijoe.run(command, transport_name=target)
+    err, state = cijoe.run(command, target=target)
     text = state.output() if not err else ""
     version = version_of(text)
     if version:

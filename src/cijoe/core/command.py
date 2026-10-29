@@ -13,7 +13,7 @@ import yaml
 
 from cijoe.core import transport
 from cijoe.core.facts import Facts
-from cijoe.core.misc import ENCODING, sanitize_ident
+from cijoe.core.misc import ENCODING, deprecated, sanitize_ident
 from cijoe.core.resources import Config
 
 
@@ -158,30 +158,45 @@ class Cijoe(object):
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
-        self.transports = {}
+        self.targets: dict = {}
 
         targets = self.config.options.get("cijoe", {}).get("targets", {})
         for name, target in targets.items():
-            self.transports[name] = transport.SSH(
+            self.targets[name] = transport.SSH(
                 self.config, self.output_path, target["ssh"]
             )
 
-        self.transports["initiator"] = transport.Local(self.config, self.output_path)
-        self.facts.default_target = self.default_target
+        self.targets["initiator"] = transport.Local(self.config, self.output_path)
+        self.default_target = self.config.options.get("cijoe", {}).get(
+            "default_target", next(iter(self.targets))
+        )
+
+    @property
+    def transports(self) -> dict:
+        """Deprecated name of 'targets'"""
+
+        deprecated("Cijoe.transports", "Cijoe.targets")
+        return self.targets
 
     @property
     def default_target(self) -> str:
         """
         The name of the target that run(), put() and get() reach when given no
-        'transport_name': the config's 'cijoe.default_target', else the first in
-        its 'cijoe.targets', or the initiator when there is none
+        'target': the config's 'cijoe.default_target', else the first in its
+        'cijoe.targets', or the initiator when there is none. A task step's
+        'target' sets it while the step runs.
         """
 
-        return self.config.options.get("cijoe", {}).get(
-            "default_target", next(iter(self.transports))
-        )
+        return self._default_target
 
-    def set_output_ident(self, output_ident: str, transport_name=None):
+    @default_target.setter
+    def default_target(self, name: str):
+        if name not in self.targets:
+            raise ValueError(f"no target({name}); known: {', '.join(self.targets)}")
+        self._default_target = name
+        self.facts.default_target = name
+
+    def set_output_ident(self, output_ident: str, target=None, transport_name=None):
         """
         This sets the output-identifier which is used in order to provide a subfolder
         for artifacts, command-output etc. Additionally, then it reset the command
@@ -192,7 +207,7 @@ class Cijoe(object):
 
         self.run_count = 0
         self.output_ident = output_ident
-        self._get_transport(transport_name).output_ident = output_ident
+        self._get_target(target, transport_name).output_ident = output_ident
 
     def _run(self, cmd, cwd, env, transport):
         self.run_count += 1
@@ -220,19 +235,23 @@ class Cijoe(object):
 
         return err, state
 
-    def _get_transport(self, transport_name=None):
-        if not transport_name:
-            transport_name = self.default_target
-        if transport_name not in self.transports:
+    def _get_target(self, target=None, transport_name=None):
+        if transport_name:
+            deprecated("transport_name=", "target=")
+            target = target or transport_name
+        if not target:
+            target = self.default_target
+        if target not in self.targets:
             log.error(
-                f"The given transport name ({transport_name}) not valid. Must be defined in the configuration file."
+                f"The given target ({target}) not valid. Must be defined in the configuration file."
             )
 
-        return self.transports[transport_name]
+        return self.targets[target]
 
-    def run(self, cmd, cwd=None, env={}, transport_name=None):
+    def run(self, cmd, cwd=None, env={}, target=None, transport_name=None):
         """
-        Execute the given shell command/expression via 'config.transport'
+        Execute the given shell command/expression on 'target', by default the
+        default target
 
         Commands executed using this will write stdout and stderr to file. The location
         of the cmd_output is fixed to: "output_path/output_ident/cmd_XX.output", such that the
@@ -240,7 +259,7 @@ class Cijoe(object):
         convention and call set_output_ident("../..")
         """
 
-        return self._run(cmd, cwd, env, self._get_transport(transport_name))
+        return self._run(cmd, cwd, env, self._get_target(target, transport_name))
 
     def run_local(self, cmd, cwd=None, env={}):
         """
@@ -252,15 +271,16 @@ class Cijoe(object):
         convention and call set_output_ident("../..")
         """
 
-        return self._run(cmd, cwd, env, self._get_transport("initiator"))
+        return self._run(cmd, cwd, env, self._get_target("initiator"))
 
-    def put(self, src, dst, transport_name=None):
-        """Transfer 'src' on 'dev_box' to 'dst' on **test_target**"""
+    def put(self, src, dst, target=None, transport_name=None):
+        """Transfer 'src' on the initiator to 'dst' on 'target', by default the
+        default target"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         try:
-            return self._get_transport(transport_name).put(src, dst)
+            return self._get_target(target, transport_name).put(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
@@ -270,13 +290,14 @@ class Cijoe(object):
 
         return False
 
-    def get(self, src, dst, transport_name=None):
-        """Transfer 'src' on 'test_target' to 'dst' on **dev_box**"""
+    def get(self, src, dst, target=None, transport_name=None):
+        """Transfer 'src' on 'target', by default the default target, to 'dst' on
+        the initiator"""
 
         os.makedirs(os.path.join(self.output_path, self.output_ident), exist_ok=True)
 
         try:
-            return self._get_transport(transport_name).get(src, dst)
+            return self._get_target(target, transport_name).get(src, dst)
         except Exception as exc:
             log.error(f"err({exc})")
             log.debug(f"src({src}), dst({dst})")
@@ -286,17 +307,17 @@ class Cijoe(object):
 
         return False
 
-    def close(self, transport_name=None):
+    def close(self, target=None, transport_name=None):
         """
-        Close the connections the transports keep, or only the one of the named
-        transport; a later call connects again
+        Close the connections the targets' transports keep, or only the one of the
+        named target; a later call connects again
         """
 
-        if transport_name is not None:
-            self._get_transport(transport_name).close()
+        if target is not None or transport_name is not None:
+            self._get_target(target, transport_name).close()
             return
 
-        for tport in self.transports.values():
+        for tport in self.targets.values():
             tport.close()
 
     def getconf(self, key: str, default: Any = None):

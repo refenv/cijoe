@@ -39,4 +39,4 @@ def main(args, cijoe):
         log.error("missing step-argument: with.src and/or with.dst")
         return errno.EINVAL
 
-    return int(not cijoe.put(args.src, args.dst, transport_name=args.transport))
+    return int(not cijoe.put(args.src, args.dst, target=args.transport))

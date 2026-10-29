@@ -24,8 +24,8 @@ def test_targets(tmp_path, capsys):
     assert "deprecated" not in capsys.readouterr().err
 
     cijoe = Cijoe(config, tmp_path / "output", False)
-    assert list(cijoe.transports) == ["guest", "other", "initiator"]
-    assert cijoe.transports["other"].ssh_params == {"hostname": "other"}
+    assert list(cijoe.targets) == ["guest", "other", "initiator"]
+    assert cijoe.targets["other"].ssh_params == {"hostname": "other"}
     assert cijoe.default_target == "guest"
 
 

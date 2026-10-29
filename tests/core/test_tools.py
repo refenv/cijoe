@@ -45,7 +45,7 @@ class Target:
             node = node[name]
         return node
 
-    def run(self, command, transport_name=None):
+    def run(self, command, target=None):
         self.asked.append(command)
         if "command -v " in command:
             tool = command.split("command -v ")[1].strip("'")

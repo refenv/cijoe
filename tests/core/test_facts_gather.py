@@ -193,14 +193,14 @@ class Target:
 
     def __init__(self, answers, tmp_path):
         self.answers = answers
-        self.transports = {"initiator": None}
+        self.targets = {"initiator": None}
         self.default_target = "initiator"
         self.facts = Facts(tmp_path / "facts.toml")
 
     def getconf(self, key, default=None):
         return default
 
-    def run(self, command, transport_name=None):
+    def run(self, command, target=None):
         for prefix, (err, text) in self.answers.items():
             if command.startswith(prefix):
                 return err, Target.State(text)

@@ -56,8 +56,8 @@ def main(args, cijoe):
     """Check the target's tools, and record them as facts"""
 
     target = args.target_name or cijoe.default_target
-    if target not in cijoe.transports:
-        log.error(f"no target({target}); known: {', '.join(cijoe.transports)}")
+    if target not in cijoe.targets:
+        log.error(f"no target({target}); known: {', '.join(cijoe.targets)}")
         return errno.EINVAL
 
     tools = configured(cijoe)

@@ -422,7 +422,7 @@ def gather_section(cijoe, target, family: str, section: str):
     gathering them here"""
 
     def run(command):
-        err, state = cijoe.run(command, transport_name=target)
+        err, state = cijoe.run(command, target=target)
         return None if err else state.output()
 
     def ints(**values):
@@ -512,8 +512,8 @@ def main(args, cijoe):
     """Gather the facts about the target"""
 
     target = args.target_name or cijoe.default_target
-    if target not in cijoe.transports:
-        log.error(f"no target({target}); known: {', '.join(cijoe.transports)}")
+    if target not in cijoe.targets:
+        log.error(f"no target({target}); known: {', '.join(cijoe.targets)}")
         return errno.EINVAL
     sections = [s.strip() for s in args.sections.split(",") if s.strip()]
     skip = [s.strip() for s in args.skip.split(",") if s.strip()]
