@@ -10,6 +10,30 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.66
+
+A machine is described as a target, `[cijoe.targets.<name>.ssh]`, with
+`cijoe.default_target` naming the one used when nothing else does, instead of
+the first table. A task step names the target it runs on with `target:`,
+beside `uses:` or `run:`, and its commands, transfers, tool checks and `{{
+target.* }}` references are all about that target. `cijoe.run()`,
+`cijoe.put()`, `cijoe.get()` and `cijoe.close()` take `target=`, and
+`core.wait_for_target` waits on the step's target.
+
+The old spellings still work, and each warns on stderr, naming its replacement:
+
+* `[cijoe.transport.<name>]`, now `[cijoe.targets.<name>.ssh]`
+* `transport_name=` on `run()`, `put()`, `get()`, `close()` and
+  `set_output_ident()`, and `Cijoe.transports`, now `target=` and
+  `Cijoe.targets`
+* `core.wait_for_transport` and its `transport_name`, now `core.wait_for_target`
+  with the step's `target`
+* `transport` for `core.cmdrunner`, `core.put` and `core.get`, and
+  `target_name` for `core.facts_gather` and `core.tools_check`, now the step's
+  `target`
+* `transport.SSH(config, output_path, <name>)`, now given the target's
+  `[cijoe.targets.<name>.ssh]` table
+
 ## 0.9.65
 
 The `linux` package is deprecated, and will be removed at v1.0. `linux.null_blk`,
