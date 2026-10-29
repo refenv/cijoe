@@ -124,9 +124,9 @@ def remote_cijoe(tmp_path, monkeypatch):
     config = Config(Path("fake.toml"))
     config.options = {
         "cijoe": {
-            "transport": {
-                "remote": {"hostname": "remote"},
-                "other": {"hostname": "other"},
+            "targets": {
+                "remote": {"ssh": {"hostname": "remote"}},
+                "other": {"ssh": {"hostname": "other"}},
             }
         }
     }

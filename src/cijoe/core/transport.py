@@ -6,10 +6,12 @@ import subprocess
 import weakref
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Union
 
 import paramiko
 from scp import SCPClient
 
+from cijoe.core.misc import deprecated
 from cijoe.core.resources import Config
 
 
@@ -94,8 +96,17 @@ KEEPALIVE_SECONDS = 30
 class SSH(Transport):
     """Provide cmd/push/pull over SSH"""
 
-    def __init__(self, config, output_path, transport_name):
-        """Initialize the CIJOE SSH Transport"""
+    def __init__(self, config, output_path, ssh_params: Union[dict, str]):
+        """Initialize the CIJOE SSH Transport, 'ssh_params' as a target's
+        [cijoe.targets.<name>.ssh] gives them; a target's name, as it once took a
+        transport's, is deprecated"""
+
+        if isinstance(ssh_params, str):
+            deprecated("transport.SSH(config, output_path, <name>)", "its ssh table")
+            targets = config.options.get("cijoe", {}).get("targets", {})
+            ssh_params = targets.get(ssh_params, {}).get("ssh") or config.options.get(
+                "cijoe", {}
+            ).get("transport", {}).get(ssh_params)
 
         self.config = config
         self.shell = (
@@ -104,9 +115,7 @@ class SSH(Transport):
         self.output_path = output_path
 
         self.ssh = paramiko.SSHClient()
-        self.ssh_params = (
-            self.config.options.get("cijoe", {}).get("transport").get(transport_name)
-        )
+        self.ssh_params = ssh_params
 
         # Using the 'AutoAddPolicy()' *without* load_system_host_keys(), by doing so,
         # then Paramiko does not know any hosts, and simply adds them first time they
