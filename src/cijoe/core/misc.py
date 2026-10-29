@@ -6,6 +6,7 @@ import logging as log
 import lzma
 import shlex
 import shutil
+import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import Optional
@@ -13,6 +14,20 @@ from typing import Optional
 import requests
 
 ENCODING = "UTF-8"
+
+DEPRECATIONS_WARNED: set = set()
+
+
+def deprecated(old: str, new: Optional[str] = None):
+    """Warn, once per pair, that 'old' still works but 'new' replaces it, or, with
+    no 'new', that it goes away at v1.0; on stderr, since the log shows only errors
+    by default and this must be seen regardless"""
+
+    if (old, new) in DEPRECATIONS_WARNED:
+        return
+    DEPRECATIONS_WARNED.add((old, new))
+    instead = f"use {new}" if new else "it will be removed in v1.0"
+    print(f"WARNING: {old} is deprecated; {instead}", file=sys.stderr)
 
 
 def sanitize_ident(ident: str):
