@@ -29,7 +29,7 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Wait for termination of qemu guest"""
 
-    if "guest_name" not in args:
+    if not args.guest_name:
         log.error("missing argument: guest_name")
         return 1
 

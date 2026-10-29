@@ -68,7 +68,7 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Provision using an existing boot image"""
 
-    if "guest_name" not in args:
+    if not args.guest_name:
         log.error("missing argument: guest_name")
         return errno.EINVAL
 
