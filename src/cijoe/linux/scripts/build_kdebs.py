@@ -6,6 +6,8 @@ There are a myriad of ways to build and install a custom Linux kernel. This work
 builds it as a Debian package. The generated .deb packages are stored in
 cijoe.output_path.
 
+Deprecated: this will be removed in v1.0, with the rest of the linux package.
+
 Retargetable: False
 -------------------
 
@@ -16,6 +18,8 @@ It is intended to be run "locally" since, currently the collection of the genera
 import logging as log
 from argparse import ArgumentParser, _StoreAction
 from pathlib import Path
+
+from cijoe.core.misc import deprecated
 
 
 def add_args(parser: ArgumentParser):
@@ -41,6 +45,7 @@ def add_args(parser: ArgumentParser):
 def main(args, cijoe):
     """Configure, build and collect the build-artifacts"""
 
+    deprecated("linux.build_kdebs")
     path = cijoe.getconf("linux.repository.path")
     if not path:
         log.error("missing config: linux.repository.path")
