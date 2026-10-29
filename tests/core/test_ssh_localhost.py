@@ -7,12 +7,14 @@ import contextlib
 import getpass
 import os
 import shutil
+import signal
 import socket
 import subprocess
 import threading
 import time
 from argparse import Namespace
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import yaml
@@ -39,21 +41,22 @@ def free_port() -> int:
 
 
 @contextlib.contextmanager
-def running_sshd(path: Path):
-    """An sshd on 127.0.0.1 as the current user, with its keys in 'path': the
-    SSH settings of a target reaching it, and its process"""
+def running_sshd(path: Path, port: Optional[int] = None):
+    """An sshd on 127.0.0.1 as the current user, with its keys in 'path', made
+    there unless they are, on 'port' or a free one: the SSH settings of a target
+    reaching it, and its process"""
 
     if not Path(SSHD).exists() or not shutil.which("ssh-keygen"):
         unavailable("no sshd or ssh-keygen")
 
     path.mkdir(parents=True, exist_ok=True)
-    for key in ["host_key", "client_key"]:
+    for key in [k for k in ["host_key", "client_key"] if not (path / k).exists()]:
         subprocess.run(
             ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(path / key)],
             check=True,
         )
     (path / "authorized_keys").write_text((path / "client_key.pub").read_text())
-    port = free_port()
+    port = port or free_port()
     (path / "sshd_config").write_text(
         f"Port {port}\n"
         "ListenAddress 127.0.0.1\n"
@@ -258,3 +261,174 @@ def test_wait_for_target_gives_up(tmp_path):
     cijoe = cijoe_reaching(ssh, tmp_path)
 
     assert wait_for_target.main(Namespace(state="up", timeout=3), cijoe) == 1
+
+
+def test_one_connection_for_commands_and_transfers(sshd, tmp_path):
+    """The connection the first command makes is kept for those after it"""
+
+    cijoe = cijoe_reaching(sshd, tmp_path)
+    ssh = cijoe.targets["guest"].ssh
+
+    assert cijoe.run("true")[0] == 0
+    connection = ssh.get_transport()
+    assert cijoe.run("id -u")[0] == 0
+    assert cijoe.put(str(tmp_path / "config.toml"), str(tmp_path / "copied"))
+    assert cijoe.get(str(tmp_path / "copied"), str(tmp_path / "back"))
+    assert ssh.get_transport() is connection
+    cijoe.close()
+
+
+def test_close_and_connect_again(sshd, tmp_path):
+    cijoe = cijoe_reaching(sshd, tmp_path)
+    ssh = cijoe.targets["guest"].ssh
+
+    assert cijoe.run("true")[0] == 0
+    cijoe.close()
+    assert ssh.get_transport() is None
+    assert cijoe.targets["guest"].scp is None
+
+    assert cijoe.run("true")[0] == 0
+    assert ssh.get_transport().is_active()
+    cijoe.close()
+
+
+def test_close_one_target(sshd, tmp_path):
+    config = tmp_path / "config.toml"
+    dict_to_tomlfile(
+        {"cijoe": {"targets": {"a": {"ssh": sshd}, "b": {"ssh": sshd}}}}, config
+    )
+    cijoe = Cijoe(Config.from_path(config), tmp_path / "output", False)
+
+    assert cijoe.run("true", target="a")[0] == 0
+    assert cijoe.run("true", target="b")[0] == 0
+    cijoe.close("a")
+    assert cijoe.targets["a"].ssh.get_transport() is None
+    assert cijoe.targets["b"].ssh.get_transport().is_active()
+    cijoe.close()
+
+
+def test_connect_again_after_the_server_restarts(tmp_path):
+    """A connection the server dropped is made again on next use"""
+
+    with running_sshd(tmp_path / "sshd") as (ssh, server):
+        cijoe = cijoe_reaching(ssh, tmp_path)
+        assert cijoe.run("true")[0] == 0
+        kept = cijoe.targets["guest"].ssh.get_transport()
+
+        sessions = subprocess.run(
+            ["pgrep", "-P", str(server.pid)], capture_output=True, text=True
+        ).stdout.split()
+        assert sessions, "the kept connection is served by a session of its own"
+        for pid in sessions:
+            os.kill(int(pid), signal.SIGTERM)
+        server.terminate()
+        server.wait()
+
+        for _ in range(50):
+            if not kept.is_active():
+                break
+            time.sleep(0.1)
+        assert not kept.is_active()
+
+    with running_sshd(tmp_path / "sshd", ssh["port"]):
+        assert cijoe.run("true")[0] == 0
+        assert cijoe.targets["guest"].ssh.get_transport() is not kept
+        cijoe.close()
+
+
+def test_a_failed_login_is_not_kept(sshd, tmp_path):
+    subprocess.run(
+        ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(tmp_path / "other")],
+        check=True,
+    )
+    cijoe = cijoe_reaching(
+        {**sshd, "key_filename": str(tmp_path / "other"), "look_for_keys": False},
+        tmp_path,
+    )
+    ssh = cijoe.targets["guest"]
+
+    assert not cijoe.put(str(tmp_path / "config.toml"), str(tmp_path / "copied"))
+    assert ssh.ssh.get_transport() is None
+
+    ssh.ssh_params["key_filename"] = sshd["key_filename"]
+    assert cijoe.put(str(tmp_path / "config.toml"), str(tmp_path / "copied"))
+    cijoe.close()
+
+
+def test_a_failed_transfer_drops_the_connection(sshd, tmp_path):
+    cijoe = cijoe_reaching(sshd, tmp_path)
+    ssh = cijoe.targets["guest"].ssh
+
+    assert cijoe.run("true")[0] == 0
+    assert not cijoe.put(str(tmp_path / "config.toml"), "/nonexistent/dir/file")
+    assert ssh.get_transport() is None
+
+    assert cijoe.put(str(tmp_path / "config.toml"), str(tmp_path / "copied"))
+    cijoe.close()
+
+
+def test_wait_for_target_probes_a_fresh_connection(sshd, tmp_path):
+    """The probe connects afresh rather than riding the kept connection, which
+    may outlive the server accepting new ones"""
+
+    from cijoe.core.scripts import wait_for_target
+
+    cijoe = cijoe_reaching(sshd, tmp_path)
+    assert cijoe.run("true")[0] == 0
+    kept = cijoe.targets["guest"].ssh.get_transport()
+
+    assert wait_for_target.main(Namespace(state="up", timeout=20), cijoe) == 0
+    assert cijoe.targets["guest"].ssh.get_transport() is not kept
+    cijoe.close()
+
+
+def test_wait_for_target_needs_a_target(tmp_path):
+    """There is nothing to wait for on the initiator"""
+
+    from cijoe.core.scripts import wait_for_target
+
+    (tmp_path / "config.toml").write_text("")
+    cijoe = Cijoe(Config.from_path(tmp_path / "config.toml"), tmp_path / "out", False)
+
+    assert wait_for_target.main(Namespace(state="up", timeout=20), cijoe) == 1
+
+
+def test_wait_for_transport_is_a_deprecated_wait_for_target(sshd, tmp_path, capsys):
+    """wait_for_transport waits on 'transport_name', and leaves the step's
+    target as it was"""
+
+    from cijoe.core.scripts import wait_for_transport
+
+    config = tmp_path / "config.toml"
+    dict_to_tomlfile(
+        {"cijoe": {"default_target": "initiator", "targets": {"guest": {"ssh": sshd}}}},
+        config,
+    )
+    cijoe = Cijoe(Config.from_path(config), tmp_path / "output", False)
+
+    args = Namespace(transport_name="guest", state="up", timeout=20)
+    assert wait_for_transport.main(args, cijoe) == 0
+    assert cijoe.default_target == "initiator"
+    err = capsys.readouterr().err
+    assert "core.wait_for_transport is deprecated; use core.wait_for_target" in err
+    assert "'transport_name' is deprecated; use the step's 'target'" in err
+
+    args = Namespace(transport_name="nope", state="up", timeout=20)
+    assert wait_for_transport.main(args, cijoe) == 1
+    cijoe.close()
+
+
+def test_transport_name_is_a_deprecated_target(sshd, tmp_path, capsys):
+    cijoe = cijoe_reaching(sshd, tmp_path)
+
+    err, state = cijoe.run("echo $SSH_CONNECTION", transport_name="guest")
+    assert err == 0 and state.output().startswith("127.0.0.1 ")
+    assert capsys.readouterr().err == (
+        "WARNING: transport_name= is deprecated; use target=\n"
+    )
+
+    assert cijoe.transports is cijoe.targets
+    assert "Cijoe.transports is deprecated; use Cijoe.targets" in (
+        capsys.readouterr().err
+    )
+    cijoe.close()
