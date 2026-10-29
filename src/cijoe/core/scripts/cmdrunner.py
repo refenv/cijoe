@@ -49,7 +49,7 @@ def main(args, cijoe):
     """Run commands one at a time via cijoe.run()"""
 
     err = 0
-    if "commands" not in args:
+    if args.commands is None:
         log.error("missing step-argument: with.commands")
         return errno.EINVAL
 

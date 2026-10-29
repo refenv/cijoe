@@ -107,7 +107,7 @@ def pytest_cmdline(args, config_path, output_path, reportlog_path):
     cmdline += ["--output", output_path]
     cmdline += ["--report-log", reportlog_path]
 
-    if "args" in args:
+    if args.args:
         cmdline += args.args.split(" ")
 
     random_order = args.random_order
