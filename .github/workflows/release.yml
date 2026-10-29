@@ -1,0 +1,116 @@
+---
+name: release
+
+on:
+  push:
+    branches:
+    - "main"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    if: >-
+      startsWith(github.event.head_commit.message, 'ver: bump to v')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v5.0.1
+    - name: Set up Python
+      uses: actions/setup-python@v6.0.0
+      with:
+        python-version: '3.10'
+
+    - name: Check the version, and write the release notes
+      id: version
+      run: |
+        python3 .github/scripts/release.py "$(git log -1 --format=%s)" \
+          > "$RUNNER_TEMP/notes.md"
+
+    - name: Check what of the release is done already
+      id: done
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        if git fetch --quiet --depth 1 origin tag "v$VERSION" 2>/dev/null &&
+          [ "$(git rev-parse "v$VERSION^{commit}")" != "$GITHUB_SHA" ]; then
+          echo "v$VERSION is a tag of another commit"
+          exit 1
+        fi
+        if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
+          echo "released=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Require that the merged pull request was tested on this tree
+      id: pr
+      run: |
+        pr=$(gh api "repos/$REPO/commits/$GITHUB_SHA/pulls" --jq '.[0].number')
+        if [ -z "$pr" ]; then
+          echo "No pull request merged $GITHUB_SHA; release by merging one"
+          exit 1
+        fi
+        git fetch --quiet --depth 1 origin "refs/pull/$pr/head"
+        if [ "$(git rev-parse 'FETCH_HEAD^{tree}')" != "$(git rev-parse 'HEAD^{tree}')" ]; then
+          echo "#$pr was behind main when merged, so its checks ran on another tree"
+          exit 1
+        fi
+        echo "head=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+        echo "number=$pr" >> "$GITHUB_OUTPUT"
+
+    - name: Download the build the pull request tested
+      env:
+        HEAD: ${{ steps.pr.outputs.head }}
+        PR: ${{ steps.pr.outputs.number }}
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        run=$(gh run list --repo "$REPO" --workflow verify_and_publish.yml \
+          --commit "$HEAD" --status success --limit 1 \
+          --json databaseId --jq '.[0].databaseId')
+        if [ -z "$run" ]; then
+          echo "No successful verify_and_publish run of #$PR's head, $HEAD"
+          exit 1
+        fi
+        gh run download "$run" --repo "$REPO" --name dist --dir "$RUNNER_TEMP/dist"
+        ls "$RUNNER_TEMP/dist/cijoe-$VERSION.tar.gz" "$RUNNER_TEMP"/dist/cijoe-"$VERSION"-*.whl
+
+    - name: Publish tools
+      run: |
+        make deps
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Publish the build to PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        twine upload --skip-existing "$RUNNER_TEMP"/dist/*
+
+    - name: Tag and create the release
+      if: steps.done.outputs.released != 'true'
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        gh release create "v$VERSION" --repo "$REPO" --target "$GITHUB_SHA" \
+          --title "v$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+
+    - name: Attach the build to the release
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        gh release upload "v$VERSION" --repo "$REPO" --clobber "$RUNNER_TEMP"/dist/*
+
+    - name: Run the extended workflow on the release
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
+      run: |
+        gh workflow run extended.yml --repo "$REPO" --ref main -f ref="v$VERSION"
