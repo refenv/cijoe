@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=54", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "cijoe"
 dynamic = ["version"]
 description = "A loosely coupled approach to systems development and testing"
 readme = { file = "README.rst", content-type = "text/x-rst" }
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 keywords = ["systems", "development", "testing"]
 authors = [
@@ -22,7 +23,6 @@ classifiers = [
     "Framework :: Pytest",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Topic :: Software Development :: Testing",
     "Topic :: Software Development",

@@ -19,7 +19,7 @@ We have a 3 step process for contributions:
 Licensing is very important to open source projects. It helps ensure the
 software continues to be available under the terms that the author desired.
 
-CIJOE uses the Apache 2.0 LICENSE to strike a balance between open contribution
+CIJOE uses the BSD 3-Clause LICENSE to strike a balance between open contribution
 and allowing you to use the software however you would like to.
 
 The license tells you what rights you have that are provided by the copyright
