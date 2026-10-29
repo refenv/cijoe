@@ -12,11 +12,6 @@ defaults:
   run:
     shell: bash
 
-# One deployment at a time, without cancelling a run that is mid-flight
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -60,6 +55,9 @@ jobs:
   deploy:
     # Deploy on pushes to main only; PR and dispatch builds stay artifacts-only
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     needs: build
     runs-on: ubuntu-latest
     permissions:
