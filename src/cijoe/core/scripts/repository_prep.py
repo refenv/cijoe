@@ -6,6 +6,7 @@ For every key in the configuration which has a subkey named "repository", then
 following is done:
 
  * git clone repository.remote                   # if ! exists(repository.path)
+ * git remote set-url origin repository.remote
  * git checkout [repository.branch,repository.tag] # if repository.{branch,tag}
  * git pull --rebase                               # if repository.branch
  * git status
@@ -97,7 +98,25 @@ def main(args, cijoe):
         if err:
             log.info("either already cloned or failed cloning; continuing optimisticly")
 
-        err, _ = run(f"git fetch --all {depth_arg}", cwd=repos["path"])
+        err, _ = run(f"git -C {repos['path']} rev-parse --git-dir")
+        if err:
+            log.error(f"no git checkout at path({repos['path']}); cloning failed")
+            return err
+
+        # A checkout cloned before the config changed 'remote' still has the
+        # old one as origin, which lacks the commits of the new one; one made
+        # some other way may have no origin at all
+        err, _ = run(
+            f"git remote set-url origin {repos['remote']} || "
+            f"git remote add origin {repos['remote']}",
+            cwd=repos["path"],
+        )
+        if err:
+            log.error("failed setting 'origin' to repository.remote; giving up")
+            return err
+
+        # Forced, or a tag the old remote had at another commit is kept
+        err, _ = run(f"git fetch --all --tags --force {depth_arg}", cwd=repos["path"])
         if err:
             log.info("fetching failed; continuing optimisticly")
 
