@@ -10,6 +10,15 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.70
+
+`core.repository_prep` sets an existing checkout's `origin` to `repository.remote`
+before fetching, adding it where the checkout has none, so moving a repository to
+another remote in the config, as from a fork to upstream, checks out what that
+remote has instead of failing on a branch or tag the old one lacks. Tags are
+fetched with `--force`, so a tag the new remote has at another commit replaces
+the old one, and a failed clone is reported as such.
+
 ## 0.9.69
 
 `system_imaging.diskimage_from_oras` grows a staged image by `disk.grow`, 8G when
