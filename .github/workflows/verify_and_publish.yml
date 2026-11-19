@@ -17,6 +17,21 @@ defaults:
     shell: bash
 
 jobs:
+  # A release pull request must bump completely and hold all of its base, as
+  # the release is made only from the tree these checks ran on
+  release-ready:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Grab source
+      uses: actions/checkout@v5.0.1
+
+    - name: Require that a release pull request is complete and holds all of its base
+      uses: refenv/gha-project-auto-release/ready@v1
+      with:
+        version-file: src/cijoe/core/__init__.py
+        version-pattern: '^__version__ = "([^"]+)"$'
+
   format:
     runs-on: ${{ matrix.os }}
     strategy:
