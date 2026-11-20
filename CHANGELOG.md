@@ -10,6 +10,25 @@ Sections with "(Upcoming)" describe changes on the roadmap for CIJOE.
 Changes on the `master` branch, from the latest version tag up to and including
 HEAD can be subject to a git rebase.
 
+## 0.9.71
+
+Nineteen fixes from a sweep of core, cli, qemu and system_imaging. Three change
+what a user sees. `--config` given more than once loads each config once, where
+`-c a -c b` gave a, b, a, a, b. `cijoe --example` with an example that matches
+nothing exits with EINVAL instead of 0, and compares the package name whole, so
+"core" no longer matches the tasks of a package named "corex". A package's
+resources are collected only where their suffix matches their category, so a
+README.md in `tasks/` is no longer a task.
+
+`download()` returns an HTTP or connection failure as EIO, as documented, and a
+request times out after a minute without data; `download_and_verify()` fails
+when the checksums cannot be fetched. `system_imaging.diskimage_from_oras`
+returns EINVAL for a malformed `oras.url` or a disk without `path`, and
+EHOSTUNREACH where the registry cannot be reached, instead of raising. The other
+fixes are to config keys read from the environment, SSH and local command runs,
+decompression, task state, run logs, step arguments and the qemu guest, each
+named by its commit.
+
 ## 0.9.70
 
 `core.repository_prep` sets an existing checkout's `origin` to `repository.remote`
